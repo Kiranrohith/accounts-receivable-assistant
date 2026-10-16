@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ar_assistant
+      POSTGRES_PASSWORD: ar_assistant
+      POSTGRES_DB: ar_assistant
+    ports:
+      - "5433:5432"   # host 5433 -> container 5432 (5432 is taken by a local Postgres)
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ar_assistant"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"   # web UI
+      - "1025:1025"   # SMTP
+
+  api:
+    profiles: ["app"]
+    build: ./backend
+    command: uvicorn api.rest.app:app --host 0.0.0.0 --port 8000 --app-dir src
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ar_assistant:ar_assistant@postgres:5432/ar_assistant
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    ports:
+      - "8000:8000"
+    volumes:
+      - raw_files:/data/raw
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    profiles: ["app"]
+    build: ./backend
+    command: python -m jobs.runner
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ar_assistant:ar_assistant@postgres:5432/ar_assistant
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    volumes:
+      - raw_files:/data/raw
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg_data:
+  raw_files:
