@@ -1,0 +1,27 @@
+# secrets and local environment
+.env
+.venv
+
+# local-only folders: docs, sample documents, OCR model weights, uploaded/runtime files
+/docs/
+/backend/sample_data/
+/backend/models/
+/backend/data/
+
+# editor / tooling
+.vscode/
+.claude/
+.idea/
+
+# python caches and test output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# logs and local databases
+*.log
+*.sqlite3
