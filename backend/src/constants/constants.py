@@ -44,6 +44,9 @@ FX_LOOKBACK_DAYS: Final = 10  # weekends / holidays: use the latest rate publish
 # review. Covers a weekend plus a holiday run (Easter, Christmas) with room to spare.
 FX_MAX_STALE_DAYS: Final = 5
 
+# --- Mail labels (decision 60; ensure_labels() creates these at boot once the mail module exists) ---
+GMAIL_LABEL_PROCESSED_PO: Final = "AR/Processed-PO"
+
 # --- Retries and backoff (all jittered) ---
 BACKOFF_JITTER: Final = Decimal("0.30")  # +/-30%
 LLM_RETRY_DELAYS_SECONDS: Final = (3, 9)  # then fallback model, own 2-retry budget

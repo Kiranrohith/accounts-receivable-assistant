@@ -19,6 +19,7 @@ from core.exceptions.errors import (
 )
 from core.services.documents.routing import DOC_TYPE_KIND, OTHER_KIND, send_to_type_review
 from core.services.invoices.review import record_decision
+from core.services.jobs import queue
 from data.models.postgres import PendingInvoiceChange, SourceDocument, User
 from data.models.postgres.enums import (
     DocKind,
@@ -101,8 +102,8 @@ async def _lock_decidable(db: AsyncSession, user: User, review_id: uuid.UUID) ->
 
 async def choose_type(
     db: AsyncSession, user: User, review_id: uuid.UUID, body: TypeChoice
-) -> tuple[TypeDecision, uuid.UUID, DocKind]:
-    """Record the choice. Returns the decision plus what the caller must now process."""
+) -> TypeDecision:
+    """Record the choice and queue the document for that kind's extraction (one transaction)."""
     item = await _lock_decidable(db, user, review_id)
     document = await documents_repo.get_document(db, item.source_document_id)
     if document is None or not document.file_path:
@@ -114,13 +115,15 @@ async def choose_type(
         db, item, user, PendingChangeStatus.APPROVED,
         body.reason or f"Reviewer chose: this is {'an invoice' if kind is DocKind.INVOICE else 'a PO'}",
     )
+    await queue.enqueue(
+        db,
+        job_type=queue.JOB_INVOICE if kind is DocKind.INVOICE else queue.JOB_PO,
+        entity_id=document.id,
+        created_by=user.id,
+    )
     await unit_of_work.commit(db)
-    return (
-        TypeDecision(
-            review_id=item.id, status="Approved", chosen_type=body.doc_type, processing=True
-        ),
-        document.id,
-        kind,
+    return TypeDecision(
+        review_id=item.id, status="Approved", chosen_type=body.doc_type, processing=True
     )
 
 

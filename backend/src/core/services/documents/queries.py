@@ -15,6 +15,7 @@ from core.exceptions.errors import NotFoundError
 from core.services.invoices.processing import ENTITY_TYPE, ROUTE_STEP, VALIDATE_STEP
 from data.models.postgres import (
     Invoice,
+    InvoiceVersion,
     Job,
     PendingInvoiceChange,
     PurchaseOrder,
@@ -22,7 +23,7 @@ from data.models.postgres import (
     SourceDocument,
     StepLog,
 )
-from data.models.postgres.enums import DocKind, PendingChangeStatus
+from data.models.postgres.enums import DocKind, JobState, PendingChangeStatus
 from data.repositories.invoices import documents_repo, invoices_repo
 from data.repositories.platform import jobs_repo, logs_repo
 from data.repositories.purchase_orders import purchase_orders_repo
@@ -39,6 +40,7 @@ _STATUS = {"Queued": "Running", "Running": "Running", "Succeeded": "Succeeded"}
 class Outcome:
     disposition: str | None = None  # invoice_created / po_created / review / rejected / None
     invoice_id: uuid.UUID | None = None
+    invoice_version: int | None = None
     po_hold: bool = False
     purchase_order_id: uuid.UUID | None = None
     review_id: uuid.UUID | None = None
@@ -57,13 +59,22 @@ def _outcome(
     pending: PendingInvoiceChange | None,
     rejected: RejectedInvoice | None,
     route: dict,
+    superseded: InvoiceVersion | None = None,
 ) -> Outcome:
     if invoice is not None:
         return Outcome(
-            "invoice_created",
+            "version_applied" if invoice.version > 1 else "invoice_created",
             invoice_id=invoice.id,
+            invoice_version=invoice.version,
             customer_id=invoice.customer_id,
             po_hold=invoice.po_hold,
+        )
+    if superseded is not None:  # its invoice has since moved on to a newer version
+        return Outcome(
+            "version_applied" if superseded.version_no > 1 else "invoice_created",
+            invoice_id=superseded.invoice_id,
+            invoice_version=superseded.version_no,
+            customer_id=_uuid((superseded.snapshot or {}).get("customer_id")),
         )
     if order is not None:
         return Outcome("po_created", purchase_order_id=order.id, customer_id=order.customer_id)
@@ -72,7 +83,9 @@ def _outcome(
         return Outcome(
             "review",
             review_id=pending.id,
-            review_kind="document_type" if snapshot.get("kind") == "doc_type" else "extraction",
+            review_kind={"doc_type": "document_type", "invoice_version": "version"}.get(
+                snapshot.get("kind"), "extraction"
+            ),
             customer_id=_uuid(snapshot.get("matched_customer_id")),
             reasons=snapshot.get("reasons", []),
         )
@@ -93,6 +106,7 @@ def plain_status(processing_status: str, outcome: Outcome) -> str:
         return "Processing"  # also true on a re-run, when an older outcome still exists
     labels = {
         "invoice_created": "Invoice created",
+        "version_applied": "New version applied",
         "rejected": "Rejected",
         "po_created": "Purchase order created",
         "review": "Needs review",
@@ -107,7 +121,7 @@ def _extraction_fields(raw: dict) -> dict:
 def _kind(document: SourceDocument, outcome: Outcome, raw: dict) -> str:
     if document.doc_kind is DocKind.PO:
         return "po"
-    if outcome.disposition == "invoice_created" or _extraction_fields(raw):
+    if outcome.disposition in ("invoice_created", "version_applied") or _extraction_fields(raw):
         return "invoice"
     classification = raw.get("classification") or {}
     if (
@@ -130,6 +144,7 @@ def _summary(
     raw = document.raw_extraction_json or {}
     classification = raw.get("classification") or {}
     status = "Pending" if job is None else _STATUS.get(job.state.value, "Failed")
+    retrying = job is not None and job.state is JobState.QUEUED and (job.attempt_count or 0) > 0
     return DocumentUploadSummary(
         source_document_id=document.id,
         status=plain_status(status, outcome),
@@ -141,6 +156,7 @@ def _summary(
         validation_outcome=validation.outcome.value if validation else None,
         disposition=outcome.disposition,
         invoice_id=outcome.invoice_id,
+        invoice_version=outcome.invoice_version,
         po_hold=outcome.po_hold,
         purchase_order_id=outcome.purchase_order_id,
         review_id=outcome.review_id,
@@ -148,7 +164,8 @@ def _summary(
         detected_type=classification.get("doc_class"),
         detected_confidence=classification.get("confidence"),
         customer_id=outcome.customer_id,
-        error=job.last_error_message if job and status == "Failed" else None,
+        error=job.last_error_message if job and (status == "Failed" or retrying) else None,
+        retry_at=job.run_after if retrying else None,
         invoice_number=raw.get("invoice_number"),
         po_number=raw.get("po_number"),
         customer_name=raw.get("customer_name"),
@@ -163,6 +180,7 @@ async def _outcomes(
     orders = await purchase_orders_repo.purchase_orders_by_document(db, ids)
     pending = await invoices_repo.latest_pending_by_document(db, ids)
     rejected = await invoices_repo.rejected_by_document(db, ids)
+    superseded = await invoices_repo.superseded_by_document(db, ids)
     return {
         i: _outcome(
             invoices.get(i),
@@ -170,6 +188,7 @@ async def _outcomes(
             pending.get(i),
             rejected.get(i),
             (routes[i].output_summary or {}) if i in routes else {},
+            superseded.get(i),
         )
         for i in ids
     }

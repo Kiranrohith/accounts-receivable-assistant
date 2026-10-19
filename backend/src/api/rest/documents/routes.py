@@ -1,16 +1,18 @@
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.rest.dependencies import require_permission
 from core.exceptions.errors import ConflictError
-from core.services.documents.intake import process_document
+from core.services.documents.files import find_original
 from core.services.documents.queries import get_upload, list_uploads
+from core.services.documents.rerun import rerun_upload
 from core.services.invoices.upload import MAX_FILE_BYTES, store_upload
 from data.clients.db import get_db
 from data.models.postgres import User
-from schemas.documents.uploads import DocumentUploadDetail, DocumentUploadSummary
+from schemas.documents.uploads import DocumentUploadDetail, DocumentUploadSummary, RerunResult
 from schemas.invoices.responses import UploadResult
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -26,8 +28,8 @@ router = APIRouter(prefix="/documents", tags=["documents"])
         "do not say which it is. Send one PDF, Word (.docx) or image file as multipart form "
         "data (field name `file`). The file is checked (not empty, at most 20 MB, supported "
         "type, content matches the extension, PDFs at most 30 pages), saved on disk under its "
-        "sha256 hash and recorded in source_documents, then parsed once and classified in the "
-        "background as an invoice, a purchase order or neither. A confident invoice or "
+        "sha256 hash and recorded in source_documents together with a queued job; a worker then "
+        "parses it once and classifies it as an invoice, a purchase order or neither. A confident invoice or "
         "purchase order is extracted and checked; a confident 'neither' is rejected with the "
         "file kept; a doubtful one waits in GET /documents/type-reviews for you to pick the "
         "type. Poll GET /documents/uploads/{source_document_id} for progress. A rejected file "
@@ -40,7 +42,6 @@ router = APIRouter(prefix="/documents", tags=["documents"])
     },
 )
 async def upload(
-    background: BackgroundTasks,
     file: UploadFile = File(
         ...,
         description="The invoice or purchase order file (PDF, .docx or image)",
@@ -56,9 +57,59 @@ async def upload(
         raise ConflictError(
             f"This file was already uploaded (source_document_id={stored.source_document_id})"
         )
-    background.add_task(process_document, stored.source_document_id)
     return UploadResult(
         file_name=name, status="accepted", source_document_id=stored.source_document_id
+    )
+
+
+@router.post(
+    "/uploads/{source_document_id}/rerun",
+    response_model=RerunResult,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Re-run a failed upload",
+    description=(
+        "Requires failed_items.rerun. For an upload whose status is Failed (the file could not be "
+        "read, or the model stayed unavailable until the retries ran out). Queues it again, "
+        "as the same kind of job; poll GET /documents/uploads/{source_document_id}."
+    ),
+    responses={
+        404: {"description": "No such upload"},
+        409: {"description": "Its processing has not failed"},
+        422: {"description": "The file is no longer available"},
+    },
+)
+async def rerun(
+    source_document_id: uuid.UUID,
+    user: User = Depends(require_permission("failed_items.rerun")),
+    db: AsyncSession = Depends(get_db),
+) -> RerunResult:
+    return await rerun_upload(db, user, source_document_id)
+
+
+@router.get(
+    "/uploads/{source_document_id}/file",
+    summary="View the original uploaded file",
+    description=(
+        "Requires invoices.view. Sends the file as uploaded, to be shown in the browser: PDFs and "
+        "images open in the tab, so a reviewer can check the source without downloading it (use "
+        "the browser's own save button to keep a copy). A Word file cannot be shown by a browser "
+        "and downloads instead."
+    ),
+    response_class=FileResponse,
+    responses={404: {"description": "No such upload, or its file is no longer available"}},
+)
+async def original_file(
+    source_document_id: uuid.UUID,
+    _: User = Depends(require_permission("invoices.view")),
+    db: AsyncSession = Depends(get_db),
+) -> FileResponse:
+    found = await find_original(db, source_document_id)
+    return FileResponse(
+        found.path,
+        media_type=found.media_type,
+        filename=found.file_name,
+        content_disposition_type="inline",
+        headers={"X-Content-Type-Options": "nosniff"},
     )
 
 

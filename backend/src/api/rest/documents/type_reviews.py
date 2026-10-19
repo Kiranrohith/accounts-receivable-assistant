@@ -1,12 +1,11 @@
 import uuid
 from typing import Literal
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.rest.dependencies import require_permission
 from core.services.documents import type_review
-from core.services.documents.intake import process_document
 from data.clients.db import get_db
 from data.models.postgres import User
 from data.models.postgres.enums import PendingChangeStatus
@@ -74,13 +73,10 @@ async def review_detail(
 async def choose(
     review_id: uuid.UUID,
     body: TypeChoice,
-    background: BackgroundTasks,
     user: User = Depends(require_permission("invoices.review")),
     db: AsyncSession = Depends(get_db),
 ) -> TypeDecision:
-    decision, document_id, kind = await type_review.choose_type(db, user, review_id, body)
-    background.add_task(process_document, document_id, decided_kind=kind, decided_by=user.id)
-    return decision
+    return await type_review.choose_type(db, user, review_id, body)
 
 
 @router.post(

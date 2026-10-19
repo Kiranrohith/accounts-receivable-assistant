@@ -15,6 +15,7 @@ from data.models.postgres import (
     PurchaseOrderLineItem,
 )
 from data.repositories import unit_of_work
+from data.repositories.invoices import invoices_repo
 
 
 async def get_purchase_order(db: AsyncSession, po_id: uuid.UUID) -> PurchaseOrder | None:
@@ -51,7 +52,7 @@ async def insert_purchase_order(db: AsyncSession, **fields: Any) -> PurchaseOrde
 
 
 async def insert_po_lines(db: AsyncSession, rows: list[dict[str, Any]]) -> list[PurchaseOrderLineItem]:
-    lines = [PurchaseOrderLineItem(**row) for row in rows]
+    lines = [PurchaseOrderLineItem(**row) for row in invoices_repo.stamp_in_order(rows)]
     db.add_all(lines)
     await unit_of_work.flush(db)
     return lines
@@ -140,3 +141,103 @@ async def purchase_orders_by_document(
         select(PurchaseOrder).where(PurchaseOrder.source_document_id.in_(document_ids))
     )
     return {po.source_document_id: po for po in result}
+
+
+# ---------------------------------------------------------------- read side (lists)
+async def list_purchase_orders(
+    db: AsyncSession,
+    *,
+    customer_id: uuid.UUID | None,
+    search: str | None,
+    limit: int,
+    offset: int,
+) -> list[tuple[PurchaseOrder, str]]:
+    query = select(PurchaseOrder, Customer.customer_name).join(
+        Customer, Customer.id == PurchaseOrder.customer_id
+    )
+    if customer_id is not None:
+        query = query.where(PurchaseOrder.customer_id == customer_id)
+    if search:
+        escaped = search.replace("!", "!!").replace("%", "!%").replace("_", "!_")
+        query = query.where(PurchaseOrder.po_number.ilike(f"%{escaped}%", escape="!"))
+    rows = await db.execute(
+        query.order_by(PurchaseOrder.created_at.desc(), PurchaseOrder.id).limit(limit).offset(offset)
+    )
+    return [(po, name) for po, name in rows]
+
+
+async def lines_for_orders(
+    db: AsyncSession, po_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, list[PurchaseOrderLineItem]]:
+    result = await db.scalars(
+        select(PurchaseOrderLineItem)
+        .where(PurchaseOrderLineItem.po_id.in_(po_ids))
+        .order_by(PurchaseOrderLineItem.created_at, PurchaseOrderLineItem.id)
+    )
+    grouped: dict[uuid.UUID, list[PurchaseOrderLineItem]] = {i: [] for i in po_ids}
+    for line in result:
+        grouped[line.po_id].append(line)
+    return grouped
+
+
+async def invoiced_by_line(db: AsyncSession, po_ids: list[uuid.UUID]) -> dict[uuid.UUID, Decimal]:
+    """Quantity consumed per PO line (ledger sum) for several POs at once."""
+    rows = await db.execute(
+        select(PoFulfillment.po_line_item_id, func.sum(PoFulfillment.quantity_invoiced))
+        .join(PurchaseOrderLineItem, PurchaseOrderLineItem.id == PoFulfillment.po_line_item_id)
+        .where(PurchaseOrderLineItem.po_id.in_(po_ids))
+        .group_by(PoFulfillment.po_line_item_id)
+    )
+    return {line_id: total for line_id, total in rows}
+
+
+async def invoice_counts(
+    db: AsyncSession, po_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, tuple[int, int]]:
+    """(linked invoices, of which on PO hold) per PO."""
+    rows = await db.execute(
+        select(
+            PoInvoiceMatch.po_id,
+            func.count(),
+            func.count().filter(Invoice.po_hold.is_(True)),
+        )
+        .join(Invoice, Invoice.id == PoInvoiceMatch.invoice_id)
+        .where(PoInvoiceMatch.po_id.in_(po_ids))
+        .group_by(PoInvoiceMatch.po_id)
+    )
+    return {po_id: (linked, held) for po_id, linked, held in rows}
+
+
+async def linked_invoices(
+    db: AsyncSession, po_id: uuid.UUID
+) -> list[tuple[Invoice, PoInvoiceMatch]]:
+    rows = await db.execute(
+        select(Invoice, PoInvoiceMatch)
+        .join(PoInvoiceMatch, PoInvoiceMatch.invoice_id == Invoice.id)
+        .where(PoInvoiceMatch.po_id == po_id)
+        .order_by(PoInvoiceMatch.created_at, Invoice.id)
+    )
+    return [(invoice, match) for invoice, match in rows]
+
+
+async def consumed_by_invoice(db: AsyncSession, po_id: uuid.UUID) -> dict[uuid.UUID, Decimal]:
+    """Quantity each linked invoice has consumed on this PO (0 or absent while on hold)."""
+    rows = await db.execute(
+        select(PoFulfillment.invoice_id, func.sum(PoFulfillment.quantity_invoiced))
+        .join(PurchaseOrderLineItem, PurchaseOrderLineItem.id == PoFulfillment.po_line_item_id)
+        .where(PurchaseOrderLineItem.po_id == po_id)
+        .group_by(PoFulfillment.invoice_id)
+    )
+    return {invoice_id: total for invoice_id, total in rows}
+
+
+async def consumed_by_line_for_invoice(
+    db: AsyncSession, invoice_id: uuid.UUID
+) -> dict[uuid.UUID, Decimal]:
+    """Net quantity this invoice has consumed on each PO line (ledger sum)."""
+    rows = await db.execute(
+        select(PoFulfillment.po_line_item_id, func.sum(PoFulfillment.quantity_invoiced))
+        .where(PoFulfillment.invoice_id == invoice_id)
+        .group_by(PoFulfillment.po_line_item_id)
+    )
+    return {line_id: total for line_id, total in rows}

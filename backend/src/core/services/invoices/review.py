@@ -20,6 +20,7 @@ from core.exceptions.errors import (
 )
 from core.services.customers.resolution import resolve_customer
 from core.services.invoices.fx import is_foreign, rate_for_invoice
+from core.services.invoices import versioning
 from core.services.invoices.routing import create_invoice
 from core.services.invoices.validation import validate_extraction
 from data.models.postgres import PendingInvoiceChange, SourceDocument, User
@@ -173,7 +174,29 @@ async def approve_review(
         raise ValidationFailure("Cannot approve: the currency is missing; set it in the edits")
     number = edited.invoice_number.strip()
     if await invoices_repo.invoice_number_exists(db, number):
-        raise ConflictError(f"An invoice numbered {number} already exists; correct the number or reject")
+        # The number is already saved: the approved document is compared with it like any other
+        # re-upload (never a raw unique-key error).
+        outcome = await versioning.route_existing(
+            db, document, edited, customer, user.id, write_rejections=False
+        )
+        if outcome.kind in ("duplicate", "blocked"):
+            raise ConflictError(outcome.reasons[0] + "; correct the number or reject this review")
+        item.diff = {
+            "edits": body.edits.model_dump(mode="json", exclude_unset=True),
+            "customer_id": str(customer.id),
+            "version_outcome": outcome.kind,
+        }
+        record_decision(db, item, user, PendingChangeStatus.APPROVED, body.reason)
+        await unit_of_work.commit(db)
+        return ReviewDecision(
+            review_id=item.id,
+            status="Approved",
+            invoice_id=outcome.invoice_id,
+            version=outcome.version,
+            version_review_id=outcome.review_id,
+            po_hold=outcome.po_hold,
+            po_reasons=outcome.po_reasons,
+        )
 
     # Rate lookup only for a foreign invoice. No usable rate (422) or the service being
     # down (502) stops the approval; nothing is saved and the item stays pending.

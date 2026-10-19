@@ -58,7 +58,8 @@ class InvoiceDetail(InvoiceListItem):
 class RejectedItem(BaseModel):
     rejected_id: uuid.UUID
     source_document_id: uuid.UUID | None
-    kind: Literal["invoice", "purchase_order", "other"]
+    duplicate_of_source_document_id: uuid.UUID | None = None  # the earlier document this one repeats
+    kind: Literal["invoice", "purchase_order", "other", "duplicate"]
     file_name: str | None
     rejected_at: datetime | None
     reasons: list[str]  # all of them, in plain English

@@ -1,16 +1,30 @@
 import uuid
+from datetime import datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from data.models.postgres import SourceDocument
+from data.models.postgres import (
+    Invoice,
+    PendingInvoiceChange,
+    PurchaseOrder,
+    RejectedInvoice,
+    SourceDocument,
+)
 from data.models.postgres.enums import DocKind, UploadedVia
 from data.repositories import unit_of_work
 
 
 async def get_document(db: AsyncSession, document_id: uuid.UUID) -> SourceDocument | None:
     return await db.get(SourceDocument, document_id)
+
+
+async def get_document_for_update(db: AsyncSession, document_id: uuid.UUID) -> SourceDocument | None:
+    """Row-locks the document so two simultaneous re-runs cannot both queue a job."""
+    return await db.scalar(
+        select(SourceDocument).where(SourceDocument.id == document_id).with_for_update()
+    )
 
 
 async def documents_by_ids(
@@ -58,3 +72,28 @@ def save_extraction(document: SourceDocument, raw: dict, confidences: dict) -> N
     classification = (document.raw_extraction_json or {}).get("classification")
     document.raw_extraction_json = {**raw, "classification": classification} if classification else raw
     document.field_confidences = confidences
+
+
+async def has_outcome_since(db: AsyncSession, document_id: uuid.UUID, since: datetime) -> bool:
+    """True if processing already wrote this document's business outcome (an invoice or a new
+    version of one, a purchase order, a review item or a rejection) after `since`: a re-run must
+    not write it twice."""
+    touched_invoice = await db.scalar(
+        select(Invoice.id)
+        .where(
+            Invoice.source_document_id == document_id,
+            or_(Invoice.created_at >= since, Invoice.updated_at >= since),
+        )
+        .limit(1)
+    )
+    if touched_invoice is not None:
+        return True
+    for model in (PurchaseOrder, PendingInvoiceChange, RejectedInvoice):
+        found = await db.scalar(
+            select(model.id)
+            .where(model.source_document_id == document_id, model.created_at >= since)
+            .limit(1)
+        )
+        if found is not None:
+            return True
+    return False

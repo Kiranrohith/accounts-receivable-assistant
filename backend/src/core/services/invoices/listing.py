@@ -105,11 +105,12 @@ def _rejected_item(rejected: RejectedInvoice, document: SourceDocument | None) -
     reasons = rejected.rejection_reasons or []
     codes = [r.get("code", "") for r in reasons]
     snapshot = rejected.extracted_snapshot or {}
-    kind = snapshot["kind"] if snapshot.get("kind") in ("purchase_order", "other") else "invoice"
+    kind = snapshot["kind"] if snapshot.get("kind") in ("purchase_order", "other", "duplicate") else "invoice"
     file_kept = bool(document and document.file_path)
     return RejectedItem(
         rejected_id=rejected.id,
         source_document_id=rejected.source_document_id,
+        duplicate_of_source_document_id=rejected.duplicate_of_source_document_id,
         kind=kind,
         file_name=(document.file_name if document else None) or rejected.attempted_file_name,
         rejected_at=rejected.created_at,
