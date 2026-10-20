@@ -110,6 +110,7 @@ class NotificationType(str, enum.Enum):
     SEND_FAILURE = "SendFailure"
     SUGGESTION_TASK = "SuggestionTask"
     DEADLINE_WARNING = "DeadlineWarning"
+    DISPUTE_FOLLOW_UP = "DisputeFollowUp"  # the customer wrote again on a dispute that is still open
 
 
 class AliasType(str, enum.Enum):

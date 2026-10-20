@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 NotificationTypeName = Literal[
     "Escalation", "Assignment", "ShortPayment", "TDSFlip", "PaymentDuringDispute",
-    "SendFailure", "SuggestionTask", "DeadlineWarning",
+    "SendFailure", "SuggestionTask", "DeadlineWarning", "DisputeFollowUp",
 ]
 
 

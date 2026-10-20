@@ -81,6 +81,11 @@ BUSINESS_TIMEZONE: Final = "Asia/Kolkata"  # business dates IST; storage UTC
 # if the business wants them counted. Weekends are always non-working.
 HOLIDAYS_FIXED: Final = ((1, 26), (8, 15), (10, 2), (12, 25))
 DISPUTE_WARNING_WORKING_DAYS: Final = 1  # warn this many working days before a deadline
+DISPUTE_CLASSIFY_THRESHOLD: Final = 75  # category confidence below this waits for a person
+DISPUTE_DEFAULT_CONFIDENCE: Final = 100  # a person's own classification
+DISPUTE_OWNER_ROLE: Final = "FA"  # normal disputes go to the least-loaded user of this role
+DISPUTE_ESCALATION_ROLE: Final = "FTM"  # escalated ones to this role
+DISPUTE_FALLBACK_ROLE: Final = "ADM"  # when the role above has nobody active
 
 # --- Reminders and disputes ---
 REMINDER_TIERS_DAYS: Final = (1, 15, 30)

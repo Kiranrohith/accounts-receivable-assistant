@@ -38,7 +38,7 @@ _ENUMS = {
     "dispute_message_kind": ("inbound_email", "draft", "sent", "internal_note"),
     "notification_type": (
         "Escalation", "Assignment", "ShortPayment", "TDSFlip", "PaymentDuringDispute",
-        "SendFailure", "SuggestionTask", "DeadlineWarning",
+        "SendFailure", "SuggestionTask", "DeadlineWarning", "DisputeFollowUp",
     ),
 }
 
