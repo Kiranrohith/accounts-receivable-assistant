@@ -41,13 +41,17 @@ from schemas.documents.type_review import (
     TypeReviewSummary,
 )
 
-_CHOICE_TO_KIND = {"invoice": DocKind.INVOICE, "po": DocKind.PO, "payment": DocKind.PAYMENT}
-_KIND_TO_JOB = {
-    DocKind.INVOICE: queue.JOB_INVOICE,
-    DocKind.PO: queue.JOB_PO,
-    DocKind.PAYMENT: queue.JOB_PAYMENT,
+# choice -> (the document's kind, the job that reads it, a plain label). A complaint that also holds
+# a payment advice is stored as a payment (its main extraction) and runs the dispute first.
+_CHOICES = {
+    "invoice": (DocKind.INVOICE, queue.JOB_INVOICE, "an invoice"),
+    "po": (DocKind.PO, queue.JOB_PO, "a PO"),
+    "payment": (DocKind.PAYMENT, queue.JOB_PAYMENT, "a payment advice"),
+    "dispute": (DocKind.DISPUTE, queue.JOB_DISPUTE, "a customer complaint"),
+    "dispute_and_payment": (
+        DocKind.PAYMENT, queue.JOB_DISPUTE_PAYMENT, "a customer complaint that also holds a payment advice",
+    ),
 }
-_KIND_LABEL = {DocKind.INVOICE: "an invoice", DocKind.PO: "a PO", DocKind.PAYMENT: "a payment advice"}
 
 
 def _summary(item: PendingInvoiceChange, document: SourceDocument | None) -> TypeReviewSummary:
@@ -114,16 +118,16 @@ async def choose_type(
     document = await documents_repo.get_document(db, item.source_document_id)
     if document is None or not document.file_path:
         raise ValidationFailure("The file is no longer available, so it cannot be read again")
-    kind = _CHOICE_TO_KIND[body.doc_type]
+    kind, job_type, label = _CHOICES[body.doc_type]
     item.diff = {"chosen_type": body.doc_type}
     documents_repo.set_kind(document, kind)
     record_decision(
         db, item, user, PendingChangeStatus.APPROVED,
-        body.reason or f"Reviewer chose: this is {_KIND_LABEL[kind]}",
+        body.reason or f"Reviewer chose: this is {label}",
     )
     await queue.enqueue(
         db,
-        job_type=_KIND_TO_JOB[kind],
+        job_type=job_type,
         entity_id=document.id,
         created_by=user.id,
     )

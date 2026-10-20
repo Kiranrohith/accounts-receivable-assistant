@@ -6,7 +6,7 @@ from datetime import date, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.errors import NotFoundError
-from core.services.disputes import calendar
+from core.services.disputes import calendar, outbound
 from core.services.payments.listing import invoice_payments
 from data.models.postgres import Dispute
 from data.models.postgres.enums import DisputeCategory, DisputeStatus
@@ -201,7 +201,8 @@ async def get_dispute(db: AsyncSession, dispute_id: uuid.UUID) -> DisputeDetail:
         DisputeMessageOut(
             message_id=m.id,
             kind=m.kind.value,
-            body=m.body,
+            subject=outbound.split(m.body)[0] if m.kind.value in ("draft", "sent") else None,
+            body=outbound.split(m.body)[1] if m.kind.value in ("draft", "sent") else m.body,
             sent_at=m.sent_at,
             author_id=m.created_by,
             author_name=name,

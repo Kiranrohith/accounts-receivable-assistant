@@ -1,4 +1,4 @@
-"""Read side for uploaded documents of every kind (invoice, purchase order, neither).
+"""Read side for uploaded documents of every kind (invoice, purchase order, payment, complaint, neither).
 
 What became of a document (`disposition`) is read from the business tables themselves
 (invoice / purchase order / pending review / rejected row), so it stays correct after a review
@@ -14,6 +14,7 @@ from constants.constants import TRIAGE_HUMAN_THRESHOLD
 from core.exceptions.errors import NotFoundError
 from core.services.invoices.processing import ENTITY_TYPE, ROUTE_STEP, VALIDATE_STEP
 from data.models.postgres import (
+    Dispute,
     Invoice,
     InvoiceVersion,
     Job,
@@ -24,12 +25,14 @@ from data.models.postgres import (
     SourceDocument,
     StepLog,
 )
-from data.models.postgres.enums import DocKind, JobState, PaymentState, PendingChangeStatus
+from data.models.postgres.enums import DisputeStatus, DocKind, JobState, PaymentState, PendingChangeStatus
+from data.repositories.disputes import disputes_repo
 from data.repositories.invoices import documents_repo, invoices_repo
 from data.repositories.payments import payments_repo
 from data.repositories.platform import jobs_repo, logs_repo
 from data.repositories.purchase_orders import purchase_orders_repo
 from schemas.documents.uploads import DocumentUploadDetail, DocumentUploadSummary
+from schemas.disputes.extraction import ExtractedDispute
 from schemas.invoices.extraction import ExtractedInvoice
 from schemas.invoices.responses import StepOut
 from schemas.invoices.validation import ValidationResult
@@ -51,6 +54,7 @@ class Outcome:
     payment_id: uuid.UUID | None = None
     payment_state: str | None = None
     customer_id: uuid.UUID | None = None
+    dispute_ids: list[uuid.UUID] = field(default_factory=list)  # complaints this document raised
     reasons: list[str] = field(default_factory=list)
 
 
@@ -66,6 +70,7 @@ def _outcome(
     route: dict,
     superseded: InvoiceVersion | None = None,
     payment: Payment | None = None,
+    disputes: list[Dispute] | None = None,
 ) -> Outcome:
     if invoice is not None:
         return Outcome(
@@ -84,8 +89,12 @@ def _outcome(
         )
     if order is not None:
         return Outcome("po_created", purchase_order_id=order.id, customer_id=order.customer_id)
-    if payment is not None:
-        return _payment_outcome(payment)
+    if payment is not None:  # a complaint in the same document is listed beside the payment
+        outcome = _payment_outcome(payment)
+        outcome.dispute_ids = [d.id for d in disputes or []]
+        return outcome
+    if disputes:
+        return _dispute_outcome(disputes)
     if pending is not None and pending.status is PendingChangeStatus.PENDING:
         snapshot = pending.proposed_snapshot or {}
         return Outcome(
@@ -104,6 +113,20 @@ def _outcome(
             reasons=[r.get("message", "") for r in (rejected.rejection_reasons or [])],
         )
     return Outcome()
+
+
+def _dispute_outcome(disputes: list[Dispute]) -> Outcome:
+    waiting = [d for d in disputes if d.status is DisputeStatus.RAISED]
+    common = dict(
+        dispute_ids=[d.id for d in disputes],
+        customer_id=next((d.customer_id for d in disputes if d.customer_id), None),
+    )
+    if waiting:  # nobody has classified it yet: it sits in the classify queue
+        return Outcome(
+            "dispute_queued", review_id=waiting[0].id, review_kind="dispute_classification",
+            reasons=["Waiting in the dispute classify queue"], **common,
+        )
+    return Outcome("dispute_created", **common)
 
 
 _PAYMENT_DISPOSITION = {
@@ -139,6 +162,8 @@ def plain_status(processing_status: str, outcome: Outcome) -> str:
         "version_applied": "New version applied",
         "rejected": "Rejected",
         "po_created": "Purchase order created",
+        "dispute_created": "Dispute created",
+        "dispute_queued": "Dispute needs classification",
         "payment_received": "Payment received",
         "payment_applied": "Payment applied",
         "payment_partly_applied": "Payment partly applied",
@@ -149,7 +174,7 @@ def plain_status(processing_status: str, outcome: Outcome) -> str:
 
 
 def _extraction_fields(raw: dict) -> dict:
-    return {k: v for k, v in raw.items() if k != "classification"}
+    return {k: v for k, v in raw.items() if k not in ("classification", "dispute_extraction")}
 
 
 def _kind(document: SourceDocument, outcome: Outcome, raw: dict) -> str:
@@ -157,6 +182,8 @@ def _kind(document: SourceDocument, outcome: Outcome, raw: dict) -> str:
         return "po"
     if document.doc_kind is DocKind.PAYMENT:
         return "payment"
+    if document.doc_kind is DocKind.DISPUTE:
+        return "dispute"
     if outcome.disposition in ("invoice_created", "version_applied") or _extraction_fields(raw):
         return "invoice"
     classification = raw.get("classification") or {}
@@ -199,6 +226,8 @@ def _summary(
         review_kind=outcome.review_kind,
         payment_id=outcome.payment_id,
         payment_state=outcome.payment_state,
+        dispute_id=outcome.dispute_ids[0] if outcome.dispute_ids else None,
+        dispute_ids=outcome.dispute_ids,
         detected_type=classification.get("doc_class"),
         detected_confidence=classification.get("confidence"),
         customer_id=outcome.customer_id,
@@ -221,6 +250,7 @@ async def _outcomes(
     rejected = await invoices_repo.rejected_by_document(db, ids)
     superseded = await invoices_repo.superseded_by_document(db, ids)
     payments = await payments_repo.payments_by_document(db, ids)
+    disputes = await disputes_repo.disputes_by_documents(db, ids)
     return {
         i: _outcome(
             invoices.get(i),
@@ -230,6 +260,7 @@ async def _outcomes(
             (routes[i].output_summary or {}) if i in routes else {},
             superseded.get(i),
             payments.get(i),
+            disputes.get(i),
         )
         for i in ids
     }
@@ -252,7 +283,9 @@ def _extraction(kind: str, raw: dict) -> dict | None:
     fields = _extraction_fields(raw)
     if not fields:
         return None
-    model = {"po": ExtractedPurchaseOrder, "payment": ExtractedPayment}.get(kind, ExtractedInvoice)
+    model = {"po": ExtractedPurchaseOrder, "payment": ExtractedPayment, "dispute": ExtractedDispute}.get(
+        kind, ExtractedInvoice
+    )
     try:
         return model.model_validate(fields).model_dump(mode="json")
     except ValueError:  # an extraction of the other shape: show what was stored
@@ -276,6 +309,7 @@ async def get_upload(db: AsyncSession, document_id: uuid.UUID) -> DocumentUpload
         **summary.model_dump(),
         extraction=_extraction(summary.document_kind, raw),
         classification=raw.get("classification"),
+        dispute_extraction=raw.get("dispute_extraction"),
         validation_issues=validation.issues if validation else [],
         disposition_reasons=outcome.reasons,
         linked_invoices=(

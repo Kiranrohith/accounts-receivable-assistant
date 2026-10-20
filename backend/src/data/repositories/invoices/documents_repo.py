@@ -6,6 +6,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from data.models.postgres import (
+    Dispute,
     Invoice,
     Payment,
     PendingInvoiceChange,
@@ -70,9 +71,16 @@ def save_classification(document: SourceDocument, classification: dict) -> None:
 
 
 def save_extraction(document: SourceDocument, raw: dict, confidences: dict) -> None:
-    classification = (document.raw_extraction_json or {}).get("classification")
-    document.raw_extraction_json = {**raw, "classification": classification} if classification else raw
+    previous = document.raw_extraction_json or {}
+    kept = {k: previous[k] for k in ("classification", "dispute_extraction") if previous.get(k)}
+    document.raw_extraction_json = {**raw, **kept}
     document.field_confidences = confidences
+
+
+def save_dispute_extraction(document: SourceDocument, raw: dict) -> None:
+    """The complaint read from a document that ALSO holds a payment advice. The payment's own
+    fields stay the document's main extraction; this one is kept beside them."""
+    document.raw_extraction_json = {**(document.raw_extraction_json or {}), "dispute_extraction": raw}
 
 
 async def has_outcome_since(db: AsyncSession, document_id: uuid.UUID, since: datetime) -> bool:
@@ -89,7 +97,7 @@ async def has_outcome_since(db: AsyncSession, document_id: uuid.UUID, since: dat
     )
     if touched_invoice is not None:
         return True
-    for model in (PurchaseOrder, Payment, PendingInvoiceChange, RejectedInvoice):
+    for model in (PurchaseOrder, Payment, Dispute, PendingInvoiceChange, RejectedInvoice):
         found = await db.scalar(
             select(model.id)
             .where(model.source_document_id == document_id, model.created_at >= since)

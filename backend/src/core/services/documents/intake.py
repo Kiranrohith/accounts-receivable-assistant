@@ -1,13 +1,16 @@
-"""The combined intake pipeline for one uploaded document (invoice, purchase order or payment advice).
+"""The combined intake pipeline for one uploaded document (invoice, purchase order, payment advice
+or customer complaint).
 
-parse once -> classify (invoice | po | payment | other | unclear + confidence) -> route:
-  invoice / po / payment, confident -> that kind's extraction, validation, matching and routing
+parse once -> classify (invoice | po | payment | dispute | other | unclear + confidence) -> route:
+  invoice / po / payment / dispute, confident -> that kind's extraction, validation, matching, routing
+  a complaint that also holds a payment advice (or the reverse) -> BOTH, the dispute first
   other, confident          -> rejected-uploads entry, file kept, no extraction
   low confidence / unclear  -> doc-type review queue (a person picks the type or rejects)
 
-A person's choice from the queue re-enters here as a job of type invoice_extraction,
-po_extraction or payment_extraction, which skips the classifier. Whatever the route, the job ends Succeeded: a business
-outcome is not a job failure. A failure that may pass (every model down) is retried by the queue.
+A person's choice from the queue re-enters here as a job of type invoice_extraction, po_extraction,
+payment_extraction, dispute_extraction or dispute_payment_extraction, which skips the classifier.
+Whatever the route, the job ends Succeeded: a business outcome is not a job failure. A failure that
+may pass (every model down) is retried by the queue.
 """
 
 import uuid
@@ -16,12 +19,14 @@ from datetime import UTC, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.constants import TRIAGE_HUMAN_THRESHOLD
+from core.services.disputes.processing import run_dispute_steps
 from core.services.documents.classification import (
     ClassificationOutcome,
     ExtractionError,
     Route,
     classify_document,
     decide_route,
+    kinds_for,
 )
 from core.services.documents.routing import reject_as_other, send_to_type_review
 from core.services.invoices.processing import (
@@ -38,64 +43,77 @@ from data.models.postgres import Job, SourceDocument
 from data.models.postgres.enums import DocKind, JobState, StepResult
 from data.repositories import unit_of_work
 from data.repositories.invoices import documents_repo
+from data.repositories.payments import payments_repo
 from data.repositories.platform import jobs_repo
-from schemas.documents.classification import DocumentClass
+from schemas.documents.classification import DocClassification
 
 CLASSIFY_STEP = "classify"
 ROUTE_STEP = "route"
 
-_KIND_TO_CLASS = {
-    DocKind.INVOICE: DocumentClass.INVOICE,
-    DocKind.PO: DocumentClass.PO,
-    DocKind.PAYMENT: DocumentClass.PAYMENT,
+# A job of these types was queued by a person choosing the kind(s): the classifier is skipped.
+# The dispute always runs before the payment.
+_DECIDED_KINDS: dict[str, list[DocKind]] = {
+    queue.JOB_INVOICE: [DocKind.INVOICE],
+    queue.JOB_PO: [DocKind.PO],
+    queue.JOB_PAYMENT: [DocKind.PAYMENT],
+    queue.JOB_DISPUTE: [DocKind.DISPUTE],
+    queue.JOB_DISPUTE_PAYMENT: [DocKind.DISPUTE, DocKind.PAYMENT],
 }
-_ROUTE_TO_KIND = {
-    Route.INVOICE: DocKind.INVOICE,
-    Route.PO: DocKind.PO,
-    Route.PAYMENT: DocKind.PAYMENT,
-}
-# A job of these types was queued by a person choosing the kind: the classifier is skipped.
-_DECIDED_KIND = {
-    queue.JOB_INVOICE: DocKind.INVOICE,
-    queue.JOB_PO: DocKind.PO,
-    queue.JOB_PAYMENT: DocKind.PAYMENT,
-}
+
+
+def _intended_kinds(job: Job, document: SourceDocument) -> list[DocKind]:
+    """What this document is to be processed as, from a person's choice or the stored verdict."""
+    decided = _DECIDED_KINDS.get(job.job_type)
+    if decided:
+        return decided
+    verdict = (document.raw_extraction_json or {}).get("classification")
+    return kinds_for(DocClassification.model_validate(verdict)) if verdict else []
 
 
 async def handle(db: AsyncSession, job: Job, document: SourceDocument) -> None:
-    """Job handler for document_intake / invoice_extraction / po_extraction / payment_extraction."""
+    """Job handler for document_intake and the kind-decided extraction jobs."""
+    kinds_left: list[DocKind] | None = None
     if (job.attempt_count or 0) > 1 and await documents_repo.has_outcome_since(
         db, document.id, job.queued_at
     ):
-        # An earlier attempt got as far as writing the outcome before its worker died: do not
+        # An earlier attempt got as far as writing an outcome before its worker died: do not
         # write it twice. (A payment still waiting to be matched is the one thing left to do.)
         if document.doc_kind is DocKind.PAYMENT and await resume_matching(db, job, document):
             return
-        await finish_job(db, job, JobState.SUCCEEDED)
-        return
-    decided_kind = _DECIDED_KIND.get(job.job_type)
-    await _run_steps(db, job, document, decided_kind, job.created_by if decided_kind else None)
+        intended = _intended_kinds(job, document)
+        if (
+            DocKind.DISPUTE in intended
+            and DocKind.PAYMENT in intended
+            and document.id not in await payments_repo.payments_by_document(db, [document.id])
+        ):
+            kinds_left = intended  # the complaint was raised, its payment was not: carry on
+        else:
+            await finish_job(db, job, JobState.SUCCEEDED)
+            return
+    decided = kinds_left or _DECIDED_KINDS.get(job.job_type)
+    await _run_steps(db, job, document, decided, job.created_by if decided else None)
 
 
 async def _run_steps(
     db: AsyncSession,
     job: Job,
     document: SourceDocument,
-    decided_kind: DocKind | None,
+    decided_kinds: list[DocKind] | None,
     decided_by: uuid.UUID | None,
 ) -> None:
     parsed = await parse_step(db, job, document)
     if parsed is None:
         return
 
-    if decided_kind is not None:
-        kind = decided_kind
+    if decided_kinds is not None:
+        kinds = decided_kinds
         log_step(
             db, job, document.id, datetime.now(UTC), step_name=CLASSIFY_STEP,
             result=StepResult.SUCCESS,
             output_summary={
                 "source": "human",
-                "doc_class": _KIND_TO_CLASS[kind].value,
+                "doc_class": kinds[-1].value,
+                "kinds": [k.value for k in kinds],
                 "decided_by": str(decided_by) if decided_by else None,
             },
         )
@@ -119,16 +137,25 @@ async def _run_steps(
         if route in (Route.REJECT_OTHER, Route.REVIEW):
             await _stop_after_classification(db, job, document, outcome, route)
             return
-        kind = _ROUTE_TO_KIND[route]
+        kinds = kinds_for(outcome.result)
 
-    if kind is DocKind.PO:
-        documents_repo.set_kind(document, DocKind.PO)
+    if DocKind.DISPUTE in kinds:  # the complaint first, so a payment in the same document sees it
+        with_payment = DocKind.PAYMENT in kinds
+        documents_repo.set_kind(document, DocKind.PAYMENT if with_payment else DocKind.DISPUTE)
         await unit_of_work.commit(db)
-        await run_po_steps(db, job, document, parsed.markdown)
-    elif kind is DocKind.PAYMENT:
+        if not await run_dispute_steps(db, job, document, parsed.markdown, primary=not with_payment):
+            return  # handed back for a retry, or the job was lost
+        if not with_payment:
+            await finish_job(db, job, JobState.SUCCEEDED)
+            return
+    if DocKind.PAYMENT in kinds:
         documents_repo.set_kind(document, DocKind.PAYMENT)
         await unit_of_work.commit(db)
         await run_payment_steps(db, job, document, parsed.markdown)
+    elif DocKind.PO in kinds:
+        documents_repo.set_kind(document, DocKind.PO)
+        await unit_of_work.commit(db)
+        await run_po_steps(db, job, document, parsed.markdown)
     else:
         await run_invoice_steps(db, job, document, parsed.markdown)
 
@@ -143,11 +170,15 @@ def _log_classification(
 ) -> None:
     log_step(
         db, job, document.id, started, step_name=CLASSIFY_STEP,
-        result=StepResult.SUCCESS if route in (Route.INVOICE, Route.PO) else StepResult.WARNING,
+        result=(
+            StepResult.WARNING if route in (Route.REJECT_OTHER, Route.REVIEW) else StepResult.SUCCESS
+        ),
         output_summary={
             "source": "model",
             "doc_class": outcome.result.doc_class.value,
             "confidence": outcome.result.confidence,
+            "also_payment": outcome.result.also_payment,
+            "also_dispute": outcome.result.also_dispute,
             "reason": outcome.result.reason,
             "threshold": TRIAGE_HUMAN_THRESHOLD,
             "route": route.value,

@@ -11,7 +11,9 @@
 
 A category with enough confidence (>= DISPUTE_CLASSIFY_THRESHOLD) is accepted: the dispute is
 Categorised and handed to the least-loaded person (Assigned). Anything less waits in the classify
-queue (Raised), keeping the suggested category for the person to confirm or change.
+queue (Raised), keeping the suggested category for the person to confirm or change. The caller can
+also insist on the queue (`hold_in_queue`): a complaint whose customer is not identified needs a
+person whatever the category.
 It flushes only; the caller commits, so a notice never outlives a rolled-back dispute.
 """
 
@@ -25,6 +27,7 @@ from constants.constants import DISPUTE_CLASSIFY_THRESHOLD
 from core.exceptions.errors import NotFoundError, ValidationFailure
 from core.services import notifications
 from core.services.disputes import assignment, calendar
+from core.services.jobs import queue
 from data.models.postgres import Dispute
 from data.models.postgres.enums import DisputeCategory, DisputeMessageKind, DisputeStatus, NotificationType
 from data.repositories.customers import customers_repo
@@ -57,6 +60,14 @@ async def categorise_and_assign(
     dispute.status = DisputeStatus.ASSIGNED
     assignment.log_state(db, dispute, before, f"Assigned to {owner.username}", user_id=actor)
     await assignment.tell_owner(db, dispute, owner, await assignment.label(db, dispute), actor=actor)
+    # the first clarification is written (and maybe sent) by a worker, never inside this request
+    await queue.enqueue(
+        db,
+        job_type=queue.JOB_DISPUTE_CLARIFY,
+        entity_type=queue.ENTITY_DISPUTE,
+        entity_id=dispute.id,
+        created_by=actor,
+    )
 
 
 async def create_dispute(
@@ -77,6 +88,9 @@ async def create_dispute(
     gmail_thread_id: str | None = None,
     gmail_message_id: str | None = None,
     inbound_body: str | None = None,
+    created_by: uuid.UUID | None = None,
+    intake_notes: list[str] | None = None,
+    hold_in_queue: bool = False,
 ) -> Created:
     received_at = received_at or datetime.now(UTC)
     invoice = None
@@ -117,7 +131,7 @@ async def create_dispute(
         return Created(existing, appended=True)
 
     earlier = in_thread  # E3: the thread's dispute is Resolved (or there is no thread: None)
-    confident = is_confident(category, confidence)
+    confident = is_confident(category, confidence) and not hold_in_queue
     dispute = await disputes_repo.insert_dispute(
         db,
         customer_id=customer_id,
@@ -137,8 +151,8 @@ async def create_dispute(
         first_response_due=calendar.first_response_due(received_at),
         resolution_due=calendar.resolution_due(received_at),
         gmail_thread_id=gmail_thread_id,
-        created_by=actor,
-        updated_by=actor,
+        created_by=created_by or actor,
+        updated_by=created_by or actor,
     )
     if invoice is not None:
         invoice.is_disputed = True
@@ -151,6 +165,13 @@ async def create_dispute(
             gmail_message_id=gmail_message_id,
             ingested_email_id=ingested_email_id,
             created_by=actor,
+        )
+    if intake_notes:  # what the reader could not settle: shown to the person who classifies it
+        await disputes_repo.insert_message(
+            db,
+            dispute_id=dispute.id,
+            kind=DisputeMessageKind.INTERNAL_NOTE,
+            body="Reader's notes:\n- " + "\n- ".join(intake_notes),
         )
     assignment.log_state(
         db, dispute, None, "Complaint received" + (f" (follows dispute {earlier.id})" if earlier else ""),

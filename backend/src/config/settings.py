@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     seed_admin_password: str | None = None
     smtp_host: str = "localhost"
     smtp_port: int = 1025
+    smtp_from: str = "accounts@genworx.local"  # the From address of everything we send
     raw_files_dir: str = "/data/raw"
     # Job worker. In dev the API process runs one itself; in production set
     # RUN_EMBEDDED_WORKER=false and run `python -m jobs.runner` as separate containers.

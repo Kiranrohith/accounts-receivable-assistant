@@ -99,6 +99,7 @@ class DisputeListItem(BaseModel):
 class DisputeMessageOut(BaseModel):
     message_id: uuid.UUID
     kind: MessageKindName
+    subject: str | None  # for a draft or a sent message; the body below has it removed
     body: str
     sent_at: datetime | None
     author_id: uuid.UUID | None
@@ -239,3 +240,37 @@ class DisputeDashboard(BaseModel):
     open_by_age: list[CountBy]  # `key` is the age bucket; `total` = `open`
     volume: list[DayVolume]  # per day over the requested window
     owners: list[OwnerLoad]
+
+
+# ---- clarification drafts and sending ----------------------------------------------------------
+class DraftRequest(BaseModel):
+    instructions: str | None = Field(
+        None, max_length=1000, description="what the e-mail should cover or stress; treated as a hint"
+    )
+
+
+class EditDraft(BaseModel):
+    subject: str | None = Field(None, min_length=1, max_length=200)
+    body: str | None = Field(None, min_length=1, max_length=8000)
+
+    @model_validator(mode="after")
+    def _something(self) -> "EditDraft":
+        if self.subject is None and self.body is None:
+            raise ValueError("give a subject, a body, or both")
+        return self
+
+
+class DraftResult(BaseModel):
+    dispute_id: uuid.UUID
+    message_id: uuid.UUID
+    subject: str | None
+    body: str
+    confidence: int | None  # the model's, capped by how much of the text matched our records
+    ungrounded: list[str]  # figures, dates or numbers in the text that are not in our records
+
+
+class SendResult(BaseModel):
+    dispute_id: uuid.UUID
+    message_id: uuid.UUID
+    sent_to: str
+    status: StatusName

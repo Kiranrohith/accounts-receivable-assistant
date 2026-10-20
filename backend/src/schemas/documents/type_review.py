@@ -8,7 +8,7 @@ Reason = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, m
 
 
 class TypeChoice(BaseModel):
-    doc_type: Literal["invoice", "po", "payment"]
+    doc_type: Literal["invoice", "po", "payment", "dispute", "dispute_and_payment"]
     reason: Reason | None = None  # optional: the choice itself is the decision
 
 
@@ -23,7 +23,7 @@ class TypeReviewSummary(BaseModel):
     uploaded_at: datetime | None
     status: Literal["Pending", "Approved", "Rejected"]
     reasons: list[str]  # why a person has to decide
-    suggested_type: str | None = None  # what the reader leaned towards: invoice, po, payment, other, unclear
+    suggested_type: str | None = None  # what the reader leaned towards: invoice, po, payment, dispute, other, unclear
     confidence: int | None = None
     reader_note: str | None = None
 

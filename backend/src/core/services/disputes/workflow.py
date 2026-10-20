@@ -62,7 +62,7 @@ async def _lock(db: AsyncSession, dispute_id: uuid.UUID) -> Dispute:
     return dispute
 
 
-async def _authorize(db: AsyncSession, user: User, dispute: Dispute, *, must_own: bool) -> None:
+async def authorize(db: AsyncSession, user: User, dispute: Dispute, *, must_own: bool) -> None:
     codes = await permission_codes_for(db, user)
     needed = work_permission(dispute.status)
     if needed not in codes:
@@ -178,7 +178,7 @@ async def add_note(
     dispute = await _lock(db, dispute_id)
     if dispute.status is DisputeStatus.RESOLVED:
         raise ConflictError("This dispute is resolved; notes are closed")
-    await _authorize(db, user, dispute, must_own=False)
+    await authorize(db, user, dispute, must_own=False)
     message = await disputes_repo.insert_message(
         db,
         dispute_id=dispute.id,
@@ -200,7 +200,7 @@ async def resolve(
         raise ConflictError("This dispute is already resolved")
     if dispute.status is DisputeStatus.RAISED:
         raise ConflictError("Classify the dispute before resolving it")
-    await _authorize(db, user, dispute, must_own=True)
+    await authorize(db, user, dispute, must_own=True)
     before = dispute.status
     now = datetime.now(UTC)
     dispute.status = DisputeStatus.RESOLVED

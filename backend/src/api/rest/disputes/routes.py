@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.rest.dependencies import get_current_user, require_permission
 from core.services.disputes import dashboard as dashboard_service
-from core.services.disputes import queries, workflow
+from core.services.disputes import drafts, queries, workflow
 from data.clients.db import get_db
 from data.models.postgres import User
 from data.models.postgres.enums import DisputeCategory, DisputeStatus
@@ -21,9 +21,13 @@ from schemas.disputes.disputes import (
     DisputeDashboard,
     DisputeDetail,
     DisputeListItem,
+    DraftRequest,
+    DraftResult,
+    EditDraft,
     NoteResult,
     ReassignDispute,
     ResolveDispute,
+    SendResult,
     StatusName,
 )
 
@@ -255,3 +259,73 @@ async def resolve(
     db: AsyncSession = Depends(get_db),
 ) -> ActionResult:
     return await workflow.resolve(db, user, dispute_id, body)
+
+
+_DRAFT_ERRORS = {
+    **_ACT_ERRORS,
+    502: {"description": "The model or the mail server is unavailable (the draft stays a draft)"},
+    422: {"description": "Nothing to send to, or nothing to change"},
+}
+
+
+@router.post(
+    "/{dispute_id}/drafts",
+    response_model=DraftResult,
+    status_code=201,
+    summary="Draft another e-mail to the customer",
+    description=(
+        "Needs the work permission of the dispute's state, and the dispute must be yours (an admin "
+        "can use any). The model writes a draft from our records of the invoice and the "
+        "customer's complaint; `instructions` can say what to cover. The draft is NOT sent: only "
+        "the very first clarification is ever sent automatically. `ungrounded` lists any number, "
+        "date or amount in the text that is not in our records: check those before sending. "
+        "Edit it with PATCH, send it with POST .../send."
+    ),
+    responses=_DRAFT_ERRORS,
+)
+async def new_draft(
+    dispute_id: uuid.UUID,
+    body: DraftRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DraftResult:
+    return await drafts.new_draft(db, user, dispute_id, body)
+
+
+@router.patch(
+    "/{dispute_id}/messages/{message_id}",
+    response_model=DraftResult,
+    summary="Edit a draft",
+    description="Change the subject, the body, or both of a draft that has not been sent. Same permissions as drafting.",
+    responses=_DRAFT_ERRORS,
+)
+async def edit_draft(
+    dispute_id: uuid.UUID,
+    message_id: uuid.UUID,
+    body: EditDraft,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DraftResult:
+    return await drafts.edit_draft(db, user, dispute_id, message_id, body)
+
+
+@router.post(
+    "/{dispute_id}/messages/{message_id}/send",
+    response_model=SendResult,
+    summary="Send a draft to the customer",
+    description=(
+        "Same permissions as drafting. Sends the draft to the address the complaint came from "
+        "(or the customer's e-mail) with our reference in the subject. The first message sent "
+        "stamps the first response and moves the dispute to ClarificationSent. If the mail "
+        "server will not take it (after three retries) you get 502, the draft stays a draft, "
+        "and you are notified; 422 when there is no address to send to; 409 if it was already sent."
+    ),
+    responses=_DRAFT_ERRORS,
+)
+async def send_message(
+    dispute_id: uuid.UUID,
+    message_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SendResult:
+    return await drafts.send_message(db, user, dispute_id, message_id)

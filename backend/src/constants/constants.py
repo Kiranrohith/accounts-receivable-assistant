@@ -87,6 +87,11 @@ DISPUTE_OWNER_ROLE: Final = "FA"  # normal disputes go to the least-loaded user 
 DISPUTE_ESCALATION_ROLE: Final = "FTM"  # escalated ones to this role
 DISPUTE_FALLBACK_ROLE: Final = "ADM"  # when the role above has nobody active
 
+# --- Outgoing mail ---
+SMTP_RETRY_DELAYS_SECONDS: Final = (3, 9, 15)  # transport retries: the first try plus one per delay
+SMTP_TIMEOUT_SECONDS: Final = 15
+CLARIFICATION_AUTO_SEND_CONFIDENCE: Final = 85  # first clarification only; also needs a grounded draft
+
 # --- Reminders and disputes ---
 REMINDER_TIERS_DAYS: Final = (1, 15, 30)
 COLLECTION_HANDOFF_DAYS: Final = 60

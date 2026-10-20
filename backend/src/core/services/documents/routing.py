@@ -27,6 +27,7 @@ _LABEL = {
     DocumentClass.INVOICE: "an invoice",
     DocumentClass.PO: "a purchase order",
     DocumentClass.PAYMENT: "a payment advice",
+    DocumentClass.DISPUTE: "a customer complaint",
     DocumentClass.OTHER: "neither an invoice nor a purchase order",
     DocumentClass.UNCLEAR: "unclear",
 }
@@ -42,7 +43,7 @@ def review_reasons(result: DocClassification) -> list[str]:
     if result.doc_class is DocumentClass.UNCLEAR:
         head = (
             "The reader could not tell whether this is an invoice, a purchase order, "
-            "a payment advice or something else"
+            "a payment advice, a customer complaint or something else"
         )
     else:
         head = (

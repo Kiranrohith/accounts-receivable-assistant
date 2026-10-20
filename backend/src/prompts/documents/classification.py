@@ -22,12 +22,32 @@ Remittance Advice, Payment Confirmation, Fund Transfer Advice, or a bank transfe
 RTGS / IMPS / UTR confirmation). It states an amount paid, usually a payment reference or \
 UTR and the invoice numbers it settles. The direction matters: the payer is the sender and \
 we are the receiver. It is NOT a bill, and it is NOT a receipt (see "other").
+- "dispute": a complaint or objection written BY a customer TO us about something we \
+billed or did: the price or amount is wrong, goods or service were bad, damaged or late, \
+the tax is wrong, the invoice is a duplicate or was already paid, a promised credit note \
+has not arrived, the PO does not match, and so on (a letter, an email, a complaint form \
+or a ticket). The customer disagrees and wants something put right, or says they will \
+not pay, or will pay less. A plain question or request ("please send a copy of the \
+invoice", "what is your bank account") is NOT a dispute: that is "other".
 - "other": clearly none of those: quotations or estimates, proforma invoices, credit \
 notes, RECEIPTS, delivery challans, bank or account statements, contracts, reports, \
 letters, emails, photographs, or unreadable pages.
-- "unclear": use this when the document seems to be a mix of kinds, or you cannot tell \
-which class fits (for example one page that is half invoice, half payment advice, or a \
-page that is too damaged or short to judge).
+- "unclear": use this when the document seems to be a mix of kinds that is NOT covered by \
+the payment-and-dispute rule below, or you cannot tell which class fits (for example one \
+page that is half invoice, half payment advice, or a page that is too damaged or short to \
+judge).
+
+PAYMENT AND DISPUTE IN ONE DOCUMENT
+- A customer's letter or email can both complain AND tell us about a payment. That is NOT \
+"unclear". Choose the class that is the main purpose of the document and set the flag for \
+the other part:
+  - mainly a complaint that also reports a payment made or being made: doc_class "dispute" \
+and also_payment true.
+  - mainly a payment advice that also states a complaint or the reason for paying less \
+("paying 40,000 of 50,000 because the goods were damaged"): doc_class "payment" and \
+also_dispute true.
+- Set also_payment / also_dispute to true ONLY when the document really contains both \
+parts. Otherwise leave them false. They are never true for invoice, po or other.
 
 CONFIDENCE
 - confidence is an integer 0-100 for how sure you are of the class you chose. 90-100: \

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from data.models.postgres import Customer, Dispute, DisputeMessage, Invoice, Payment, Role, User
-from data.models.postgres.enums import DisputeCategory, DisputeStatus
+from data.models.postgres.enums import DisputeCategory, DisputeMessageKind, DisputeStatus
 from data.repositories import unit_of_work
 
 _OPEN = Dispute.status != DisputeStatus.RESOLVED
@@ -259,3 +259,46 @@ async def user_names(db: AsyncSession, user_ids: list[uuid.UUID]) -> dict[uuid.U
     rows = await db.execute(select(User.id, User.username).where(User.id.in_(user_ids)))
     return {i: n for i, n in rows}
 
+
+
+async def disputes_by_documents(
+    db: AsyncSession, document_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, list[Dispute]]:
+    """The disputes each uploaded document produced (a complaint can name several invoices)."""
+    if not document_ids:
+        return {}
+    result = await db.scalars(
+        select(Dispute)
+        .where(Dispute.source_document_id.in_(document_ids))
+        .order_by(Dispute.created_at, Dispute.id)
+    )
+    found: dict[uuid.UUID, list[Dispute]] = {}
+    for dispute in result:
+        found.setdefault(dispute.source_document_id, []).append(dispute)
+    return found
+
+
+async def has_outgoing(db: AsyncSession, dispute_id: uuid.UUID) -> bool:
+    """A draft or a sent message already exists: the first clarification has been written."""
+    found = await db.scalar(
+        select(DisputeMessage.id)
+        .where(
+            DisputeMessage.dispute_id == dispute_id,
+            DisputeMessage.kind.in_([DisputeMessageKind.DRAFT, DisputeMessageKind.SENT]),
+        )
+        .limit(1)
+    )
+    return found is not None
+
+
+async def get_message(db: AsyncSession, message_id: uuid.UUID) -> DisputeMessage | None:
+    return await db.get(DisputeMessage, message_id, populate_existing=True)
+
+
+async def lock_message(db: AsyncSession, message_id: uuid.UUID) -> DisputeMessage | None:
+    return await db.scalar(
+        select(DisputeMessage)
+        .where(DisputeMessage.id == message_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )

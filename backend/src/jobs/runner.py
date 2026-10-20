@@ -7,18 +7,22 @@ import asyncio
 import logging
 
 from config.settings import get_settings
+from core.services.disputes import clarify
 from core.services.documents import intake
 from core.services.jobs import queue
 from core.services.jobs.worker import Worker
 from core.services.payments import rematch
 
-# One handler serves the four intake types: the job type tells it whether a person already chose the
+# One handler serves the intake types: the job type tells it whether a person already chose the
 # kind. A re-match job only matches an already-identified payment.
 HANDLERS: dict[str, queue.Handler] = {
     queue.JOB_INTAKE: intake.handle,
     queue.JOB_INVOICE: intake.handle,
     queue.JOB_PO: intake.handle,
     queue.JOB_PAYMENT: intake.handle,
+    queue.JOB_DISPUTE: intake.handle,
+    queue.JOB_DISPUTE_PAYMENT: intake.handle,
+    queue.JOB_DISPUTE_CLARIFY: clarify.handle,
     queue.JOB_PAYMENT_REMATCH: rematch.handle,
 }
 
