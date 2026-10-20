@@ -119,6 +119,11 @@ class Payment(Base, AuditMixin):
         Integer, default=0, server_default=_ZERO, nullable=False,
         comment="contention requeues; capped, then review",
     )
+    held_for_dispute_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("disputes.id"),
+        comment="non-null = a hold is active: that portion sits in held_amount",
+    )
     duplicate_of: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("payments.id")
     )

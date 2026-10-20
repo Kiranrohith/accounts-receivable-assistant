@@ -75,6 +75,13 @@ REMINDER_SCAN_TIME_IST: Final = time(9, 0)
 DEADLINE_SCAN_TIME_IST: Final = time(9, 15)  # stagger only, NO data dependency
 BUSINESS_TIMEZONE: Final = "Asia/Kolkata"  # business dates IST; storage UTC
 
+# --- Disputes: working days ---
+# Fixed-date national holidays as (month, day), every year: Republic Day, Independence Day, Gandhi
+# Jayanti, Christmas. Festivals that move (Diwali, Holi, Eid...) are not here; add the year's dates
+# if the business wants them counted. Weekends are always non-working.
+HOLIDAYS_FIXED: Final = ((1, 26), (8, 15), (10, 2), (12, 25))
+DISPUTE_WARNING_WORKING_DAYS: Final = 1  # warn this many working days before a deadline
+
 # --- Reminders and disputes ---
 REMINDER_TIERS_DAYS: Final = (1, 15, 30)
 COLLECTION_HANDOFF_DAYS: Final = 60

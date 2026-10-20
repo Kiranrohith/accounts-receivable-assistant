@@ -29,6 +29,7 @@ class DocKind(str, enum.Enum):
     INVOICE = "invoice"
     PO = "po"
     PAYMENT = "payment"  # a remittance / payment advice
+    DISPUTE = "dispute"  # a customer's complaint about an invoice
 
 
 class PaymentState(str, enum.Enum):
@@ -70,6 +71,45 @@ class NoteStatus(str, enum.Enum):
     PARTIALLY_USED = "PartiallyUsed"
     CLOSED = "Closed"
     VOIDED = "Voided"
+
+
+class DisputeCategory(str, enum.Enum):
+    PRICING = "Pricing"
+    QUALITY = "Quality"
+    DELIVERY = "Delivery"
+    ALREADY_PAID = "AlreadyPaid"
+    WRONG_DUPLICATE_INVOICE = "WrongDuplicateInvoice"
+    TAX_DISCREPANCY = "TaxDiscrepancy"
+    PO_MISMATCH = "POMismatch"
+    CREDIT_NOTE_PENDING = "CreditNotePending"
+    OTHER = "Other"
+
+
+class DisputeStatus(str, enum.Enum):
+    RAISED = "Raised"  # received, not yet categorised (waits in the classify queue)
+    CATEGORISED = "Categorised"
+    CLARIFICATION_SENT = "ClarificationSent"
+    ASSIGNED = "Assigned"
+    ESCALATED = "Escalated"
+    RESOLVED = "Resolved"  # the only exit
+
+
+class DisputeMessageKind(str, enum.Enum):
+    INBOUND_EMAIL = "inbound_email"
+    DRAFT = "draft"
+    SENT = "sent"
+    INTERNAL_NOTE = "internal_note"
+
+
+class NotificationType(str, enum.Enum):
+    ESCALATION = "Escalation"
+    ASSIGNMENT = "Assignment"
+    SHORT_PAYMENT = "ShortPayment"
+    TDS_FLIP = "TDSFlip"
+    PAYMENT_DURING_DISPUTE = "PaymentDuringDispute"
+    SEND_FAILURE = "SendFailure"
+    SUGGESTION_TASK = "SuggestionTask"
+    DEADLINE_WARNING = "DeadlineWarning"
 
 
 class AliasType(str, enum.Enum):
