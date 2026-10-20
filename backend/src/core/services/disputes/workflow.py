@@ -82,6 +82,7 @@ async def create_manual(db: AsyncSession, user: User, body: CreateDispute) -> Cr
         summary=body.summary.strip(),
         from_email=body.from_email.strip().lower() if body.from_email else None,
         received_at=body.received_at,
+        gmail_thread_id=body.gmail_thread_id.strip() if body.gmail_thread_id else None,
         category=category,
         payment_related=body.payment_related,
         confidence=DISPUTE_DEFAULT_CONFIDENCE if category else None,
@@ -111,11 +112,6 @@ async def _attach(db: AsyncSession, dispute: Dispute, body: ClassifyDispute) -> 
             raise NotFoundError("Invoice not found")
         if dispute.customer_id not in (None, invoice.customer_id):
             raise ValidationFailure("That invoice belongs to a different customer")
-        other = await disputes_repo.open_for_invoice(db, invoice.id)
-        if other is not None:
-            raise ConflictError(
-                f"That invoice already has an open dispute ({other.id}); add this complaint there as a note"
-            )
         dispute.invoice_id = invoice.id
         dispute.customer_id = invoice.customer_id
         invoice.is_disputed = True
@@ -212,9 +208,10 @@ async def resolve(
     dispute.resolved_by = user.id
     dispute.resolution_narrative = body.narrative.strip()
     dispute.updated_by = user.id
-    if dispute.invoice_id is not None:  # one open dispute per invoice, so this was the last
+    if dispute.invoice_id is not None:  # the invoice stays flagged while another dispute on it is open
+        await unit_of_work.flush(db)  # sessions do not autoflush: the count must see this one resolved
         invoice = await invoices_repo.get_invoice_for_update(db, dispute.invoice_id)
-        if invoice is not None:
+        if invoice is not None and await disputes_repo.open_count_on_invoice(db, dispute.invoice_id) == 0:
             invoice.is_disputed = False
     assignment.log_state(db, dispute, before, f"Resolved by {user.username}", user_id=user.id)
     result = _result(dispute)

@@ -35,17 +35,14 @@ class Dispute(Base, AuditMixin):
     """Raised -> Categorised -> ClarificationSent or Assigned -> Resolved, plus Escalated.
 
     Deadlines are DATE columns (working days, IST): first response in 2, resolution in 10.
-    At most one dispute per invoice is open at a time; a follow-up is appended to it (E2).
+    An invoice can have several disputes. Only the mail THREAD joins them: a reply in a thread
+    appends to its open dispute (E2) or opens a linked one after it was resolved (E3).
     """
 
     __tablename__ = "disputes"
     __table_args__ = (
-        Index(
-            "uq_disputes_one_open_per_invoice",
-            "invoice_id",
-            unique=True,
-            postgresql_where=text("status <> 'Resolved' AND invoice_id IS NOT NULL"),
-        ),
+        Index("ix_disputes_invoice", "invoice_id"),
+        Index("ix_disputes_thread", "gmail_thread_id"),
         Index("ix_disputes_status", "status"),
         Index("ix_disputes_customer", "customer_id"),
         Index("ix_disputes_assigned", "assigned_to", "status"),

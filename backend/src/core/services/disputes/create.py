@@ -1,9 +1,13 @@
 """Recording a complaint. One entry for every source (an uploaded complaint, a person typing it in).
 
   E1  a complaint about the account as a whole has no invoice (customer-level)
-  E2  a complaint about an invoice that already has an OPEN dispute is added to it as a message,
-      and the dispute's current owner gets a DisputeFollowUp notice
-  E3  a complaint about an invoice whose earlier dispute is Resolved opens a NEW dispute linked to it
+  E2  a reply in the mail thread of an OPEN dispute is added to it as a message, and the dispute's
+      current owner gets a DisputeFollowUp notice
+  E3  a reply in the thread of a Resolved dispute opens a NEW dispute linked to it
+  E10 anything else is its own dispute, even when the invoice already has others: only the thread
+      joins disputes. Nothing is merged, linked or shared between them (their deadlines are
+      independent); the other disputes on the invoice are SHOWN as "possibly related" when read
+      (queries.related_disputes) and counted in the assignment notice.
 
 A category with enough confidence (>= DISPUTE_CLASSIFY_THRESHOLD) is accepted: the dispute is
 Categorised and handed to the least-loaded person (Assigned). Anything less waits in the classify
@@ -86,12 +90,9 @@ async def create_dispute(
     elif customer_id is not None and await customers_repo.get_by_id(db, customer_id) is None:
         raise NotFoundError("Customer not found")
 
-    existing = (
-        await disputes_repo.open_for_invoice(db, invoice_id)
-        if invoice_id is not None
-        else await disputes_repo.open_customer_level(db, customer_id) if customer_id is not None else None
-    )
-    if existing is not None:  # E2
+    in_thread = await disputes_repo.latest_in_thread(db, gmail_thread_id) if gmail_thread_id else None
+    if in_thread is not None and in_thread.status is not DisputeStatus.RESOLVED:  # E2
+        existing = in_thread
         await disputes_repo.insert_message(
             db,
             dispute_id=existing.id,
@@ -115,7 +116,7 @@ async def create_dispute(
             )
         return Created(existing, appended=True)
 
-    earlier = await disputes_repo.latest_resolved_for_invoice(db, invoice_id) if invoice_id else None  # E3
+    earlier = in_thread  # E3: the thread's dispute is Resolved (or there is no thread: None)
     confident = is_confident(category, confidence)
     dispute = await disputes_repo.insert_dispute(
         db,

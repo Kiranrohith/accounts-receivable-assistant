@@ -21,6 +21,7 @@ from schemas.disputes.disputes import (
     DisputeMessageOut,
     DisputePayment,
     HeldPayment,
+    PossiblyRelated,
     RelatedDispute,
     TimelineEntry,
 )
@@ -132,6 +133,29 @@ def _related(dispute: Dispute) -> RelatedDispute:
     )
 
 
+async def possibly_related(db: AsyncSession, dispute: Dispute) -> list[PossiblyRelated]:
+    """Other disputes on the same invoice (decision 62): computed on read, nothing stored, never
+    merged. A dispute with no invoice has none."""
+    if dispute.invoice_id is None:
+        return []
+    chain = {dispute.linked_dispute_id}
+    rows = await disputes_repo.others_on_invoice(db, dispute.invoice_id, dispute.id)
+    return [
+        PossiblyRelated(
+            dispute_id=d.id,
+            link=f"/disputes/{d.id}",
+            status=d.status.value,
+            category=d.category.value if d.category else None,
+            assigned_to=d.assigned_to,
+            assigned_to_name=owner,
+            received_at=d.received_at,
+            resolved_at=d.resolved_at,
+            in_same_chain=d.id in chain or d.linked_dispute_id == dispute.id,
+        )
+        for d, owner in rows
+    ]
+
+
 async def get_dispute(db: AsyncSession, dispute_id: uuid.UUID) -> DisputeDetail:
     row = await disputes_repo.get_with_names(db, dispute_id)
     if row is None:
@@ -220,6 +244,7 @@ async def get_dispute(db: AsyncSession, dispute_id: uuid.UUID) -> DisputeDetail:
         held_payments=held,
         earlier_dispute=_related(earlier) if earlier else None,
         later_disputes=[_related(d) for d in await disputes_repo.later_disputes(db, dispute.id)],
+        possibly_related=await possibly_related(db, dispute),
         timeline=timeline,
     )
 

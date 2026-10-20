@@ -55,11 +55,20 @@ async def tell_owner(
     """The Assignment notice. A person who gave the work to themselves is not told about it."""
     if owner.id == actor:
         return
+    message = f"Dispute {label} is assigned to you"
+    if dispute.invoice_id is not None:  # decision 62: point at the others, never merge with them
+        others = [d for d, _ in await disputes_repo.others_on_invoice(db, dispute.invoice_id, dispute.id)]
+        if others:
+            open_n = sum(d.status is not DisputeStatus.RESOLVED for d in others)
+            message += (
+                f"\nNote: this invoice has {open_n} open / {len(others) - open_n} resolved "
+                "dispute(s) that may be related."
+            )
     await notifications.create(
         db,
         owner.id,
         NotificationType.ASSIGNMENT,
-        f"Dispute {label} is assigned to you",
+        message,
         entity_type="dispute",
         entity_id=dispute.id,
         actor=actor,

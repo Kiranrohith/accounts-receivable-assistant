@@ -46,9 +46,11 @@ _ACT_ERRORS = {
         "Requires disputes.work.normal. Give the invoice (the customer follows from it) or only "
         "the customer for a complaint about the account. With a `category` it is classified by you "
         "and handed to the least-loaded finance associate; without one it waits in the classify "
-        "queue. If that invoice already has an OPEN dispute, nothing new is made: your text is added "
-        "to it as a message and `appended_to_existing` is true. After a dispute is resolved a new "
-        "complaint opens a new dispute linked to the old one. Flagging `payment_related` says the "
+        "queue. Only the mail thread joins disputes: with a `gmail_thread_id` that belongs to an OPEN "
+        "dispute your text is added to it as a message (`appended_to_existing` is true) and its owner "
+        "is notified; in the thread of a RESOLVED dispute a new dispute is opened, linked to it. "
+        "Otherwise it is its own dispute, even if the invoice already has others (those are listed "
+        "as `possibly_related`; their deadlines are separate). Flagging `payment_related` says the "
         "customer withheld or short-paid on purpose and gave this as the reason."
     ),
     responses={
@@ -160,7 +162,8 @@ async def dashboard(
         "Requires disputes.dashboard.view. The complaint, every message (follow-ups, drafts, "
         "replies, internal notes), the invoice with its purchase order link, what has been paid "
         "against it, payments held for this dispute, the earlier / later disputes it is linked to, "
-        "and the timeline of every status change."
+        "`possibly_related` (other disputes on the same invoice, any status, each with a link: a "
+        "hint for the person, never merged), and the timeline of every status change."
     ),
     responses={404: {"description": "No such dispute"}},
 )
@@ -179,7 +182,7 @@ async def dispute_detail(
     description=(
         "Requires disputes.classify. For a Raised dispute: give its category, and whether it is "
         "payment related. A dispute that arrived without a customer or invoice can be given one "
-        "here (an invoice that already has an open dispute is refused: add a note there instead). "
+        "here. "
         "It is then handed to the least-loaded finance associate."
     ),
     responses={**_ACT_ERRORS, 422: {"description": "The invoice / customer does not fit"}},

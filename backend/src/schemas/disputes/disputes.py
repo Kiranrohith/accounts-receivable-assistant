@@ -29,6 +29,15 @@ class CreateDispute(BaseModel):
     )
     from_email: str | None = Field(None, max_length=320)
     received_at: datetime | None = Field(None, description="when the customer raised it; default now")
+    gmail_thread_id: str | None = Field(
+        None,
+        max_length=200,
+        description=(
+            "the mail thread it came from. A complaint in the thread of an OPEN dispute is added "
+            "to it; in the thread of a resolved one it opens a new dispute linked to it. Without "
+            "a thread (or a new thread) it is always its own dispute."
+        ),
+    )
 
     @model_validator(mode="after")
     def _needs_a_subject(self) -> "CreateDispute":
@@ -146,6 +155,20 @@ class RelatedDispute(BaseModel):
     received_at: datetime
 
 
+class PossiblyRelated(BaseModel):
+    """Another dispute on the same invoice. A suggestion only: nothing is merged or shared."""
+
+    dispute_id: uuid.UUID
+    link: str
+    status: StatusName
+    category: CategoryName | None
+    assigned_to: uuid.UUID | None
+    assigned_to_name: str | None
+    received_at: datetime
+    resolved_at: datetime | None  # the resolution date, for a closed one
+    in_same_chain: bool  # it is this dispute's earlier or later reply-chain link (E3)
+
+
 class DisputeDetail(DisputeListItem):
     from_email: str | None
     clarification_confidence: int | None
@@ -160,12 +183,13 @@ class DisputeDetail(DisputeListItem):
     held_payments: list[HeldPayment]
     earlier_dispute: RelatedDispute | None
     later_disputes: list[RelatedDispute]
+    possibly_related: list[PossiblyRelated]  # other disputes on the same invoice, any status
     timeline: list[TimelineEntry]
 
 
 class CreateResult(BaseModel):
     dispute_id: uuid.UUID
-    appended_to_existing: bool  # an open dispute on this invoice already existed: this became a message
+    appended_to_existing: bool  # the thread already has an open dispute: this became a message on it
     status: StatusName
     assigned_to: uuid.UUID | None
     linked_dispute_id: uuid.UUID | None

@@ -6,8 +6,9 @@ New enum value: doc_kind.dispute (a customer's complaint is read by its own pipe
 New column: payments.held_for_dispute_id (the column P1 left out until disputes existed).
 
 My additions to the DBML: disputes.source_document_id, summary, from_email, classified_by,
-classified_at, resolved_at, resolved_by, and a partial unique index so an invoice has at most one
-OPEN dispute (a follow-up is appended to it).
+classified_at, resolved_at, resolved_by. An invoice may have several disputes at once (decision 62):
+a reply in the same mail thread joins its dispute (E2) or follows a resolved one (E3); a complaint
+in a new thread is its own dispute, with the others on the invoice shown as "possibly related".
 
 The downgrade drops the tables and enums but cannot remove doc_kind.dispute (Postgres cannot drop
 an enum value); nothing uses it once the tables are gone.
@@ -103,10 +104,8 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["resolved_by"], ["users.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        "uq_disputes_one_open_per_invoice", "disputes", ["invoice_id"], unique=True,
-        postgresql_where=sa.text("status <> 'Resolved' AND invoice_id IS NOT NULL"),
-    )
+    op.create_index("ix_disputes_invoice", "disputes", ["invoice_id"])
+    op.create_index("ix_disputes_thread", "disputes", ["gmail_thread_id"])
     op.create_index("ix_disputes_status", "disputes", ["status"])
     op.create_index("ix_disputes_customer", "disputes", ["customer_id"])
     op.create_index("ix_disputes_assigned", "disputes", ["assigned_to", "status"])

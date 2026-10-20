@@ -41,27 +41,36 @@ async def lock_dispute(db: AsyncSession, dispute_id: uuid.UUID) -> Dispute | Non
     )
 
 
-async def open_for_invoice(db: AsyncSession, invoice_id: uuid.UUID) -> Dispute | None:
-    return await db.scalar(select(Dispute).where(Dispute.invoice_id == invoice_id, _OPEN))
-
-
-async def open_customer_level(db: AsyncSession, customer_id: uuid.UUID) -> Dispute | None:
-    """The newest open dispute about the customer's account as a whole (no invoice)."""
+async def latest_in_thread(db: AsyncSession, thread_id: str) -> Dispute | None:
+    """The newest dispute raised in this mail thread (open or resolved)."""
     return await db.scalar(
         select(Dispute)
-        .where(Dispute.customer_id == customer_id, Dispute.invoice_id.is_(None), _OPEN)
-        .order_by(Dispute.received_at.desc())
+        .where(Dispute.gmail_thread_id == thread_id)
+        .order_by(Dispute.received_at.desc(), Dispute.created_at.desc())
         .limit(1)
     )
 
 
-async def latest_resolved_for_invoice(db: AsyncSession, invoice_id: uuid.UUID) -> Dispute | None:
-    return await db.scalar(
-        select(Dispute)
-        .where(Dispute.invoice_id == invoice_id, Dispute.status == DisputeStatus.RESOLVED)
-        .order_by(Dispute.resolved_at.desc().nullslast(), Dispute.received_at.desc())
-        .limit(1)
+async def others_on_invoice(
+    db: AsyncSession, invoice_id: uuid.UUID, exclude_id: uuid.UUID
+) -> list[tuple[Dispute, str | None]]:
+    """Every other dispute on the invoice, any status, newest first, with the owner's name."""
+    owner = aliased(User)
+    rows = await db.execute(
+        select(Dispute, owner.username)
+        .outerjoin(owner, owner.id == Dispute.assigned_to)
+        .where(Dispute.invoice_id == invoice_id, Dispute.id != exclude_id)
+        .order_by(Dispute.received_at.desc(), Dispute.id)
     )
+    return [(d, name) for d, name in rows]
+
+
+async def open_count_on_invoice(db: AsyncSession, invoice_id: uuid.UUID) -> int:
+    return (
+        await db.scalar(
+            select(func.count()).select_from(Dispute).where(Dispute.invoice_id == invoice_id, _OPEN)
+        )
+    ) or 0
 
 
 async def least_loaded_user(db: AsyncSession, role_code: str) -> User | None:
