@@ -1,12 +1,12 @@
-"""The combined intake pipeline for one uploaded document (invoice or purchase order).
+"""The combined intake pipeline for one uploaded document (invoice, purchase order or payment advice).
 
-parse once -> classify (invoice | po | other | unclear + confidence) -> route:
-  invoice / po, confident   -> that kind's extraction, validation, matching and routing
+parse once -> classify (invoice | po | payment | other | unclear + confidence) -> route:
+  invoice / po / payment, confident -> that kind's extraction, validation, matching and routing
   other, confident          -> rejected-uploads entry, file kept, no extraction
   low confidence / unclear  -> doc-type review queue (a person picks the type or rejects)
 
-A person's choice from the queue re-enters here as a job of type invoice_extraction or
-po_extraction, which skips the classifier. Whatever the route, the job ends Succeeded: a business
+A person's choice from the queue re-enters here as a job of type invoice_extraction,
+po_extraction or payment_extraction, which skips the classifier. Whatever the route, the job ends Succeeded: a business
 outcome is not a job failure. A failure that may pass (every model down) is retried by the queue.
 """
 
@@ -32,6 +32,7 @@ from core.services.invoices.processing import (
     run_invoice_steps,
 )
 from core.services.jobs import queue
+from core.services.payments.processing import resume_matching, run_payment_steps
 from core.services.purchase_orders.processing import run_po_steps
 from data.models.postgres import Job, SourceDocument
 from data.models.postgres.enums import DocKind, JobState, StepResult
@@ -43,19 +44,33 @@ from schemas.documents.classification import DocumentClass
 CLASSIFY_STEP = "classify"
 ROUTE_STEP = "route"
 
-_KIND_TO_CLASS = {DocKind.INVOICE: DocumentClass.INVOICE, DocKind.PO: DocumentClass.PO}
-_ROUTE_TO_KIND = {Route.INVOICE: DocKind.INVOICE, Route.PO: DocKind.PO}
+_KIND_TO_CLASS = {
+    DocKind.INVOICE: DocumentClass.INVOICE,
+    DocKind.PO: DocumentClass.PO,
+    DocKind.PAYMENT: DocumentClass.PAYMENT,
+}
+_ROUTE_TO_KIND = {
+    Route.INVOICE: DocKind.INVOICE,
+    Route.PO: DocKind.PO,
+    Route.PAYMENT: DocKind.PAYMENT,
+}
 # A job of these types was queued by a person choosing the kind: the classifier is skipped.
-_DECIDED_KIND = {queue.JOB_INVOICE: DocKind.INVOICE, queue.JOB_PO: DocKind.PO}
+_DECIDED_KIND = {
+    queue.JOB_INVOICE: DocKind.INVOICE,
+    queue.JOB_PO: DocKind.PO,
+    queue.JOB_PAYMENT: DocKind.PAYMENT,
+}
 
 
 async def handle(db: AsyncSession, job: Job, document: SourceDocument) -> None:
-    """Job handler for document_intake / invoice_extraction / po_extraction."""
+    """Job handler for document_intake / invoice_extraction / po_extraction / payment_extraction."""
     if (job.attempt_count or 0) > 1 and await documents_repo.has_outcome_since(
         db, document.id, job.queued_at
     ):
         # An earlier attempt got as far as writing the outcome before its worker died: do not
-        # write it twice.
+        # write it twice. (A payment still waiting to be matched is the one thing left to do.)
+        if document.doc_kind is DocKind.PAYMENT and await resume_matching(db, job, document):
+            return
         await finish_job(db, job, JobState.SUCCEEDED)
         return
     decided_kind = _DECIDED_KIND.get(job.job_type)
@@ -110,6 +125,10 @@ async def _run_steps(
         documents_repo.set_kind(document, DocKind.PO)
         await unit_of_work.commit(db)
         await run_po_steps(db, job, document, parsed.markdown)
+    elif kind is DocKind.PAYMENT:
+        documents_repo.set_kind(document, DocKind.PAYMENT)
+        await unit_of_work.commit(db)
+        await run_payment_steps(db, job, document, parsed.markdown)
     else:
         await run_invoice_steps(db, job, document, parsed.markdown)
 

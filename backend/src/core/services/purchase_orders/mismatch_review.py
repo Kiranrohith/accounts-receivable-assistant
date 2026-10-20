@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.errors import ConflictError, NotFoundError
 from core.services.invoices.review import record_decision
+from core.services.payments.parking import queue_parked_payments
 from core.services.purchase_orders.fulfillment import (
     build_snapshot,
     check_against_po,
@@ -104,7 +105,9 @@ async def _locked_po_and_invoice(db: AsyncSession, item: PendingInvoiceChange):
     return po, invoice
 
 
-def _release(db: AsyncSession, invoice: Invoice, po_id: uuid.UUID, user: User, how: str) -> None:
+async def _release(
+    db: AsyncSession, invoice: Invoice, po_id: uuid.UUID, user: User, how: str
+) -> None:
     po_repo.set_po_hold(invoice, False)
     now = datetime.now(UTC)
     logs_repo.add_state_log(
@@ -117,6 +120,8 @@ def _release(db: AsyncSession, invoice: Invoice, po_id: uuid.UUID, user: User, h
         to_state="InvoiceAccepted", reason=f"Invoice {invoice.invoice_number}: {how}",
         triggered_by_type=TriggerType.USER, triggered_by_id=user.id, occurred_at=now,
     )
+    # payments that were waiting on this hold are matched again
+    await queue_parked_payments(db, invoice.customer_id, user.id)
 
 
 async def override(
@@ -129,7 +134,7 @@ async def override(
     write_ledger(db, invoice, checks, user.id)  # even into negative remaining; never hidden
     snapshot = build_snapshot(po, checks, reasons)
     item.diff = {"decision": "override", "comparison": snapshot}
-    _release(db, invoice, po.id, user, f"approved as-is by override ({body.reason})")
+    await _release(db, invoice, po.id, user, f"approved as-is by override ({body.reason})")
     record_decision(db, item, user, PendingChangeStatus.APPROVED, body.reason)
     await unit_of_work.commit(db)
     return MismatchDecision(
@@ -184,7 +189,7 @@ async def recheck(
     write_ledger(db, invoice, checks, user.id)
     item.diff = {"decision": "recheck", "line_items_version": version, "comparison": snapshot}
     note = body.note or "Corrected the invoice lines; they now match the purchase order"
-    _release(db, invoice, po.id, user, f"corrected lines (version {version}) match the order")
+    await _release(db, invoice, po.id, user, f"corrected lines (version {version}) match the order")
     record_decision(db, item, user, PendingChangeStatus.APPROVED, note)
     await unit_of_work.commit(db)
     return MismatchDecision(

@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from data.models.postgres import (
     Invoice,
+    Payment,
     PendingInvoiceChange,
     PurchaseOrder,
     RejectedInvoice,
@@ -76,7 +77,7 @@ def save_extraction(document: SourceDocument, raw: dict, confidences: dict) -> N
 
 async def has_outcome_since(db: AsyncSession, document_id: uuid.UUID, since: datetime) -> bool:
     """True if processing already wrote this document's business outcome (an invoice or a new
-    version of one, a purchase order, a review item or a rejection) after `since`: a re-run must
+    version of one, a purchase order, a payment, a review item or a rejection) after `since`: a re-run must
     not write it twice."""
     touched_invoice = await db.scalar(
         select(Invoice.id)
@@ -88,7 +89,7 @@ async def has_outcome_since(db: AsyncSession, document_id: uuid.UUID, since: dat
     )
     if touched_invoice is not None:
         return True
-    for model in (PurchaseOrder, PendingInvoiceChange, RejectedInvoice):
+    for model in (PurchaseOrder, Payment, PendingInvoiceChange, RejectedInvoice):
         found = await db.scalar(
             select(model.id)
             .where(model.source_document_id == document_id, model.created_at >= since)

@@ -25,6 +25,10 @@ MODIFIER_DUE_WITHIN_60D: Final = 5
 MODIFIER_SINGLE_OPEN_INVOICE: Final = 5  # skipped for multi-invoice sets
 MODIFIER_KNOWN_REF_PATTERN: Final = 3
 DUE_DATE_MODIFIER_WINDOW_DAYS: Final = 60
+# Assumed, not in the supplement: how many open invoices the subset-sum search will combine.
+# More than this and the payment goes to review instead of a long search.
+MAX_SUBSET_INVOICES: Final = 12
+CREDIT_NOTE_PREFIX: Final = "CN"  # note numbers: CN-<year>-<6 digits>
 
 # --- Tax, tolerance, FX (D7) ---
 TDS_RATE: Final = Decimal("0.10")  # frozen at invoice creation; DEBIT_NOTE skips TDS

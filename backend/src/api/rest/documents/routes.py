@@ -22,15 +22,15 @@ router = APIRouter(prefix="/documents", tags=["documents"])
     "/upload",
     response_model=UploadResult,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Upload an invoice or a purchase order",
+    summary="Upload an invoice, a purchase order or a payment advice",
     description=(
-        "Requires invoices.upload. The one upload entry for invoices and purchase orders: you "
+        "Requires invoices.upload. The one upload entry for invoices, purchase orders and payment advices: you "
         "do not say which it is. Send one PDF, Word (.docx) or image file as multipart form "
         "data (field name `file`). The file is checked (not empty, at most 20 MB, supported "
         "type, content matches the extension, PDFs at most 30 pages), saved on disk under its "
         "sha256 hash and recorded in source_documents together with a queued job; a worker then "
-        "parses it once and classifies it as an invoice, a purchase order or neither. A confident invoice or "
-        "purchase order is extracted and checked; a confident 'neither' is rejected with the "
+        "parses it once and classifies it as an invoice, a purchase order, a payment advice or none of them. A confident invoice, "
+        "purchase order or payment advice is extracted and checked; a confident 'neither' is rejected with the "
         "file kept; a doubtful one waits in GET /documents/type-reviews for you to pick the "
         "type. Poll GET /documents/uploads/{source_document_id} for progress. A rejected file "
         "returns 422; a file identical to one already uploaded returns 409 with the existing "
@@ -44,7 +44,7 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 async def upload(
     file: UploadFile = File(
         ...,
-        description="The invoice or purchase order file (PDF, .docx or image)",
+        description="The invoice, purchase order or payment advice file (PDF, .docx or image)",
         json_schema_extra={"format": "binary"},  # makes Swagger UI show a file chooser
     ),
     actor: User = Depends(require_permission("invoices.upload")),
@@ -118,7 +118,7 @@ async def original_file(
     response_model=list[DocumentUploadSummary],
     summary="List uploaded documents",
     description=(
-        "Requires invoices.view. Every uploaded document, invoice or purchase order, newest "
+        "Requires invoices.view. Every uploaded document, invoice, purchase order or payment advice, newest "
         "first. `status` is the one label to show; `document_kind` says what it turned out to be."
     ),
 )

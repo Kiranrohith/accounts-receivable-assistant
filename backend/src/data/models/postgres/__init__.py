@@ -14,6 +14,7 @@ from data.models.postgres.invoices import (
 )
 from data.models.postgres.jobs import Job, ScheduledRun
 from data.models.postgres.logs import StateLog, StepLog
+from data.models.postgres.payments import Note, Payment, PaymentAllocation
 from data.models.postgres.purchase_orders import (
     PoFulfillment,
     PoInvoiceMatch,
@@ -40,6 +41,9 @@ __all__ = [
     "PurchaseOrderLineItem",
     "PoInvoiceMatch",
     "PoFulfillment",
+    "Payment",
+    "PaymentAllocation",
+    "Note",
     "Job",
     "ScheduledRun",
     "StateLog",

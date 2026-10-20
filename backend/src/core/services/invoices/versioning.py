@@ -34,6 +34,7 @@ from core.exceptions.errors import ValidationFailure
 from core.services.fx.ecb import FxRate
 from core.services.invoices.amounts import freeze_amounts, money
 from core.services.invoices.fx import is_foreign
+from core.services.payments.parking import queue_parked_payments
 from core.services.purchase_orders.fulfillment import build_snapshot, check_against_po, write_ledger
 from data.models.postgres import Customer, Invoice, InvoiceLineItem, SourceDocument
 from data.models.postgres.enums import (
@@ -394,6 +395,7 @@ async def _recheck_purchase_order(
     """The invoice's lines changed: take back what it consumed on its purchase order, check the new
     lines against it, and either record them or put the invoice on hold with a mismatch review."""
     result = AppliedVersion(invoice.version)
+    was_held = invoice.po_hold
     match = await po_repo.get_match(db, invoice.id)
     if match is None:
         return result
@@ -411,6 +413,8 @@ async def _recheck_purchase_order(
     if not reasons:
         write_ledger(db, invoice, checks, actor)
         po_repo.set_po_hold(invoice, False)
+        if was_held:  # payments waiting on this hold are matched again
+            await queue_parked_payments(db, invoice.customer_id, actor)
         return result
     po_repo.set_po_hold(invoice, True)
     await invoices_repo.insert_pending_change(

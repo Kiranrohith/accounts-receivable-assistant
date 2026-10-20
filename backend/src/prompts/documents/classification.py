@@ -16,11 +16,17 @@ due. An invoice may MENTION a customer PO number; that does not make it a purcha
 - "po": a purchase order: a document in which a customer (the buyer) orders goods or \
 services from a seller, listing what is ordered (titled Purchase Order, PO, Work Order \
 or Order Form). A purchase order has ordered items and quantities but is not a bill.
-- "other": clearly neither of those: quotations or estimates, proforma invoices, credit \
-notes, receipts, payment advices or remittance slips, delivery challans, account \
-statements, contracts, reports, letters, emails, photographs, or unreadable pages.
+- "payment": a payment advice / remittance advice: a document written BY a customer (the \
+payer) TO us, telling us that they have paid, or are paying, money (titled Payment Advice, \
+Remittance Advice, Payment Confirmation, Fund Transfer Advice, or a bank transfer / NEFT / \
+RTGS / IMPS / UTR confirmation). It states an amount paid, usually a payment reference or \
+UTR and the invoice numbers it settles. The direction matters: the payer is the sender and \
+we are the receiver. It is NOT a bill, and it is NOT a receipt (see "other").
+- "other": clearly none of those: quotations or estimates, proforma invoices, credit \
+notes, RECEIPTS, delivery challans, bank or account statements, contracts, reports, \
+letters, emails, photographs, or unreadable pages.
 - "unclear": use this when the document seems to be a mix of kinds, or you cannot tell \
-which class fits (for example one page that is half invoice, half payment receipt, or a \
+which class fits (for example one page that is half invoice, half payment advice, or a \
 page that is too damaged or short to judge).
 
 CONFIDENCE
@@ -28,6 +34,16 @@ CONFIDENCE
 the title and the content both clearly say so. 75-89: it fits well but something is \
 missing or odd. Below 75: you are mostly guessing; prefer a low number over a wrong \
 confident answer. For "unclear", give your confidence that it truly cannot be separated.
+
+RECEIPT vs PAYMENT ADVICE
+- A receipt (titled Receipt, Payment Receipt or Money Receipt; "Received with thanks from \
+<customer>"; "We acknowledge receipt of ..."; with a receipt number) is issued BY the party \
+that RECEIVED the money, to the party that paid. A payment advice is issued BY the party \
+that PAID, to the one receiving it. Both mention an amount, a date, a reference and invoice \
+numbers, so decide by who wrote the document and who it is addressed to: the issuer's \
+letterhead, name or signature, "from" / "to", and the wording ("received from" = receipt; \
+"we have paid" / "we are remitting" = payment advice). A receipt is always "other", never \
+"payment".
 
 Decide from what the document IS (its purpose and layout), not from words it merely \
 contains. Do not invent anything.
