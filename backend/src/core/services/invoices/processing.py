@@ -1,25 +1,23 @@
 """Shared building blocks of the document pipelines, plus the invoice steps.
 
-Every uploaded document goes through core.services.documents.intake (parse, classify, route);
-this module holds what the kinds share (job recording, the parse step, step logging) and the
-invoice pipeline itself: extract, validate, match a customer, route. Each run is recorded as a
-row in `jobs` (run in-process for now) with state_log and step_log entries, so progress and
-failures are queryable.
+Every uploaded document goes through core.services.documents.intake (parse, classify, route),
+run by a worker from the job queue (core.services.jobs). This module holds what the kinds share
+(ending a job, the parse step, step logging) and the invoice pipeline itself: extract, validate,
+match a customer, route. Progress and failures are queryable from jobs, state_log and step_log.
 """
 
 import asyncio
-import logging
 import uuid
-from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.services.invoices.extraction import ExtractionError, extract_invoice
+from core.services.jobs import queue
+from core.services.jobs.queue import ENTITY_TYPE
 from core.services.invoices.parsing import InvoiceParseError, ParsedDocument, parse_document
 from core.services.invoices.routing import Disposition, route_extracted_invoice
 from core.services.invoices.validation import validate_extraction
-from data.clients.db import session_scope
 from data.models.postgres import Job, SourceDocument
 from data.models.postgres.enums import ErrorClass, JobState, StepResult
 from data.repositories import unit_of_work
@@ -27,15 +25,13 @@ from data.repositories.invoices import documents_repo
 from data.repositories.platform import jobs_repo, logs_repo
 from schemas.invoices.validation import Outcome
 
-logger = logging.getLogger(__name__)
-
-ENTITY_TYPE = "source_document"
 VALIDATE_STEP = "validate"
 MATCH_STEP = "customer_match"
 ROUTE_STEP = "route"
 
 _DISPOSITION_TO_STEP_RESULT = {
     Disposition.INVOICE_CREATED: StepResult.SUCCESS,
+    Disposition.VERSION_APPLIED: StepResult.SUCCESS,
     Disposition.REVIEW: StepResult.WARNING,
     Disposition.REJECTED: StepResult.ERROR,
 }
@@ -61,24 +57,13 @@ async def finish_job(
     error_class: ErrorClass | None = None,
     error: str | None = None,
 ) -> None:
-    previous = job.state.value
-    jobs_repo.update_job(
-        job,
-        state=state,
-        finished_at=datetime.now(UTC),
-        last_error_class=error_class,
-        last_error_message=error,
-    )
-    logs_repo.add_state_log(
-        db,
-        entity_type=ENTITY_TYPE,
-        entity_id=job.entity_id,
-        from_state=previous,
-        to_state=state.value,
-        reason=error,
-        occurred_at=datetime.now(UTC),
-    )
-    await unit_of_work.commit(db)
+    await queue.finish(db, job, state, error_class=error_class, error=error)
+
+
+async def retry_job(db: AsyncSession, job: Job, error: str) -> None:
+    """A retryable failure (every model failed, a service is down): the queue retries it later
+    with backoff, and dead-letters it when the attempts run out."""
+    await queue.retry_or_dead_letter(db, job, error)
 
 
 def log_step(db: AsyncSession, job: Job, document_id: uuid.UUID, started: datetime, **fields) -> None:  # noqa: ANN003
@@ -91,58 +76,6 @@ def log_step(db: AsyncSession, job: Job, document_id: uuid.UUID, started: dateti
         duration_ms=elapsed_ms(started),
         **fields,
     )
-
-
-async def run_document_job(
-    source_document_id: uuid.UUID,
-    job_type: str,
-    run_steps: Callable[[AsyncSession, Job, SourceDocument], Awaitable[None]],
-) -> None:
-    """Never raises: a background task has nobody to catch it. Failures land on the job.
-
-    Records the job and its state_log entries, runs the pipeline's steps, and turns a crash
-    into a Failed job.
-    """
-    async with session_scope() as db:
-        document = await documents_repo.get_document(db, source_document_id)
-        if document is None:
-            logger.error("source_document %s vanished before processing", source_document_id)
-            return
-
-        now = datetime.now(UTC)
-        job = await jobs_repo.insert_job(
-            db,
-            job_type=job_type,
-            entity_type=ENTITY_TYPE,
-            entity_id=document.id,
-            state=JobState.RUNNING,
-            attempt_count=1,
-            locked_by="api-inline",
-            queued_at=now,
-            started_at=now,
-            run_after=now,
-            created_by=document.created_by,
-        )
-        logs_repo.add_state_log(
-            db,
-            entity_type=ENTITY_TYPE,
-            entity_id=document.id,
-            from_state=None,
-            to_state=JobState.RUNNING.value,
-            occurred_at=now,
-        )
-        await unit_of_work.commit(db)
-
-        try:
-            await run_steps(db, job, document)
-        except Exception as exc:  # unexpected bug: record it, do not lose it silently
-            logger.exception("document processing crashed for %s", document.id)
-            await unit_of_work.rollback(db)
-            await jobs_repo.reload_job(db, job)  # rollback expires it
-            await finish_job(
-                db, job, JobState.FAILED,
-                error_class=ErrorClass.NON_RETRYABLE, error=f"Unexpected error: {exc}",
-            )
 
 
 async def parse_step(db: AsyncSession, job: Job, document: SourceDocument) -> ParsedDocument | None:
@@ -182,9 +115,7 @@ async def run_invoice_steps(
             db, job, document.id, started, step_name="extract", result=StepResult.ERROR,
             error_message=str(exc),
         )
-        await finish_job(
-            db, job, JobState.FAILED, error_class=ErrorClass.RETRYABLE, error=str(exc)
-        )
+        await retry_job(db, job, str(exc))
         return
 
     invoice = outcome.invoice
@@ -193,7 +124,7 @@ async def run_invoice_steps(
         invoice.model_dump(mode="json"),
         invoice.confidence.model_dump(mode="json"),
     )
-    jobs_repo.update_job(job, model_used=outcome.model_used, attempt_count=outcome.attempts)
+    jobs_repo.update_job(job, model_used=outcome.model_used)
     log_step(
         db, job, document.id, started, step_name="extract", result=StepResult.SUCCESS,
         output_summary={"invoice_number": invoice.invoice_number, "attempts": outcome.attempts},
@@ -213,6 +144,11 @@ async def run_invoice_steps(
     await unit_of_work.commit(db)
 
     # --- match + route ---
+    # Take the job's row lock before any business row is written: the watchdog skips a locked job,
+    # so it cannot be reclaimed (and run a second time) halfway through, and a worker that already
+    # lost its job writes nothing.
+    if not await queue.hold(db, job):
+        return
     started = datetime.now(UTC)
     route = await route_extracted_invoice(db, document, invoice, verdict)
     if route.match is not None:
@@ -235,6 +171,7 @@ async def run_invoice_steps(
             "customer_id": str(route.customer_id) if route.customer_id else None,
             "match_method": route.match.method if route.match else None,
             "invoice_id": str(route.invoice_id) if route.invoice_id else None,
+            "version": route.version,
             "fx": route.fx,
             "pending_change_id": str(route.pending_change_id) if route.pending_change_id else None,
             "rejected_invoice_id": (

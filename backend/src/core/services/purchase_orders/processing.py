@@ -9,12 +9,13 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.services.invoices.processing import finish_job, log_step
+from core.services.invoices.processing import finish_job, log_step, retry_job
+from core.services.jobs import queue
 from core.services.purchase_orders.extraction import ExtractionError, extract_purchase_order
 from core.services.purchase_orders.routing import PODisposition, route_extracted_po
 from core.services.purchase_orders.validation import validate_purchase_order
 from data.models.postgres import Job, SourceDocument
-from data.models.postgres.enums import ErrorClass, JobState, StepResult
+from data.models.postgres.enums import JobState, StepResult
 from data.repositories import unit_of_work
 from data.repositories.invoices import documents_repo
 from data.repositories.platform import jobs_repo
@@ -52,16 +53,14 @@ async def run_po_steps(
             db, job, document.id, started, step_name="extract", result=StepResult.ERROR,
             error_message=str(exc),
         )
-        await finish_job(
-            db, job, JobState.FAILED, error_class=ErrorClass.RETRYABLE, error=str(exc)
-        )
+        await retry_job(db, job, str(exc))
         return
 
     po = outcome.purchase_order
     documents_repo.save_extraction(
         document, po.model_dump(mode="json"), po.confidence.model_dump(mode="json")
     )
-    jobs_repo.update_job(job, model_used=outcome.model_used, attempt_count=outcome.attempts)
+    jobs_repo.update_job(job, model_used=outcome.model_used)
     log_step(
         db, job, document.id, started, step_name="extract", result=StepResult.SUCCESS,
         output_summary={
@@ -82,6 +81,8 @@ async def run_po_steps(
     await unit_of_work.commit(db)  # extraction and verdict are safe before business rows
 
     # --- match + route ---
+    if not await queue.hold(db, job):  # see run_invoice_steps: no business rows from a lost job
+        return
     started = datetime.now(UTC)
     route = await route_extracted_po(db, document, po, verdict)
     if route.match is not None:

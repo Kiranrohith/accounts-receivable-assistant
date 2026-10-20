@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select
@@ -8,6 +9,7 @@ from data.models.postgres import (
     Customer,
     Invoice,
     InvoiceLineItem,
+    InvoiceVersion,
     PendingInvoiceChange,
     RejectedInvoice,
     SourceDocument,
@@ -33,8 +35,15 @@ async def insert_invoice(db: AsyncSession, **fields: Any) -> Invoice:
     return invoice
 
 
+def stamp_in_order(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Give rows inserted together strictly increasing created_at, so reading them back ordered by
+    created_at returns the document's own line order (a shared now() would leave it to chance)."""
+    base = datetime.now(UTC)
+    return [{"created_at": base + timedelta(microseconds=i), **row} for i, row in enumerate(rows)]
+
+
 async def insert_line_items(db: AsyncSession, rows: list[dict[str, Any]]) -> None:
-    db.add_all(InvoiceLineItem(**row) for row in rows)
+    db.add_all(InvoiceLineItem(**row) for row in stamp_in_order(rows))
     await unit_of_work.flush(db)
 
 
@@ -221,11 +230,14 @@ async def list_rejected(
     snapshot_kind = RejectedInvoice.extracted_snapshot["kind"].astext
     is_po = snapshot_kind == "purchase_order"
     is_other = snapshot_kind == "other"
+    is_duplicate = snapshot_kind == "duplicate"
     query = select(RejectedInvoice, SourceDocument).outerjoin(
         SourceDocument, SourceDocument.id == RejectedInvoice.source_document_id
     )
     if kind == "invoice":
-        query = query.where(is_po.is_not(True), is_other.is_not(True))
+        query = query.where(is_po.is_not(True), is_other.is_not(True), is_duplicate.is_not(True))
+    elif kind == "duplicate":
+        query = query.where(is_duplicate.is_(True))
     elif kind == "purchase_order":
         query = query.where(is_po.is_(True))
     elif kind == "other":
@@ -236,3 +248,61 @@ async def list_rejected(
         query.order_by(RejectedInvoice.created_at.desc(), RejectedInvoice.id).limit(limit).offset(offset)
     )
     return [(rejected, document) for rejected, document in rows]
+
+
+# ---------------------------------------------------------------- versions
+async def get_by_number(
+    db: AsyncSession, invoice_number: str, *, for_update: bool = False
+) -> Invoice | None:
+    query = select(Invoice).where(Invoice.invoice_number == invoice_number)
+    if for_update:
+        query = query.with_for_update()
+    return await db.scalar(query)
+
+
+async def get_invoice_for_update(db: AsyncSession, invoice_id: uuid.UUID) -> Invoice | None:
+    return await db.scalar(select(Invoice).where(Invoice.id == invoice_id).with_for_update())
+
+
+async def open_pending_for_invoice(
+    db: AsyncSession, invoice_id: uuid.UUID
+) -> PendingInvoiceChange | None:
+    """The one Pending change an invoice may have (a partial unique index allows only one)."""
+    return await db.scalar(
+        select(PendingInvoiceChange).where(
+            PendingInvoiceChange.invoice_id == invoice_id,
+            PendingInvoiceChange.status == PendingChangeStatus.PENDING,
+        )
+    )
+
+
+async def insert_invoice_version(db: AsyncSession, **fields: Any) -> InvoiceVersion:
+    version = InvoiceVersion(**fields)
+    db.add(version)
+    await unit_of_work.flush(db)
+    return version
+
+
+async def superseded_by_document(
+    db: AsyncSession, document_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, InvoiceVersion]:
+    """Documents whose invoice state has since been replaced by a newer version."""
+    result = await db.scalars(
+        select(InvoiceVersion).where(InvoiceVersion.source_document_id.in_(document_ids))
+    )
+    return {v.source_document_id: v for v in result}
+
+
+async def list_pending_version_reviews(
+    db: AsyncSession, user_id: uuid.UUID, status: PendingChangeStatus
+) -> list[PendingInvoiceChange]:
+    result = await db.scalars(
+        select(PendingInvoiceChange)
+        .where(
+            PendingInvoiceChange.created_by == user_id,
+            PendingInvoiceChange.reason == PendingChangeReason.VERSION_UPLOAD,
+            PendingInvoiceChange.status == status,
+        )
+        .order_by(PendingInvoiceChange.created_at.desc())
+    )
+    return list(result)

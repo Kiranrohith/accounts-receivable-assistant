@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     smtp_host: str = "localhost"
     smtp_port: int = 1025
     raw_files_dir: str = "/data/raw"
+    # Job worker. In dev the API process runs one itself; in production set
+    # RUN_EMBEDDED_WORKER=false and run `python -m jobs.runner` as separate containers.
+    run_embedded_worker: bool = True
+    worker_concurrency: int = 2
     gmail_refresh_token: str | None = None
     groq_key_1: str | None = None
     groq_key_2: str | None = None

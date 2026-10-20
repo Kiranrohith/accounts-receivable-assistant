@@ -1,8 +1,10 @@
 """Decide what a processed document becomes, and write it (Flow 1, step 3 onward).
 
 - validation FAIL (not an invoice, or invoice number / dates / amount missing): rejected_invoices
-- anything doubtful (validation REVIEW, customer not matched cleanly, non-INR, invoice
-  number already taken): pending_invoice_changes, for a human
+- anything doubtful (validation REVIEW, customer not matched cleanly, non-INR):
+  pending_invoice_changes, for a human
+- an invoice number that is already saved: versioning.route_existing (duplicate, new version, or
+  a version review)
 - otherwise: an Open invoice for the matched customer, TDS frozen. A foreign-currency invoice
   is converted at the ECB rate for its invoice date (looked up only then); if no usable rate
   can be had, it goes to review instead
@@ -23,6 +25,7 @@ from core.services.customers.resolution import CustomerMatch, resolve_customer
 from core.exceptions.errors import ExternalServiceError, ValidationFailure
 from core.services.fx.ecb import FxRate
 from core.services.invoices.amounts import freeze_amounts, money
+from core.services.invoices import versioning
 from core.services.invoices.fx import is_foreign, rate_for_invoice
 from core.services.purchase_orders.fulfillment import link_new_invoice
 from data.models.postgres import Customer, SourceDocument
@@ -44,6 +47,7 @@ class CreatedInvoice:
 
 class Disposition(str, Enum):
     INVOICE_CREATED = "invoice_created"
+    VERSION_APPLIED = "version_applied"  # a known invoice number: the document became a new version
     REVIEW = "review"
     REJECTED = "rejected"
 
@@ -54,6 +58,7 @@ class RouteResult:
     reasons: list[str] = field(default_factory=list)
     match: CustomerMatch | None = None
     invoice_id: uuid.UUID | None = None
+    version: int | None = None  # set when a new version of a saved invoice was applied
     po_hold: bool = False
     po_reasons: list[str] = field(default_factory=list)
     fx: dict | None = None  # the rate used, for the step log
@@ -100,16 +105,16 @@ async def route_extracted_invoice(
 
     reasons = [i.message for i in verdict.issues if i.severity is Severity.REVIEW]
     reasons += match.issues
-    if invoice.invoice_number and await invoices_repo.invoice_number_exists(
-        db, invoice.invoice_number.strip()
-    ):
+    number = (invoice.invoice_number or "").strip()
+    exists = bool(number) and await invoices_repo.invoice_number_exists(db, number)
+    if exists and (reasons or not match.matched):
         reasons.append(
-            f"An invoice numbered {invoice.invoice_number.strip()} already exists "
-            "(re-uploads of changed invoices are not handled yet)"
+            f"An invoice numbered {number} already exists: once you approve this, the document is "
+            "compared with the saved invoice and handled as a new version"
         )
 
     po_number = (invoice.po_number or "").strip()
-    if po_number and match.customer is not None:
+    if po_number and match.customer is not None and not exists:
         # G2: the number is another customer's PO, not this customer's: never auto-link.
         if await po_repo.get_by_customer_number(db, match.customer.id, po_number) is None:
             elsewhere = await po_repo.owner_of_number_elsewhere(db, match.customer.id, po_number)
@@ -121,7 +126,7 @@ async def route_extracted_invoice(
 
     # Only a foreign-currency invoice that would otherwise be created needs a rate.
     fx: FxRate | None = None
-    if not reasons and match.matched and is_foreign(invoice.currency):
+    if not reasons and match.matched and not exists and is_foreign(invoice.currency):
         try:
             fx = await rate_for_invoice(invoice.currency.strip().upper(), invoice.invoice_date)
         except ValidationFailure as exc:
@@ -151,6 +156,9 @@ async def route_extracted_invoice(
             Disposition.REVIEW, reasons=reasons, match=match, pending_change_id=change.id
         )
 
+    if exists:
+        return await _route_known_number(db, document, invoice, match)
+
     created = await create_invoice(db, document, invoice, match.customer, document.created_by, fx)
     return RouteResult(
         Disposition.INVOICE_CREATED,
@@ -159,6 +167,37 @@ async def route_extracted_invoice(
         po_hold=created.po_hold,
         po_reasons=created.po_reasons,
         fx=_fx_summary(fx),
+    )
+
+
+async def _route_known_number(
+    db: AsyncSession, document: SourceDocument, invoice: ExtractedInvoice, match: CustomerMatch
+) -> RouteResult:
+    """The number is already saved and the document is otherwise clean: duplicate, new version or review."""
+    outcome = await versioning.route_existing(db, document, invoice, match.customer, document.created_by)
+    if outcome.kind in ("duplicate", "blocked"):
+        return RouteResult(
+            Disposition.REJECTED,
+            reasons=outcome.reasons,
+            match=match,
+            invoice_id=outcome.invoice_id,
+            rejected_invoice_id=outcome.rejected_id,
+        )
+    if outcome.kind == "review":
+        return RouteResult(
+            Disposition.REVIEW,
+            reasons=outcome.reasons,
+            match=match,
+            invoice_id=outcome.invoice_id,
+            pending_change_id=outcome.review_id,
+        )
+    return RouteResult(
+        Disposition.VERSION_APPLIED,
+        match=match,
+        invoice_id=outcome.invoice_id,
+        version=outcome.version,
+        po_hold=outcome.po_hold,
+        po_reasons=outcome.po_reasons,
     )
 
 

@@ -44,6 +44,7 @@ class EmailClassification(str, enum.Enum):
     PAYMENT = "payment"
     DISPUTE = "dispute"
     BOTH = "both"
+    PURCHASE_ORDER = "purchase_order"  # decision 60: POs also arrive by email
     GENERAL = "general"
 
 

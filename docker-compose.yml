@@ -30,6 +30,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://ar_assistant:ar_assistant@postgres:5432/ar_assistant
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
+      RUN_EMBEDDED_WORKER: "false"   # the worker service below does the processing
     ports:
       - "8000:8000"
     volumes:

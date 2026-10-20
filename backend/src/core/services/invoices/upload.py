@@ -20,11 +20,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config.settings import get_settings
 from constants.constants import MAX_FILE_MB, MAX_PAGES
 from core.exceptions.errors import UploadRejected
+from core.services.jobs import queue
 from core.services.invoices.parsing import SUPPORTED_EXTENSIONS
 from data.models.postgres import User
 from data.models.postgres.enums import DocType, UploadedVia
 from data.repositories import unit_of_work
-from data.repositories.invoices import documents_repo
+from data.repositories.invoices import documents_repo, invoices_repo
 from data.repositories.unit_of_work import DuplicateRecordError
 
 MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024
@@ -34,6 +35,33 @@ MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024
 class StoredUpload:
     source_document_id: uuid.UUID
     duplicate: bool
+
+
+async def _record_duplicate(
+    db: AsyncSession, actor: User, original_id: uuid.UUID, file_name: str
+) -> StoredUpload:
+    """An identical file is turned away at the door (409), and the attempt is kept on the rejected
+    list, pointing at the original; nothing new is stored."""
+    original = await documents_repo.get_document(db, original_id)
+    await invoices_repo.insert_rejected(
+        db,
+        source_document_id=None,
+        duplicate_of_source_document_id=original_id,
+        attempted_file_name=Path(file_name).name,
+        extracted_snapshot={"kind": "duplicate"},
+        rejection_reasons=[
+            {
+                "code": "duplicate_upload",
+                "field": None,
+                "severity": "fail",
+                "message": f"This file was already uploaded as '{original.file_name if original else original_id}'",
+            }
+        ],
+        created_by=actor.id,
+        updated_by=actor.id,
+    )
+    await unit_of_work.commit(db)
+    return StoredUpload(original_id, duplicate=True)
 
 
 def _signature_matches(ext: str, data: bytes) -> bool:
@@ -107,7 +135,7 @@ async def store_upload(
 
     existing = await documents_repo.document_id_by_hash(db, file_hash)
     if existing:
-        return StoredUpload(existing, duplicate=True)
+        return await _record_duplicate(db, actor, existing, file_name)
     await asyncio.to_thread(_write_file, path, data)
 
     try:
@@ -120,10 +148,14 @@ async def store_upload(
             file_hash=file_hash,
             created_by=actor.id,
         )
+        # The job is written in the same transaction as the document: no document without work.
+        await queue.enqueue(
+            db, job_type=queue.JOB_INTAKE, entity_id=document.id, created_by=actor.id
+        )
         await unit_of_work.commit(db)
     except DuplicateRecordError:  # concurrent identical upload won the race on file_hash
         winner = await documents_repo.document_id_by_hash(db, file_hash)
         if winner is None:
             raise
-        return StoredUpload(winner, duplicate=True)
+        return await _record_duplicate(db, actor, winner, file_name)
     return StoredUpload(document.id, duplicate=False)

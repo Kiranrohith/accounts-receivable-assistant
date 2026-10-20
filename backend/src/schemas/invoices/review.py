@@ -71,5 +71,7 @@ class ReviewDecision(BaseModel):
     review_id: uuid.UUID
     status: Literal["Approved", "Rejected"]
     invoice_id: uuid.UUID | None = None
+    version: int | None = None  # the invoice number was already saved: the version now applied
+    version_review_id: uuid.UUID | None = None  # ... or the version review it needs (see /invoices/version-reviews)
     po_hold: bool = False  # created, but on hold: it does not match its purchase order
     po_reasons: list[str] = []
