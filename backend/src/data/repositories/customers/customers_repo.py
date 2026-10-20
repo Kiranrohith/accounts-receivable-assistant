@@ -1,10 +1,10 @@
 from typing import Any
 
-from sqlalchemy import ColumnElement, func, literal, select
+from sqlalchemy import ColumnElement, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from data.models.postgres import Customer, CustomerAlias
-from data.models.postgres.enums import AliasType
+from data.models.postgres.enums import AliasSource, AliasType
 from data.repositories import unit_of_work
 
 
@@ -60,6 +60,50 @@ async def get_by_alias_name(db: AsyncSession, name: str) -> list[Customer]:
         .distinct()
     )
     return list(result)
+
+
+async def get_by_email_or_alias(db: AsyncSession, email: str) -> list[Customer]:
+    """Customers whose own e-mail, or a confirmed e-mail alias, is this address (case-insensitive).
+    Several means a shared address: the caller must not guess between them."""
+    address = email.strip().lower()
+    result = await db.scalars(
+        select(Customer)
+        .outerjoin(
+            CustomerAlias,
+            (CustomerAlias.customer_id == Customer.id) & (CustomerAlias.alias_type == AliasType.EMAIL),
+        )
+        .where(or_(func.lower(Customer.email) == address, func.lower(CustomerAlias.alias_value) == address))
+        .distinct()
+    )
+    return list(result)
+
+
+async def get_alias(
+    db: AsyncSession, customer_id: Any, alias_type: AliasType, value: str
+) -> CustomerAlias | None:
+    return await db.scalar(
+        select(CustomerAlias).where(
+            CustomerAlias.customer_id == customer_id,
+            CustomerAlias.alias_type == alias_type,
+            func.lower(CustomerAlias.alias_value) == value.lower(),
+        )
+    )
+
+
+async def insert_alias(
+    db: AsyncSession, *, customer_id: Any, alias_type: AliasType, value: str, actor_id: Any
+) -> CustomerAlias:
+    alias = CustomerAlias(
+        customer_id=customer_id,
+        alias_type=alias_type,
+        alias_value=value,
+        source=AliasSource.HUMAN_REVIEW,
+        created_by=actor_id,
+        updated_by=actor_id,
+    )
+    db.add(alias)
+    await unit_of_work.flush(db)
+    return alias
 
 
 async def insert_customer(db: AsyncSession, *, fields: dict[str, Any], actor_id: Any) -> Customer:

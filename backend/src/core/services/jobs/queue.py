@@ -47,6 +47,8 @@ ENTITY_TYPE = "source_document"
 JOB_INTAKE = "document_intake"  # new upload: parse, classify, then extract and route
 JOB_INVOICE = "invoice_extraction"  # a person decided it is an invoice: skip the classifier
 JOB_PO = "po_extraction"  # a person decided it is a purchase order: skip the classifier
+JOB_PAYMENT = "payment_extraction"  # a person decided it is a payment advice: skip the classifier
+JOB_PAYMENT_REMATCH = "payment_rematch"  # a parked payment: match it again (its hold was released)
 
 MAX_ATTEMPTS = 1 + len(OUTAGE_BACKOFF_SECONDS)  # the first run plus one per backoff step
 

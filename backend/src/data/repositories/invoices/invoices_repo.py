@@ -251,6 +251,14 @@ async def list_rejected(
 
 
 # ---------------------------------------------------------------- versions
+async def get_by_numbers(db: AsyncSession, numbers: list[str]) -> list[Invoice]:
+    """The saved invoices with exactly these numbers (unknown numbers are simply absent)."""
+    if not numbers:
+        return []
+    result = await db.scalars(select(Invoice).where(Invoice.invoice_number.in_(numbers)))
+    return list(result)
+
+
 async def get_by_number(
     db: AsyncSession, invoice_number: str, *, for_update: bool = False
 ) -> Invoice | None:
@@ -258,6 +266,34 @@ async def get_by_number(
     if for_update:
         query = query.with_for_update()
     return await db.scalar(query)
+
+
+async def open_invoices_for_customer(db: AsyncSession, customer_id: uuid.UUID) -> list[Invoice]:
+    """Invoices that can still receive money (Open, PartlyPaid), oldest due date first, then
+    created_at, then number: the order a payment is applied in when nothing else decides it."""
+    result = await db.scalars(
+        select(Invoice)
+        .where(
+            Invoice.customer_id == customer_id,
+            Invoice.status.in_([InvoiceStatus.OPEN, InvoiceStatus.PARTLY_PAID]),
+        )
+        .order_by(Invoice.due_date, Invoice.created_at, Invoice.invoice_number)
+    )
+    return list(result)
+
+
+async def lock_invoices(db: AsyncSession, invoice_ids: list[uuid.UUID]) -> list[Invoice]:
+    """Row-lock these invoices, always in id order so two payments cannot deadlock."""
+    if not invoice_ids:
+        return []
+    result = await db.scalars(
+        select(Invoice)
+        .where(Invoice.id.in_(invoice_ids))
+        .order_by(Invoice.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    return list(result)
 
 
 async def get_invoice_for_update(db: AsyncSession, invoice_id: uuid.UUID) -> Invoice | None:

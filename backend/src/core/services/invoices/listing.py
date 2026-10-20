@@ -5,6 +5,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.errors import NotFoundError
+from core.services.payments.listing import invoice_payments
 from data.models.postgres import Invoice, RejectedInvoice, SourceDocument
 from data.models.postgres.enums import InvoiceStatus, RejectionResolution
 from data.repositories.customers import customers_repo
@@ -98,6 +99,7 @@ async def get_invoice(db: AsyncSession, invoice_id: uuid.UUID) -> InvoiceDetail:
         source_file_name=document.file_name if document else None,
         linked_po=linked,
         po_mismatch_review_id=hold.id if hold else None,
+        payments=await invoice_payments(db, invoice.id),
     )
 
 

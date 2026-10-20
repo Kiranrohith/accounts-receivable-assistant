@@ -28,6 +28,48 @@ class DocKind(str, enum.Enum):
 
     INVOICE = "invoice"
     PO = "po"
+    PAYMENT = "payment"  # a remittance / payment advice
+
+
+class PaymentState(str, enum.Enum):
+    """Held is NARROW (a payment held in its entirety); it waits for the dispute module."""
+
+    RECEIVED = "Received"
+    READING = "Reading"
+    MATCHING = "Matching"
+    APPLIED = "Applied"  # FINISHED: nothing unapplied or held, all disposed of
+    PARTIALLY_APPLIED = "PartiallyApplied"
+    UNAPPLIED = "Unapplied"
+    NEEDS_REVIEW = "NeedsReview"
+    REJECTED = "Rejected"
+    HELD = "Held"
+    FAILED = "Failed"
+
+
+class MatchedLayer(str, enum.Enum):
+    L1 = "L1"  # quoted invoice number
+    L2 = "L2"  # sender e-mail
+    L3 = "L3"  # normalised payer name / alias
+    L4 = "L4"  # nothing identified: human
+
+
+class Tolerance(str, enum.Enum):
+    T1 = "T1"  # within the rounding tolerance: Paid
+    T2 = "T2"  # within the FX band: Paid + signed residual
+    T3 = "T3"  # over: Paid + credit note for the excess
+    T4 = "T4"  # short: Partly paid + flag
+
+
+class AllocationStatus(str, enum.Enum):
+    ACTIVE = "Active"
+    REVERSED = "Reversed"
+
+
+class NoteStatus(str, enum.Enum):
+    OPEN = "Open"
+    PARTIALLY_USED = "PartiallyUsed"
+    CLOSED = "Closed"
+    VOIDED = "Voided"
 
 
 class AliasType(str, enum.Enum):

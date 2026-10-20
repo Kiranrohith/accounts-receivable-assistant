@@ -17,20 +17,23 @@ from data.models.postgres import (
     Invoice,
     InvoiceVersion,
     Job,
+    Payment,
     PendingInvoiceChange,
     PurchaseOrder,
     RejectedInvoice,
     SourceDocument,
     StepLog,
 )
-from data.models.postgres.enums import DocKind, JobState, PendingChangeStatus
+from data.models.postgres.enums import DocKind, JobState, PaymentState, PendingChangeStatus
 from data.repositories.invoices import documents_repo, invoices_repo
+from data.repositories.payments import payments_repo
 from data.repositories.platform import jobs_repo, logs_repo
 from data.repositories.purchase_orders import purchase_orders_repo
 from schemas.documents.uploads import DocumentUploadDetail, DocumentUploadSummary
 from schemas.invoices.extraction import ExtractedInvoice
 from schemas.invoices.responses import StepOut
 from schemas.invoices.validation import ValidationResult
+from schemas.payments.extraction import ExtractedPayment
 from schemas.purchase_orders.extraction import ExtractedPurchaseOrder
 
 _STATUS = {"Queued": "Running", "Running": "Running", "Succeeded": "Succeeded"}
@@ -38,13 +41,15 @@ _STATUS = {"Queued": "Running", "Running": "Running", "Succeeded": "Succeeded"}
 
 @dataclass
 class Outcome:
-    disposition: str | None = None  # invoice_created / po_created / review / rejected / None
+    disposition: str | None = None  # invoice_created / po_created / payment_* / review / rejected / None
     invoice_id: uuid.UUID | None = None
     invoice_version: int | None = None
     po_hold: bool = False
     purchase_order_id: uuid.UUID | None = None
     review_id: uuid.UUID | None = None
-    review_kind: str | None = None  # document_type / extraction
+    review_kind: str | None = None  # document_type / extraction / version / payment
+    payment_id: uuid.UUID | None = None
+    payment_state: str | None = None
     customer_id: uuid.UUID | None = None
     reasons: list[str] = field(default_factory=list)
 
@@ -60,6 +65,7 @@ def _outcome(
     rejected: RejectedInvoice | None,
     route: dict,
     superseded: InvoiceVersion | None = None,
+    payment: Payment | None = None,
 ) -> Outcome:
     if invoice is not None:
         return Outcome(
@@ -78,6 +84,8 @@ def _outcome(
         )
     if order is not None:
         return Outcome("po_created", purchase_order_id=order.id, customer_id=order.customer_id)
+    if payment is not None:
+        return _payment_outcome(payment)
     if pending is not None and pending.status is PendingChangeStatus.PENDING:
         snapshot = pending.proposed_snapshot or {}
         return Outcome(
@@ -98,6 +106,28 @@ def _outcome(
     return Outcome()
 
 
+_PAYMENT_DISPOSITION = {
+    PaymentState.APPLIED: "payment_applied",
+    PaymentState.PARTIALLY_APPLIED: "payment_partly_applied",
+    PaymentState.UNAPPLIED: "payment_unapplied",
+}
+
+
+def _payment_outcome(payment: Payment) -> Outcome:
+    common = dict(
+        payment_id=payment.id, payment_state=payment.state.value, customer_id=payment.customer_id
+    )
+    if payment.state is PaymentState.NEEDS_REVIEW:
+        return Outcome(
+            "review", review_id=payment.id, review_kind="payment",
+            reasons=list(payment.review_reasons or []), **common,
+        )
+    if payment.state is PaymentState.REJECTED:
+        return Outcome("rejected", reasons=[payment.match_reason or "Rejected"], **common)
+    # Received / Reading / Matching are on their way; the others are decided outcomes
+    return Outcome(_PAYMENT_DISPOSITION.get(payment.state, "payment_received"), **common)
+
+
 def plain_status(processing_status: str, outcome: Outcome) -> str:
     """One label for a user, from what really happened to the document."""
     if processing_status == "Failed":
@@ -109,6 +139,10 @@ def plain_status(processing_status: str, outcome: Outcome) -> str:
         "version_applied": "New version applied",
         "rejected": "Rejected",
         "po_created": "Purchase order created",
+        "payment_received": "Payment received",
+        "payment_applied": "Payment applied",
+        "payment_partly_applied": "Payment partly applied",
+        "payment_unapplied": "Payment unapplied",
         "review": "Needs review",
     }
     return labels.get(outcome.disposition or "", "Processing")  # queued, or no outcome yet
@@ -121,6 +155,8 @@ def _extraction_fields(raw: dict) -> dict:
 def _kind(document: SourceDocument, outcome: Outcome, raw: dict) -> str:
     if document.doc_kind is DocKind.PO:
         return "po"
+    if document.doc_kind is DocKind.PAYMENT:
+        return "payment"
     if outcome.disposition in ("invoice_created", "version_applied") or _extraction_fields(raw):
         return "invoice"
     classification = raw.get("classification") or {}
@@ -161,6 +197,8 @@ def _summary(
         purchase_order_id=outcome.purchase_order_id,
         review_id=outcome.review_id,
         review_kind=outcome.review_kind,
+        payment_id=outcome.payment_id,
+        payment_state=outcome.payment_state,
         detected_type=classification.get("doc_class"),
         detected_confidence=classification.get("confidence"),
         customer_id=outcome.customer_id,
@@ -168,8 +206,9 @@ def _summary(
         retry_at=job.run_after if retrying else None,
         invoice_number=raw.get("invoice_number"),
         po_number=raw.get("po_number"),
-        customer_name=raw.get("customer_name"),
-        total_amount=raw.get("total_amount"),
+        customer_name=raw.get("customer_name") or raw.get("payer_name"),
+        total_amount=raw.get("total_amount") or raw.get("amount"),
+        reference_number=raw.get("reference_number"),
     )
 
 
@@ -181,6 +220,7 @@ async def _outcomes(
     pending = await invoices_repo.latest_pending_by_document(db, ids)
     rejected = await invoices_repo.rejected_by_document(db, ids)
     superseded = await invoices_repo.superseded_by_document(db, ids)
+    payments = await payments_repo.payments_by_document(db, ids)
     return {
         i: _outcome(
             invoices.get(i),
@@ -189,6 +229,7 @@ async def _outcomes(
             rejected.get(i),
             (routes[i].output_summary or {}) if i in routes else {},
             superseded.get(i),
+            payments.get(i),
         )
         for i in ids
     }
@@ -211,7 +252,7 @@ def _extraction(kind: str, raw: dict) -> dict | None:
     fields = _extraction_fields(raw)
     if not fields:
         return None
-    model = ExtractedPurchaseOrder if kind == "po" else ExtractedInvoice
+    model = {"po": ExtractedPurchaseOrder, "payment": ExtractedPayment}.get(kind, ExtractedInvoice)
     try:
         return model.model_validate(fields).model_dump(mode="json")
     except ValueError:  # an extraction of the other shape: show what was stored

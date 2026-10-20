@@ -41,7 +41,13 @@ from schemas.documents.type_review import (
     TypeReviewSummary,
 )
 
-_CHOICE_TO_KIND = {"invoice": DocKind.INVOICE, "po": DocKind.PO}
+_CHOICE_TO_KIND = {"invoice": DocKind.INVOICE, "po": DocKind.PO, "payment": DocKind.PAYMENT}
+_KIND_TO_JOB = {
+    DocKind.INVOICE: queue.JOB_INVOICE,
+    DocKind.PO: queue.JOB_PO,
+    DocKind.PAYMENT: queue.JOB_PAYMENT,
+}
+_KIND_LABEL = {DocKind.INVOICE: "an invoice", DocKind.PO: "a PO", DocKind.PAYMENT: "a payment advice"}
 
 
 def _summary(item: PendingInvoiceChange, document: SourceDocument | None) -> TypeReviewSummary:
@@ -113,11 +119,11 @@ async def choose_type(
     documents_repo.set_kind(document, kind)
     record_decision(
         db, item, user, PendingChangeStatus.APPROVED,
-        body.reason or f"Reviewer chose: this is {'an invoice' if kind is DocKind.INVOICE else 'a PO'}",
+        body.reason or f"Reviewer chose: this is {_KIND_LABEL[kind]}",
     )
     await queue.enqueue(
         db,
-        job_type=queue.JOB_INVOICE if kind is DocKind.INVOICE else queue.JOB_PO,
+        job_type=_KIND_TO_JOB[kind],
         entity_id=document.id,
         created_by=user.id,
     )

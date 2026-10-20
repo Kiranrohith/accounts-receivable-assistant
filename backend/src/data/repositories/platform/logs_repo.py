@@ -15,6 +15,17 @@ def add_step_log(db: AsyncSession, **fields: Any) -> None:
     db.add(StepLog(**fields))
 
 
+async def list_state_log(
+    db: AsyncSession, entity_type: str, entity_id: uuid.UUID
+) -> list[StateLog]:
+    result = await db.scalars(
+        select(StateLog)
+        .where(StateLog.entity_type == entity_type, StateLog.entity_id == entity_id)
+        .order_by(StateLog.occurred_at, StateLog.created_at)
+    )
+    return list(result)
+
+
 async def latest_step_for_entities(
     db: AsyncSession, entity_type: str, step_name: str, entity_ids: list[uuid.UUID]
 ) -> dict[uuid.UUID, StepLog]:

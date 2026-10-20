@@ -1,9 +1,9 @@
-"""Document-type classification: invoice | po | other | unclear, with a confidence.
+"""Document-type classification: invoice | po | payment | other | unclear, with a confidence.
 
 Runs once per upload, after parsing and before any field extraction. The routing decision is a
-pure function of the verdict, so the four exits can be unit-tested without a model:
+pure function of the verdict, so the exits can be unit-tested without a model:
 
-- invoice or po, confidence >= TRIAGE_HUMAN_THRESHOLD  -> that kind's extraction
+- invoice, po or payment, confidence >= TRIAGE_HUMAN_THRESHOLD  -> that kind's extraction
 - other, confidence >= threshold                       -> rejected outright (no extraction spend)
 - anything under the threshold, or "unclear"           -> the doc-type review queue
 """
@@ -24,6 +24,7 @@ __all__ = ["ClassificationOutcome", "ExtractionError", "Route", "classify_docume
 class Route(str, Enum):
     INVOICE = "invoice"
     PO = "po"
+    PAYMENT = "payment"
     REJECT_OTHER = "reject_other"
     REVIEW = "review"
 
@@ -41,6 +42,7 @@ def decide_route(result: DocClassification) -> Route:
     return {
         DocumentClass.INVOICE: Route.INVOICE,
         DocumentClass.PO: Route.PO,
+        DocumentClass.PAYMENT: Route.PAYMENT,
         DocumentClass.OTHER: Route.REJECT_OTHER,
     }[result.doc_class]
 

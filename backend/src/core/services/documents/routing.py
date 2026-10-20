@@ -26,6 +26,7 @@ DOC_TYPE_KIND = "doc_type"  # tag on pending-change snapshots: the document type
 _LABEL = {
     DocumentClass.INVOICE: "an invoice",
     DocumentClass.PO: "a purchase order",
+    DocumentClass.PAYMENT: "a payment advice",
     DocumentClass.OTHER: "neither an invoice nor a purchase order",
     DocumentClass.UNCLEAR: "unclear",
 }
@@ -39,7 +40,10 @@ def other_reason(result: DocClassification) -> str:
 
 def review_reasons(result: DocClassification) -> list[str]:
     if result.doc_class is DocumentClass.UNCLEAR:
-        head = "The reader could not tell whether this is an invoice, a purchase order or something else"
+        head = (
+            "The reader could not tell whether this is an invoice, a purchase order, "
+            "a payment advice or something else"
+        )
     else:
         head = (
             f"The reader thinks this is {_LABEL[result.doc_class]} but is only "

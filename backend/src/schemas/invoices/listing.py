@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from schemas.payments.listing import InvoicePayment
+
 
 class InvoiceListItem(BaseModel):
     invoice_id: uuid.UUID
@@ -53,6 +55,7 @@ class InvoiceDetail(InvoiceListItem):
     source_file_name: str | None
     linked_po: LinkedPO | None = None
     po_mismatch_review_id: uuid.UUID | None = None  # set while the PO hold is waiting for a decision
+    payments: list[InvoicePayment] = []  # what has been paid on it, oldest first
 
 
 class RejectedItem(BaseModel):
