@@ -220,6 +220,25 @@ async def spends_for_note(
     return [(a, number) for a, number in rows]
 
 
+async def active_allocations_of(db: AsyncSession, payment_id: uuid.UUID) -> list[PaymentAllocation]:
+    """Everything a reversal of this payment must undo: the allocations it funded, and the credit
+    spends its own instruction caused. Manual spends are not here."""
+    result = await db.scalars(
+        select(PaymentAllocation)
+        .where(
+            or_(
+                PaymentAllocation.payment_id == payment_id,
+                PaymentAllocation.spent_for_payment_id == payment_id,
+            ),
+            PaymentAllocation.status == AllocationStatus.ACTIVE,
+        )
+        .order_by(PaymentAllocation.created_at, PaymentAllocation.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    return list(result)
+
+
 async def notes_for_payment(db: AsyncSession, payment_id: uuid.UUID) -> list[Note]:
     result = await db.scalars(
         select(Note).where(Note.linked_payment_id == payment_id).order_by(Note.created_at)

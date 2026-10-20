@@ -5,12 +5,13 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.rest.dependencies import require_permission
-from core.services.payments import listing, note_actions, review
+from core.services.payments import listing, note_actions, reversal, review
 from data.clients.db import get_db
 from data.models.postgres import User
 from data.models.postgres.enums import PaymentState
 from schemas.payments.listing import PaymentDetail, PaymentListItem
 from schemas.payments.notes import ConvertResult, ConvertUnapplied
+from schemas.payments.reversal import ReversalResult, ReversePayment
 from schemas.payments.review import (
     AliasResult,
     EnterAmount,
@@ -213,6 +214,35 @@ async def convert_unapplied(
     db: AsyncSession = Depends(get_db),
 ) -> ConvertResult:
     return await note_actions.convert_unapplied(db, user, payment_id, body)
+
+
+@router.post(
+    "/{payment_id}/reverse",
+    response_model=ReversalResult,
+    summary="Reverse a payment's application",
+    description=(
+        "Requires payments.correction.rerun (FTM, ADM). For an Applied, PartiallyApplied or "
+        "Unapplied payment; a reason is required. In one transaction: every allocation the payment "
+        "made is reversed and its invoices get the money back (a Paid invoice can reopen); credit "
+        "spends its own 'use our credit' instruction caused are undone (the note is given the "
+        "amount back); a credit note born from it (an overpayment, or converted unapplied money) is "
+        "Voided; the payment's buckets are cleared. `after` says what happens next: `rematch` runs "
+        "the matcher again straight away, `review` leaves it for a person. If a credit note born "
+        "from the payment has already been spent, the reversal is refused with 409 and nothing is "
+        "changed."
+    ),
+    responses={
+        404: {"description": "No such payment"},
+        409: {"description": "Not reversible in this state, or its credit was already consumed"},
+    },
+)
+async def reverse_payment(
+    payment_id: uuid.UUID,
+    body: ReversePayment,
+    user: User = Depends(require_permission("payments.correction.rerun")),
+    db: AsyncSession = Depends(get_db),
+) -> ReversalResult:
+    return await reversal.reverse_payment(db, user, payment_id, body)
 
 
 @router.post(

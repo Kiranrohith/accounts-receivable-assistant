@@ -169,6 +169,7 @@ async def apply(
             {
                 "payment_id": None,
                 "note_id": sp.note_id,
+                "spent_for_payment_id": payment.id,  # so a reversal of this payment undoes the spend
                 "invoice_id": sp.invoice_id,
                 "allocated_amount": sp.amount,
                 "matched_layer": None,

@@ -142,7 +142,11 @@ class PaymentAllocation(Base, AuditMixin):
             "note_id IS NULL OR tolerance_residual IS NULL OR tolerance_residual = 0",
             name="ck_allocations_note_exact",
         ),
+        CheckConstraint(
+            "spent_for_payment_id IS NULL OR note_id IS NOT NULL", name="ck_allocations_spend_trace"
+        ),
         Index("ix_payment_allocations_payment", "payment_id"),
+        Index("ix_payment_allocations_spent_for_payment", "spent_for_payment_id"),
         Index("ix_payment_allocations_note", "note_id"),
         Index("ix_payment_allocations_invoice", "invoice_id"),
     )
@@ -152,6 +156,11 @@ class PaymentAllocation(Base, AuditMixin):
         UUID(as_uuid=True), ForeignKey("payments.id")
     )
     note_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("notes.id"))
+    spent_for_payment_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("payments.id"),
+        comment="the payment whose 'use our credit' instruction caused this note-funded spend",
+    )
     invoice_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("invoices.id"), nullable=False
     )
