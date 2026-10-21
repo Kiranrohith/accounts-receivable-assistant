@@ -1,0 +1,16 @@
+{#- Day 30 after the due date. No legal threats: referral to collections is the strongest language
+    used, and it is true (the 60-day handoff). -#}
+{% extends "email/base.j2" %}
+{% block subject %}Final reminder — Invoice {{ invoice_number }} ({{ days_past_due }} days past due){% endblock %}
+{% block content %}Dear {{ contact_name | default(customer_name, true) }},
+
+Despite earlier reminders, invoice {{ invoice_number }} remains unpaid
+{{ days_past_due }} days after its due date of {{ due_date }}. The
+outstanding balance is {{ balance }}.
+
+Please treat this as our final reminder. If payment is not received, or we
+do not hear from you regarding this invoice, the matter will be referred to
+our collections team for direct follow-up.
+
+If payment has been made in the last few days, kindly reply with the
+transaction reference so we can reconcile it immediately.{% endblock %}

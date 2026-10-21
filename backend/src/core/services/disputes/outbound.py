@@ -81,8 +81,9 @@ async def send_draft(
                 db,
                 dispute.assigned_to,
                 NotificationType.SEND_FAILURE,
-                f"Could not send the clarification for dispute {await assignment.label(db, dispute)}: "
-                f"{exc.message}. It stays a draft; the response deadline keeps running.",
+                f"Could not send the e-mail for dispute {await assignment.label(db, dispute)}: "
+                f"{exc.message}. It stays a draft"
+                + ("." if dispute.status is DisputeStatus.RESOLVED else "; the response deadline keeps running."),
                 entity_type="dispute",
                 entity_id=dispute.id,
                 actor=user_id,
@@ -95,7 +96,9 @@ async def send_draft(
     message.sent_at = now
     message.gmail_message_id = sent.message_id
     message.body = compose(final_subject, text)
-    if dispute.first_response_at is None:
+    if dispute.status is DisputeStatus.RESOLVED:  # the resolution e-mail: not a first response
+        assignment.log_state(db, dispute, dispute.status, f"Resolution e-mail sent to {to}", user_id=user_id)
+    elif dispute.first_response_at is None:
         dispute.first_response_at = now
     if dispute.status in (DisputeStatus.ASSIGNED, DisputeStatus.CATEGORISED):
         before = dispute.status

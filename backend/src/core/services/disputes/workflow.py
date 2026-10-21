@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.constants import DISPUTE_DEFAULT_CONFIDENCE
 from core.exceptions.errors import ConflictError, NotFoundError, PermissionDeniedError, ValidationFailure
-from core.services.disputes import assignment, create
+from core.services.disputes import assignment, create, outbound, resolution
 from core.services.payments import parking
 from core.services.users.users import permission_codes_for
 from data.models.postgres import Dispute, User
@@ -34,9 +34,11 @@ from schemas.disputes.disputes import (
     ClassifyDispute,
     CreateDispute,
     CreateResult,
+    DraftResult,
     NoteResult,
     ReassignDispute,
     ResolveDispute,
+    ResolveResult,
 )
 
 WORK_NORMAL = "disputes.work.normal"
@@ -70,6 +72,16 @@ async def authorize(db: AsyncSession, user: User, dispute: Dispute, *, must_own:
         what = "escalated disputes" if needed == WORK_ESCALATED else "disputes"
         raise PermissionDeniedError(f"Your role does not work {what} (missing {needed})")
     if must_own and dispute.assigned_to not in (None, user.id) and REASSIGN not in codes:
+        raise PermissionDeniedError("This dispute is assigned to someone else")
+
+
+async def authorize_resolved(db: AsyncSession, user: User, dispute: Dispute) -> None:
+    """Who may still send the resolution e-mail of a Resolved dispute: its owner (or an admin), whichever
+    work permission they hold (an escalated dispute's owner is a team member, who lacks the normal one)."""
+    codes = await permission_codes_for(db, user)
+    if WORK_NORMAL not in codes and WORK_ESCALATED not in codes:
+        raise PermissionDeniedError("Your role does not work disputes")
+    if dispute.assigned_to not in (None, user.id) and REASSIGN not in codes:
         raise PermissionDeniedError("This dispute is assigned to someone else")
 
 
@@ -197,7 +209,7 @@ async def add_note(
 # ---- resolve ------------------------------------------------------------------------------------
 async def resolve(
     db: AsyncSession, user: User, dispute_id: uuid.UUID, body: ResolveDispute
-) -> ActionResult:
+) -> ResolveResult:
     dispute = await _lock(db, dispute_id)
     if dispute.status is DisputeStatus.RESOLVED:
         raise ConflictError("This dispute is already resolved")
@@ -219,6 +231,14 @@ async def resolve(
     assignment.log_state(db, dispute, before, f"Resolved by {user.username}", user_id=user.id)
     if dispute.invoice_id is not None:  # resolving may end (or move) a hold on payments
         await parking.queue_held_for_invoice(db, dispute.invoice_id, user.id)
-    result = _result(dispute)
+    # the customer's resolution e-mail: a draft for the owner, never sent by itself
+    draft = await resolution.draft_for(db, dispute, body.narrative, actor=user.id)
+    subject, text = outbound.split(draft.body)
+    result = ResolveResult(
+        **_result(dispute).model_dump(),
+        resolution_draft=DraftResult(
+            dispute_id=dispute.id, message_id=draft.id, subject=subject, body=text, confidence=None, ungrounded=[]
+        ),
+    )
     await unit_of_work.commit(db)
     return result

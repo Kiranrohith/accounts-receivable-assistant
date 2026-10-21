@@ -28,6 +28,7 @@ from schemas.disputes.disputes import (
     NoteResult,
     ReassignDispute,
     ResolveDispute,
+    ResolveResult,
     SendResult,
     StatusName,
 )
@@ -265,13 +266,16 @@ async def add_note(
 
 @router.post(
     "/{dispute_id}/resolve",
-    response_model=ActionResult,
+    response_model=ResolveResult,
     summary="Resolve a dispute",
     description=(
         "Needs disputes.work.normal, or disputes.work.escalated once the dispute is Escalated, and "
         "the dispute must be assigned to you (an admin can resolve any). Give a narrative of how it "
         "was settled. The invoice stops being flagged as disputed. A dispute that is still in the "
-        "classify queue must be classified first."
+        "classify queue must be classified first. The response carries `resolution_draft`: the "
+        "e-mail to the customer, written from the narrative. It is a DRAFT and is never sent by "
+        "itself: the owner edits it into customer-safe wording (PATCH .../messages/{id}) and sends "
+        "it (POST .../messages/{id}/send); an unsent clarification draft is set aside as a note."
     ),
     responses=_ACT_ERRORS,
 )
@@ -280,7 +284,7 @@ async def resolve(
     body: ResolveDispute,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> ActionResult:
+) -> ResolveResult:
     return await workflow.resolve(db, user, dispute_id, body)
 
 

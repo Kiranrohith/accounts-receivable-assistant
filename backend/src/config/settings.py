@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     database_url: str
     jwt_secret: str
     our_company_name: str | None = None  # the issuer of our invoices: never the customer
+    our_company_contact_line: str | None = None  # e.g. an address or phone, in the footer of our e-mails
     our_gstin: str | None = None
     seed_admin_email: str | None = None
     seed_admin_password: str | None = None

@@ -1,0 +1,12 @@
+{#- Day 1 after the due date. -#}
+{% extends "email/base.j2" %}
+{% block subject %}Payment reminder — Invoice {{ invoice_number }}{% endblock %}
+{% block content %}Dear {{ contact_name | default(customer_name, true) }},
+
+This is a friendly reminder that invoice {{ invoice_number }}, dated
+{{ invoice_date }}, fell due on {{ due_date }}. The outstanding balance
+is {{ balance }}.
+
+If payment is already on its way, please ignore this note — and thank you.
+Otherwise, we would appreciate payment at your earliest convenience. If
+anything about this invoice needs clarification, just reply to this email.{% endblock %}

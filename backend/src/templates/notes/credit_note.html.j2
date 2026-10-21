@@ -1,0 +1,20 @@
+<!doctype html>
+{#- The credit note document (rendered to a PDF, stored with uploaded_via=generated, linked through
+    notes.generated_document_id, and attached to credit_note_email). Not wired in yet. -#}
+<html lang="en">
+<head><meta charset="utf-8"><title>Credit note {{ note_number }}</title></head>
+<body>
+  <h1>CREDIT NOTE</h1>
+  <p><strong>Note number:</strong> {{ note_number }}<br>
+     <strong>Issue date:</strong> {{ issue_date }}</p>
+  <p><strong>Customer:</strong> {{ customer_name }}{% if customer_gstin %}<br>
+     <strong>GSTIN:</strong> {{ customer_gstin }}{% endif %}</p>
+  <p><strong>Amount (INR):</strong> {{ note_amount }}<br>
+     <strong>Reason:</strong> {{ note_reason }}</p>
+  {% if linked_invoice_number %}<p><strong>Invoice:</strong> {{ linked_invoice_number }}</p>{% endif %}
+  {% if linked_payment_reference %}<p><strong>Payment:</strong> {{ linked_payment_reference }}</p>{% endif %}
+  <p>Please quote this number ({{ note_number }}) in your remittance to apply it.</p>
+  <hr>
+  <p>{{ company_name }}{% if company_contact_line %}<br>{{ company_contact_line }}{% endif %}</p>
+</body>
+</html>

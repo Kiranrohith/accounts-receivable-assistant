@@ -1,0 +1,13 @@
+{#- Shared layout of every customer e-mail (plain text). A child template fills `content` and names its
+    own `subject` block. No "do-not-reply": replies are an input channel (thread-aware linking). -#}
+{% block header %}{{ company_name }}{% endblock %}
+
+
+{% block content %}{% endblock %}
+
+
+{% block footer %}If you have already made this payment or believe this was sent in error,
+simply reply to this email and our team will look into it.
+
+Accounts Receivable Team
+{{ company_name }}{% if company_contact_line %} · {{ company_contact_line }}{% endif %}{% endblock %}

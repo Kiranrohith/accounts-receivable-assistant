@@ -269,6 +269,10 @@ class DraftResult(BaseModel):
     ungrounded: list[str]  # figures, dates or numbers in the text that are not in our records
 
 
+class ResolveResult(ActionResult):
+    resolution_draft: DraftResult | None = None  # the e-mail to the customer, for the owner to edit and send
+
+
 class SendResult(BaseModel):
     dispute_id: uuid.UUID
     message_id: uuid.UUID
