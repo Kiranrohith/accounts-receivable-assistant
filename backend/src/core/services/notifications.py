@@ -47,8 +47,9 @@ async def already_told(
     type_: NotificationType,
     entity_type: str,
     entity_id: uuid.UUID,
+    marker: str | None = None,
 ) -> bool:
-    return await notifications_repo.exists_for_entity(db, recipient_id, type_, entity_type, entity_id)
+    return await notifications_repo.exists_for_entity(db, recipient_id, type_, entity_type, entity_id, marker)
 
 
 def _out(n: Notification) -> NotificationOut:

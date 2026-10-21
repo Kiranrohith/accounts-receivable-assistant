@@ -274,3 +274,26 @@ class SendResult(BaseModel):
     message_id: uuid.UUID
     sent_to: str
     status: StatusName
+
+
+# ---- the deadline scan ---------------------------------------------------------------------------
+class EscalatedItem(BaseModel):
+    dispute_id: uuid.UUID
+    owner_id: uuid.UUID | None
+    owner: str | None
+    reason: str
+    customer_update: Literal["sent", "failed", "no_address"]
+
+
+class WarnedItem(BaseModel):
+    dispute_id: uuid.UUID
+    to: uuid.UUID
+    deadline: Literal["first response", "resolution"]
+    due: date
+
+
+class DeadlineScanResult(BaseModel):
+    as_of: datetime
+    looked_at: int  # open, classified disputes examined
+    escalated: list[EscalatedItem]
+    warned: list[WarnedItem]

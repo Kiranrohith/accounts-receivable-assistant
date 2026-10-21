@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.rest.dependencies import get_current_user, require_permission
 from core.services.disputes import dashboard as dashboard_service
-from core.services.disputes import drafts, queries, workflow
+from core.services.disputes import deadlines, drafts, queries, workflow
 from data.clients.db import get_db
 from data.models.postgres import User
 from data.models.postgres.enums import DisputeCategory, DisputeStatus
@@ -18,6 +18,7 @@ from schemas.disputes.disputes import (
     ClassifyDispute,
     CreateDispute,
     CreateResult,
+    DeadlineScanResult,
     DisputeDashboard,
     DisputeDetail,
     DisputeListItem,
@@ -118,6 +119,28 @@ async def list_disputes(
         limit=limit,
         offset=offset,
     )
+
+
+@router.post(
+    "/deadline-scan",
+    response_model=DeadlineScanResult,
+    summary="Run the deadline scan now",
+    description=(
+        "Requires disputes.reassign (admin). The same scan the scheduler runs every day at 09:15 IST: "
+        "a dispute that has missed its first-response or resolution date is escalated to the "
+        "least-loaded FTM (an admin if there is none), the admins and the new owner are notified "
+        "and the customer is sent a status update; a deadline due within a working day gets one "
+        "warning to the owner. Safe to repeat: a second run changes nothing. `as_of` runs it as if "
+        "it were that moment (to see what a given day would do); it still changes real data."
+    ),
+)
+async def run_deadline_scan(
+    as_of: datetime | None = Query(None),
+    _: User = Depends(require_permission("disputes.reassign")),
+) -> DeadlineScanResult:
+    moment = as_of or datetime.now(UTC)
+    found = await deadlines.scan(moment)
+    return DeadlineScanResult(as_of=moment, **found.as_dict())
 
 
 @router.get(

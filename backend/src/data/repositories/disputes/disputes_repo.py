@@ -302,3 +302,32 @@ async def lock_message(db: AsyncSession, message_id: uuid.UUID) -> DisputeMessag
         .with_for_update()
         .execution_options(populate_existing=True)
     )
+
+
+async def scan_candidates(db: AsyncSession) -> list[uuid.UUID]:
+    """Open disputes someone is working (classified): the deadline scan looks at these."""
+    result = await db.scalars(
+        select(Dispute.id)
+        .where(
+            Dispute.status.in_(
+                [
+                    DisputeStatus.CATEGORISED,
+                    DisputeStatus.ASSIGNED,
+                    DisputeStatus.CLARIFICATION_SENT,
+                    DisputeStatus.ESCALATED,
+                ]
+            )
+        )
+        .order_by(Dispute.received_at, Dispute.id)
+    )
+    return list(result)
+
+
+async def active_users_of_role(db: AsyncSession, role_code: str) -> list[User]:
+    result = await db.scalars(
+        select(User)
+        .join(Role, Role.id == User.role_id)
+        .where(Role.code == role_code, Role.is_active, User.is_active)
+        .order_by(User.created_at, User.id)
+    )
+    return list(result)

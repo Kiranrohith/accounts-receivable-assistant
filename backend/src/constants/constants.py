@@ -73,6 +73,7 @@ assert WATCHDOG_INTERVAL_SECONDS < STALE_HEARTBEAT_SECONDS
 POLL_INTERVAL_MINUTES: Final = (2, 5)  # gmail_poll
 REMINDER_SCAN_TIME_IST: Final = time(9, 0)
 DEADLINE_SCAN_TIME_IST: Final = time(9, 15)  # stagger only, NO data dependency
+SCHEDULER_TICK_SECONDS: Final = 30  # how often a worker looks for due schedules
 BUSINESS_TIMEZONE: Final = "Asia/Kolkata"  # business dates IST; storage UTC
 
 # --- Disputes: working days ---

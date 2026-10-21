@@ -58,17 +58,21 @@ async def mark_all_read(db: AsyncSession, user_id: uuid.UUID) -> int:
 
 
 async def exists_for_entity(
-    db: AsyncSession, recipient_id: uuid.UUID, type_: Any, entity_type: str, entity_id: uuid.UUID
+    db: AsyncSession,
+    recipient_id: uuid.UUID,
+    type_: Any,
+    entity_type: str,
+    entity_id: uuid.UUID,
+    marker: str | None = None,
 ) -> bool:
-    """Has this user already been told this (used to keep a scan from repeating a warning)?"""
-    found = await db.scalar(
-        select(Notification.id)
-        .where(
-            Notification.recipient_user_id == recipient_id,
-            Notification.type == type_,
-            Notification.entity_type == entity_type,
-            Notification.entity_id == entity_id,
-        )
-        .limit(1)
+    """Has this user already been told this (used to keep a scan from repeating a warning)?
+    `marker` narrows it to notices whose text contains it (two deadlines, two warnings)."""
+    query = select(Notification.id).where(
+        Notification.recipient_user_id == recipient_id,
+        Notification.type == type_,
+        Notification.entity_type == entity_type,
+        Notification.entity_id == entity_id,
     )
-    return found is not None
+    if marker:
+        query = query.where(Notification.message.contains(marker))
+    return (await db.scalar(query.limit(1))) is not None

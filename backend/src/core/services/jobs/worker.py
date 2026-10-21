@@ -12,8 +12,8 @@ import socket
 import uuid
 from contextlib import suppress
 
-from constants.constants import WATCHDOG_INTERVAL_SECONDS, WORKER_POLL_SECONDS
-from core.services.jobs import queue
+from constants.constants import SCHEDULER_TICK_SECONDS, WATCHDOG_INTERVAL_SECONDS, WORKER_POLL_SECONDS
+from core.services.jobs import queue, scheduler
 from data.clients.db import session_scope
 
 logger = logging.getLogger(__name__)
@@ -21,16 +21,21 @@ logger = logging.getLogger(__name__)
 # Module-level so tests can shorten them.
 poll_seconds: tuple[float, float] = WORKER_POLL_SECONDS
 watchdog_interval_seconds: float = WATCHDOG_INTERVAL_SECONDS
+scheduler_tick_seconds: float = SCHEDULER_TICK_SECONDS
 
 
 class Worker:
-    def __init__(self, handlers: dict[str, queue.Handler], *, concurrency: int = 2) -> None:
+    def __init__(
+        self, handlers: dict[str, queue.Handler], *, concurrency: int = 2, run_schedules: bool = True
+    ) -> None:
         self.handlers = handlers
         self.concurrency = max(1, concurrency)
         self.worker_id = f"{socket.gethostname()}-{os.getpid()}-{uuid.uuid4().hex[:4]}"
         self._stopping = asyncio.Event()
         self._slots: list[asyncio.Task] = []
         self._watchdog: asyncio.Task | None = None
+        self._scheduler: asyncio.Task | None = None
+        self.run_schedules = run_schedules
 
     async def start(self) -> None:
         """Reclaim whatever a previous process left behind, then start working."""
@@ -40,6 +45,9 @@ class Worker:
             for n in range(self.concurrency)
         ]
         self._watchdog = asyncio.create_task(self._watch_forever(), name=f"{self.worker_id}-watchdog")
+        if self.run_schedules:
+            await self._seed_schedules()
+            self._scheduler = asyncio.create_task(self._schedule_forever(), name=f"{self.worker_id}-scheduler")
         logger.info("worker %s started with %d slots", self.worker_id, self.concurrency)
 
     async def stop(self, grace_seconds: float = 20) -> None:
@@ -50,10 +58,11 @@ class Worker:
             for task in pending:
                 task.cancel()  # execute() requeues the job it was running
             await asyncio.gather(*pending, return_exceptions=True)
-        if self._watchdog is not None:
-            self._watchdog.cancel()
-            with suppress(asyncio.CancelledError):
-                await self._watchdog
+        for task in (self._watchdog, self._scheduler):
+            if task is not None:
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
         logger.info("worker %s stopped", self.worker_id)
 
     async def _sleep(self, seconds: float) -> None:
@@ -93,3 +102,22 @@ class Worker:
         while True:
             await asyncio.sleep(watchdog_interval_seconds)
             await self._watch_once()
+
+    async def _seed_schedules(self) -> None:
+        try:
+            await scheduler.seed()
+        except Exception:
+            logger.exception("could not seed the schedules")
+
+    async def _schedule_forever(self) -> None:
+        """Every few seconds run whatever recurring work is due (see core.services.jobs.scheduler)."""
+        while True:
+            try:
+                ran = await scheduler.tick()
+                if ran:
+                    logger.info("schedules run: %s", ", ".join(ran))
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.exception("scheduler tick failed")
+            await asyncio.sleep(scheduler_tick_seconds)
