@@ -11,6 +11,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.services.jobs import queue
+from data.repositories.disputes import disputes_repo
 from data.repositories.payments import payments_repo
 
 
@@ -21,6 +22,26 @@ async def queue_parked_payments(
     together with the release that triggered it. Returns how many were queued."""
     queued = 0
     for payment in await payments_repo.parked_payments_for_customer(db, customer_id):
+        if payment.source_document_id is None:
+            continue
+        await queue.enqueue(
+            db,
+            job_type=queue.JOB_PAYMENT_REMATCH,
+            entity_id=payment.source_document_id,
+            created_by=actor,
+        )
+        queued += 1
+    return queued
+
+
+async def queue_held_for_invoice(
+    db: AsyncSession, invoice_id: uuid.UUID, actor: uuid.UUID | None
+) -> int:
+    """A dispute on this invoice was classified or resolved: queue a re-check for every payment
+    holding money for one of its disputes. The job decides (release.py), not this call; the caller
+    commits together with the dispute change. Returns how many were queued."""
+    queued = 0
+    for payment in await disputes_repo.payments_held_on_invoice(db, invoice_id):
         if payment.source_document_id is None:
             continue
         await queue.enqueue(

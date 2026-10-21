@@ -138,6 +138,7 @@ def match_summary(outcome: MatchOutcome) -> dict:
         "allocations": outcome.allocations,
         "credit_note": outcome.note_number,
         "credit_spent": outcome.credit_spent,
+        "held": outcome.held,
     }
 
 

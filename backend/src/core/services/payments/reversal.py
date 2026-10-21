@@ -42,7 +42,7 @@ from schemas.payments.reversal import (
 )
 
 _ZERO = Decimal("0.00")
-REVERSIBLE = (PaymentState.APPLIED, PaymentState.PARTIALLY_APPLIED, PaymentState.UNAPPLIED)
+REVERSIBLE = (PaymentState.APPLIED, PaymentState.PARTIALLY_APPLIED, PaymentState.UNAPPLIED, PaymentState.HELD)
 
 
 def _log(db: AsyncSession, entity: str, entity_id: uuid.UUID, before: str | None, after: str, user: User, reason: str) -> None:
@@ -61,8 +61,8 @@ async def reverse_payment(
         raise NotFoundError("Payment not found")
     if payment.state not in REVERSIBLE:
         raise ConflictError(
-            f"This payment is {payment.state.value}: only an Applied, PartiallyApplied or "
-            "Unapplied payment can be reversed"
+            f"This payment is {payment.state.value}: only an Applied, PartiallyApplied, "
+            "Unapplied or Held payment can be reversed"
         )
 
     allocations = await payments_repo.active_allocations_of(db, payment.id)
@@ -158,6 +158,7 @@ async def reverse_payment(
     before_state = payment.state
     payment.unapplied_amount = _ZERO
     payment.held_amount = _ZERO
+    payment.held_for_dispute_id = None
     payment.credited_amount = _ZERO
     payment.confidence_score = None
     payment.rematch_count = 0

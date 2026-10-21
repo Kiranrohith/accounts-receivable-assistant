@@ -29,6 +29,7 @@ from core.exceptions.errors import (
 )
 from core.services.invoices.amounts import money
 from core.services.invoices.fx import is_foreign, rate_for_invoice
+from core.services.payments import holds
 from core.services.payments.apply import Application, Contention, NotMatching, apply
 from core.services.payments.engine import Status, run_matching
 from core.services.payments.listing import DECIDABLE
@@ -198,8 +199,12 @@ async def manual_match(
             raise ConflictError(
                 f"Invoice {invoice.invoice_number} is on purchase-order hold; release the hold first"
             )
-        if invoice.is_disputed:
-            raise ConflictError(f"Invoice {invoice.invoice_number} is disputed")
+        blocking = holds.holding_of((await holds.open_disputes_by_invoice(db, [invoice])).get(invoice.id))
+        if blocking:
+            raise ConflictError(
+                f"Invoice {invoice.invoice_number} has a dispute that holds payments ({holds.names(blocking)}); "
+                "classify or resolve it first, or leave the payment unapplied"
+            )
         balance = money(invoice.collectible_balance)
         open_targets.append(Target(invoice.id, balance))
         open_amounts.append(amount_inr)
@@ -308,6 +313,7 @@ async def leave_unapplied(
     payment.amount_received_inr = received_inr
     payment.unapplied_amount = received_inr
     payment.held_amount = _ZERO
+    payment.held_for_dispute_id = None
     payment.credited_amount = _ZERO
     payment.state = PaymentState.UNAPPLIED
     payment.review_reasons = None
@@ -333,6 +339,7 @@ async def reject(
     payment.state = PaymentState.REJECTED
     payment.unapplied_amount = _ZERO
     payment.held_amount = _ZERO
+    payment.held_for_dispute_id = None
     payment.credited_amount = _ZERO
     payment.match_reason = f"Rejected by {user.username}: {body.reason}"
     payment.updated_by = user.id

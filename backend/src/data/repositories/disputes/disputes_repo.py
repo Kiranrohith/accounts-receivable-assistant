@@ -203,6 +203,30 @@ async def held_payments(db: AsyncSession, dispute_id: uuid.UUID) -> list[Payment
     return list(result)
 
 
+async def open_on_invoices(db: AsyncSession, invoice_ids: list[uuid.UUID]) -> list[Dispute]:
+    """Every open dispute on these invoices (any category), oldest first."""
+    if not invoice_ids:
+        return []
+    result = await db.scalars(
+        select(Dispute)
+        .where(Dispute.invoice_id.in_(invoice_ids), _OPEN)
+        .order_by(Dispute.received_at, Dispute.created_at, Dispute.id)
+        .execution_options(populate_existing=True)  # a hold is judged on the state as it is now
+    )
+    return list(result)
+
+
+async def payments_held_on_invoice(db: AsyncSession, invoice_id: uuid.UUID) -> list[Payment]:
+    """Payments with money held for any dispute (open or resolved) of this invoice."""
+    result = await db.scalars(
+        select(Payment)
+        .join(Dispute, Dispute.id == Payment.held_for_dispute_id)
+        .where(Dispute.invoice_id == invoice_id, Payment.held_amount > 0)
+        .order_by(Payment.created_at, Payment.id)
+    )
+    return list(result)
+
+
 async def open_assigned_to(db: AsyncSession, user_id: uuid.UUID) -> int:
     return (
         await db.scalar(select(func.count()).select_from(Dispute).where(Dispute.assigned_to == user_id, _OPEN))

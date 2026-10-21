@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from constants.constants import DISPUTE_DEFAULT_CONFIDENCE
 from core.exceptions.errors import ConflictError, NotFoundError, PermissionDeniedError, ValidationFailure
 from core.services.disputes import assignment, create
+from core.services.payments import parking
 from core.services.users.users import permission_codes_for
 from data.models.postgres import Dispute, User
 from data.models.postgres.enums import DisputeCategory, DisputeMessageKind, DisputeStatus
@@ -138,6 +139,8 @@ async def classify(
     await create.categorise_and_assign(
         db, dispute, actor=user.id, reason=f"Classified as {dispute.category.value} by {user.username}"
     )
+    if dispute.invoice_id is not None:  # the classification may end (or move) a hold on payments
+        await parking.queue_held_for_invoice(db, dispute.invoice_id, user.id)
     result = _result(dispute)
     await unit_of_work.commit(db)
     return result
@@ -214,6 +217,8 @@ async def resolve(
         if invoice is not None and await disputes_repo.open_count_on_invoice(db, dispute.invoice_id) == 0:
             invoice.is_disputed = False
     assignment.log_state(db, dispute, before, f"Resolved by {user.username}", user_id=user.id)
+    if dispute.invoice_id is not None:  # resolving may end (or move) a hold on payments
+        await parking.queue_held_for_invoice(db, dispute.invoice_id, user.id)
     result = _result(dispute)
     await unit_of_work.commit(db)
     return result

@@ -4,13 +4,19 @@
 it as one of:
   APPLIED  allocations written, invoices moved, the payment Applied / PartiallyApplied
   REVIEW   NeedsReview with the reasons: low score, a tie, the amounts do not add up, an invoice
-           already paid or disputed, a currency we cannot value, or contention it could not win
+           already paid, two invoices each under a dispute that holds money, a currency we cannot
+           value, or contention it could not win
   PARKED   still Matching: a target invoice is on PO hold; it is matched again when released
 
 Which invoices: the ones the advice quotes (L1), else the customer's open invoices (L2/L3): every
 single invoice plus every combination that fits the amount. A best score of 85 or more with no tie
 applies by itself; a short payment from a certain identity (L1, or the customer's only open
 invoice) applies as Partly paid with a flag whatever the score.
+
+An invoice with a dispute that holds money (uncategorised, Other, or about the payment itself) has
+its slice of the payment frozen (payments.held_amount, pinned to the oldest such dispute) while the
+other slices apply; other open disputes only tell their owner that money arrived (see holds.py and
+release.py).
 
 Foreign payments are valued at the frozen rate of the invoice(s) they pay; a set that mixes
 currencies or frozen rates cannot be valued and goes to review.
@@ -24,7 +30,7 @@ spent; the open credit is only mentioned.
 import asyncio
 import random
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
 from enum import Enum
@@ -41,6 +47,7 @@ from constants.constants import (
 )
 from core.services.invoices.amounts import money
 from core.services.invoices.fx import is_foreign
+from core.services.payments import holds
 from core.services.payments.apply import Application, Contention, NotMatching, apply
 from core.services.payments.credit import Credit, Spend, plan_spends
 from core.services.payments.matching import (
@@ -91,6 +98,7 @@ class MatchOutcome:
     allocations: list[dict] = field(default_factory=list)
     note_number: str | None = None
     credit_spent: list[dict] = field(default_factory=list)  # credit notes spent on the advice's instruction
+    held: dict | None = None  # the slice frozen for a dispute: {invoice_number, amount}
 
 
 class _Review(Exception):
@@ -137,7 +145,7 @@ def _stated_amount(row: dict) -> Decimal | None:
     return amount if amount > 0 else None
 
 
-async def _to_review(
+async def to_review(
     db: AsyncSession, payment: Payment, reasons: list[str], score: int | None = None
 ) -> None:
     """Park the payment with a person. Every money bucket is zero while it waits."""
@@ -148,6 +156,7 @@ async def _to_review(
     payment.confidence_score = score
     payment.unapplied_amount = _ZERO
     payment.held_amount = _ZERO
+    payment.held_for_dispute_id = None
     payment.credited_amount = _ZERO
     logs_repo.add_state_log(
         db,
@@ -205,6 +214,51 @@ async def _credit_plan(
 
 def _life(invoices: list[Invoice]) -> str:
     return ", ".join(i.invoice_number for i in invoices)
+
+
+async def _carve_dispute_hold(
+    db: AsyncSession, plan: Plan, used: list[Invoice]
+) -> tuple[Plan, Decimal, Invoice | None, str]:
+    """Take out of the plan the slice of an invoice that has a dispute holding money.
+
+    A dispute that holds (uncategorised, Other, or about the payment itself) freezes the WHOLE slice
+    the remittance gives that invoice: there is no disputed-amount to freeze less, and applying part
+    of it would presume the dispute's outcome. The other slices apply as planned. Returns the plan
+    without that slice, the amount held (as received), the invoice and a line for the explanation.
+    Raises _Review when the payment cannot be split that cleanly.
+    """
+    disputes = await holds.open_disputes_by_invoice(db, used)
+    holding_invoices = [i for i in used if holds.holding_of(disputes.get(i.id))]
+    if not holding_invoices:
+        return plan, _ZERO, None, ""
+    if len(holding_invoices) > 1:
+        which = "; ".join(
+            f"{i.invoice_number} (dispute {holds.names(holds.holding_of(disputes[i.id]))})"
+            for i in holding_invoices
+        )
+        raise _Review(
+            [
+                f"More than one invoice in this payment has a dispute that holds money: {which}. "
+                "The first would be held and the second cannot be, so a person must decide where the money goes"
+            ]
+        )
+    invoice = holding_invoices[0]
+    if plan.credit > 0 or plan.unapplied > 0:
+        raise _Review(
+            [
+                f"Invoice {invoice.invoice_number} has a dispute that holds money, and this payment also has "
+                "money beyond its invoices (an overpayment or an invoice we do not have): "
+                "a person must decide where the money goes"
+            ]
+        )
+    sliced = next(s for s in plan.slices if s.invoice_id == invoice.id)
+    amount = money(sliced.allocated + (sliced.residual or _ZERO))
+    pinned = holds.holding_of(disputes[invoice.id])[0]
+    note = (
+        f"{amount} is held for dispute {holds.names([pinned])} on invoice {invoice.invoice_number} "
+        "until the dispute is classified or resolved"
+    )
+    return replace(plan, slices=[s for s in plan.slices if s.invoice_id != invoice.id]), amount, invoice, note
 
 
 async def _plan(db: AsyncSession, payment: Payment) -> tuple[Application, list[Invoice]]:
@@ -372,12 +426,14 @@ async def _plan(db: AsyncSession, payment: Payment) -> tuple[Application, list[I
     members = best.members
     expected_balance = {m.id: m.balance for m in members}
     used = [invoices_by_id[m.id] for m in members]
-    disputed = [i for i in used if i.is_disputed]
-    if disputed:
-        raise _Review([f"Invoice {_life(disputed)} is disputed; a person must decide where the money goes"], best.score)
-    held = [i for i in used if i.po_hold]
-    if held:
-        raise _Park(f"invoice {_life(held)} is on purchase-order hold")
+    on_hold = [i for i in used if i.po_hold]
+    if on_hold:
+        raise _Park(f"invoice {_life(on_hold)} is on purchase-order hold")
+    try:
+        plan, held_amount, held_invoice, held_note = await _carve_dispute_hold(db, plan, used)
+    except _Review as review:
+        review.score = best.score
+        raise
 
     leftovers = [
         (s.invoice_id, money(expected_balance[s.invoice_id] - s.allocated))
@@ -400,6 +456,8 @@ async def _plan(db: AsyncSession, payment: Payment) -> tuple[Application, list[I
         reason += " (short payment from a certain identity: applied as partly paid)"
     if reasons_extra:
         reason += "; " + "; ".join(reasons_extra)
+    if held_note:
+        reason += f"; {held_note}"
     if spends:
         reason += "; credit note(s) spent as the advice instructed: " + ", ".join(
             f"{sp.note_number} {sp.amount}" for sp in spends
@@ -420,6 +478,8 @@ async def _plan(db: AsyncSession, payment: Payment) -> tuple[Application, list[I
             m.id: (invoices_by_id[m.id].fx_rate_invoice if is_foreign(invoices_by_id[m.id].invoice_currency) else None)
             for m in members
         },
+        held=held_amount,
+        held_invoice_id=held_invoice.id if held_invoice is not None else None,
     )
     return app, used
 
@@ -434,7 +494,7 @@ async def _attempt(db: AsyncSession, payment_id: uuid.UUID, actor: uuid.UUID | N
     try:
         app, _ = await _plan(db, payment)
     except _Review as review:
-        await _to_review(db, payment, review.reasons, review.score)
+        await to_review(db, payment, review.reasons, review.score)
         await unit_of_work.commit(db)
         return MatchOutcome(Status.REVIEW, PaymentState.NEEDS_REVIEW, review.reasons, score=review.score)
     except _Park as park:
@@ -465,6 +525,11 @@ async def _attempt(db: AsyncSession, payment_id: uuid.UUID, actor: uuid.UUID | N
             {"note_number": number, "amount": str(amount), "invoice_number": invoice}
             for number, amount, invoice in applied.spent
         ],
+        held=(
+            {"invoice_number": by_id[app.held_invoice_id].invoice_number, "amount": str(app.held)}
+            if app.held_invoice_id is not None
+            else None
+        ),
     )
     await unit_of_work.commit(db)
     return outcome
@@ -494,6 +559,6 @@ async def run_matching(
         f"Other payments kept changing the same invoices ({REMATCH_CAP} attempts); please check this "
         "payment's match"
     ]
-    await _to_review(db, payment, reasons)
+    await to_review(db, payment, reasons)
     await unit_of_work.commit(db)
     return MatchOutcome(Status.REVIEW, PaymentState.NEEDS_REVIEW, reasons)

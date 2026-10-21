@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.errors import ConflictError, NotFoundError, ValidationFailure
 from core.services.invoices.amounts import money
+from core.services.payments import holds
 from core.services.payments.credit import note_status_after
 from core.services.payments.notes import create_credit_note
 from data.models.postgres import User
@@ -86,8 +87,12 @@ async def spend_note(
         raise ConflictError(f"Invoice {invoice.invoice_number} is already paid")
     if invoice.po_hold:
         raise ConflictError(f"Invoice {invoice.invoice_number} is on purchase-order hold; release the hold first")
-    if invoice.is_disputed:
-        raise ConflictError(f"Invoice {invoice.invoice_number} is disputed")
+    blocking = holds.holding_of((await holds.open_disputes_by_invoice(db, [invoice])).get(invoice.id))
+    if blocking:
+        raise ConflictError(
+            f"Invoice {invoice.invoice_number} has a dispute that holds payments ({holds.names(blocking)}); "
+            "classify or resolve it first"
+        )
 
     balance = money(invoice.collectible_balance)
     remaining = money(note.remaining_amount)
