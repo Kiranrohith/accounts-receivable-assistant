@@ -1,4 +1,4 @@
-"""The scheduler: recurring work (the dispute deadline scan today; reminders and mail polling later).
+"""The scheduler: recurring work (the dispute deadline scan, the reminder scan, polling the mailbox).
 
 One row per schedule in `scheduled_runs`, persisted, so a restart cannot make anything run twice and
 nothing is lost while the process is down. Every worker calls tick() regularly; for each schedule it
@@ -20,9 +20,10 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.constants import DEADLINE_SCAN_TIME_IST, GMAIL_POLL_SECONDS
+from constants.constants import DEADLINE_SCAN_TIME_IST, GMAIL_POLL_SECONDS, REMINDER_SCAN_TIME_IST
 from core.services.disputes import calendar, deadlines
 from core.services.mail import cycle
+from core.services.reminders import scan as reminder_scan
 from data.clients.db import session_scope
 from data.models.postgres.enums import StepResult
 from data.repositories.platform import logs_repo, schedules_repo
@@ -39,11 +40,16 @@ class Schedule:
 
 SCHEDULES: dict[str, Schedule] = {
     "deadline_scan": Schedule("daily_ist", at=DEADLINE_SCAN_TIME_IST),
+    "reminder_scan": Schedule("daily_ist", at=REMINDER_SCAN_TIME_IST),
     "gmail_poll": Schedule("interval", seconds=GMAIL_POLL_SECONDS),
 }
 
 Action = Callable[[datetime], Awaitable[dict[str, Any]]]
-ACTIONS: dict[str, Action] = {"deadline_scan": deadlines.run_scheduled, "gmail_poll": cycle.run}
+ACTIONS: dict[str, Action] = {
+    "deadline_scan": deadlines.run_scheduled,
+    "reminder_scan": reminder_scan.run_scheduled,
+    "gmail_poll": cycle.run,
+}
 
 
 def is_due(schedule: Schedule, last_run_at: datetime, now: datetime) -> bool:

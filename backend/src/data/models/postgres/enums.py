@@ -111,6 +111,7 @@ class NotificationType(str, enum.Enum):
     SUGGESTION_TASK = "SuggestionTask"
     DEADLINE_WARNING = "DeadlineWarning"
     DISPUTE_FOLLOW_UP = "DisputeFollowUp"  # the customer wrote again on a dispute that is still open
+    REMINDER_REPLY = "ReminderReply"  # the customer answered one of our payment reminders
 
 
 class AliasType(str, enum.Enum):
@@ -191,3 +192,32 @@ class StepResult(str, enum.Enum):
     SUCCESS = "success"
     WARNING = "warning"
     ERROR = "error"
+
+
+class ReminderState(str, enum.Enum):
+    """Drafted (waiting for a person) -> Approved -> Sent; or Rejected, AutoCancelled, SkippedPastThreshold."""
+
+    DRAFTED = "Drafted"
+    APPROVED = "Approved"
+    REJECTED = "Rejected"
+    SENT = "Sent"
+    AUTO_CANCELLED = "AutoCancelled"  # the money came in, or a dispute opened, before it was sent
+    SKIPPED_PAST_THRESHOLD = "SkippedPastThreshold"  # a lower tier the invoice had already outgrown when first seen
+
+
+class TaskType(str, enum.Enum):
+    COLLECTION_60D = "COLLECTION_60D"  # an invoice 60 days overdue is handed to a person
+    RETRO_MATCH_REVIEW = "RETRO_MATCH_REVIEW"  # (reserved: retro-match suggestions)
+
+
+class TaskStatus(str, enum.Enum):
+    OPEN = "Open"
+    CLOSED = "Closed"
+
+
+class TaskClosedReason(str, enum.Enum):
+    PAID = "Paid"  # the invoice was paid while the task was open (closed by the system)
+    RESOLVED_MANUALLY = "ResolvedManually"
+    DISMISSED = "Dismissed"
+    ALREADY_EXISTS = "AlreadyExists"
+

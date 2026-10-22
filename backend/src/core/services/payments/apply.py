@@ -21,6 +21,7 @@ from core.services.invoices.amounts import money
 from core.services.payments import holds
 from core.services.payments.credit import Spend, note_status_after
 from core.services.payments.notes import create_credit_note
+from core.services.reminders import lifecycle as reminder_lifecycle
 from core.services.payments.tolerance import Plan
 from data.models.postgres import Invoice, Note, Payment
 from data.models.postgres.enums import (
@@ -254,6 +255,9 @@ async def apply(
             occurred_at=now,
         )
     await db.flush()
+    # money arrived on these invoices: reminder drafts waiting for a person are no longer wanted, a collection task
+    # whose invoice is now paid closes (driven by the allocations written here, not by the payment's own state)
+    await reminder_lifecycle.invoice_changed_by_money(db, [s.invoice_id for s in plan.slices], user_id=actor)
 
     # --- the payment itself ---
     residuals = sum((s.residual or _ZERO for s in plan.slices), _ZERO)

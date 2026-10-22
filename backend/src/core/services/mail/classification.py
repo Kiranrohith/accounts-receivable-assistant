@@ -117,7 +117,7 @@ async def classify_mail(
         sender_known="yes" if context.sender_known else "no",
         invoice_numbers=", ".join(context.invoice_info or context.invoice_numbers) or "none",
         is_reply=(
-            f"yes, in the thread of our dispute {context.thread.reference} (currently {context.thread.status})"
+            f"yes, in the thread of {context.thread.what}"
             if context.thread
             else "yes" if is_reply else "no"
         ),

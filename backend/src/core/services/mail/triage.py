@@ -17,7 +17,12 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.constants import GMAIL_LABEL_IGNORED, GMAIL_LABEL_PROCESSED_DISPUTE, GMAIL_LABEL_TRIAGE
+from constants.constants import (
+    GMAIL_LABEL_IGNORED,
+    GMAIL_LABEL_PROCESSED_DISPUTE,
+    GMAIL_LABEL_PROCESSED_PAYMENT,
+    GMAIL_LABEL_TRIAGE,
+)
 from core.services.invoices.processing import elapsed_ms, finish_job, retry_job
 from core.services.jobs import queue
 from core.services.mail import classification, handoff, ingest, threads
@@ -108,16 +113,16 @@ async def handle(db: AsyncSession, job: Job, email: IngestedEmail) -> None:
     handed = None
     if decision.route is classification.Route.IGNORE and context.thread is not None:
         # B7: a reply in a conversation of ours is never dropped: it becomes a note on it, and its owner is told
-        label = GMAIL_LABEL_PROCESSED_DISPUTE
+        label = GMAIL_LABEL_PROCESSED_PAYMENT if context.thread.kind == "reminder" else GMAIL_LABEL_PROCESSED_DISPUTE
         email.label_applied, labels = label, (label,)
         await threads.note_reply(
-            db, context.thread, email, threads.reply_note("general"),
+            db, context.thread, email, threads.reply_note("general", context.thread),
             kind=DisputeMessageKind.INBOUND_EMAIL, excerpt=mail.body,
         )
         logs_repo.add_state_log(
             db, entity_type="ingested_email", entity_id=email.id, from_state=EmailStatus.PROCESSED.value,
             to_state=EmailStatus.PROCESSED.value,
-            reason=f"Added to the conversation of dispute {context.thread.reference} (found by {context.thread.how})",
+            reason=f"Added to the conversation of {context.thread.what.replace('our ', '')} (found by {context.thread.how})",
             occurred_at=datetime.now(UTC),
         )
     if decision.route is classification.Route.AUTO:  # a confident payment / dispute / both / PO: its jobs, now

@@ -28,6 +28,7 @@ from core.exceptions.errors import NotFoundError, ValidationFailure
 from core.services import notifications
 from core.services.disputes import assignment, calendar
 from core.services.jobs import queue
+from core.services.reminders import lifecycle as reminder_lifecycle
 from data.models.postgres import Dispute
 from data.models.postgres.enums import DisputeCategory, DisputeMessageKind, DisputeStatus, NotificationType
 from data.repositories.customers import customers_repo
@@ -161,6 +162,9 @@ async def create_dispute(
     )
     if invoice is not None:
         invoice.is_disputed = True
+        # a disputed invoice is not chased: reminder drafts waiting for a person are cancelled (they can come back
+        # after the resolution, D3)
+        await reminder_lifecycle.cancel_pending(db, invoice.id, "a dispute was opened on the invoice")
     if inbound_body:
         await disputes_repo.insert_message(
             db,
