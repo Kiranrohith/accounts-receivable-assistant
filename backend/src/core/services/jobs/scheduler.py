@@ -20,8 +20,9 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.constants import DEADLINE_SCAN_TIME_IST
+from constants.constants import DEADLINE_SCAN_TIME_IST, GMAIL_POLL_SECONDS
 from core.services.disputes import calendar, deadlines
+from core.services.mail import cycle
 from data.clients.db import session_scope
 from data.models.postgres.enums import StepResult
 from data.repositories.platform import logs_repo, schedules_repo
@@ -38,10 +39,11 @@ class Schedule:
 
 SCHEDULES: dict[str, Schedule] = {
     "deadline_scan": Schedule("daily_ist", at=DEADLINE_SCAN_TIME_IST),
+    "gmail_poll": Schedule("interval", seconds=GMAIL_POLL_SECONDS),
 }
 
 Action = Callable[[datetime], Awaitable[dict[str, Any]]]
-ACTIONS: dict[str, Action] = {"deadline_scan": deadlines.run_scheduled}
+ACTIONS: dict[str, Action] = {"deadline_scan": deadlines.run_scheduled, "gmail_poll": cycle.run}
 
 
 def is_due(schedule: Schedule, last_run_at: datetime, now: datetime) -> bool:

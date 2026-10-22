@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants.constants import TRIAGE_HUMAN_THRESHOLD
+from constants.constants import PAYMENT_AFTER_DISPUTE_SECONDS, TRIAGE_HUMAN_THRESHOLD
 from core.services.disputes.processing import run_dispute_steps
 from core.services.documents.classification import (
     ClassificationOutcome,
@@ -72,6 +72,13 @@ def _intended_kinds(job: Job, document: SourceDocument) -> list[DocKind]:
 
 async def handle(db: AsyncSession, job: Job, document: SourceDocument) -> None:
     """Job handler for document_intake and the kind-decided extraction jobs."""
+    if (
+        document.ingested_email_id is not None
+        and document.doc_kind is DocKind.PAYMENT
+        and await jobs_repo.dispute_jobs_in_flight(db, document.ingested_email_id, job.id)
+    ):  # the same mail also holds a complaint: it is raised first, so the hold on money is in place
+        await queue.defer(db, job, PAYMENT_AFTER_DISPUTE_SECONDS, "waiting for the dispute raised from the same mail")
+        return
     kinds_left: list[DocKind] | None = None
     if (job.attempt_count or 0) > 1 and await documents_repo.has_outcome_since(
         db, document.id, job.queued_at
@@ -138,6 +145,22 @@ async def _run_steps(
             await _stop_after_classification(db, job, document, outcome, route)
             return
         kinds = kinds_for(outcome.result)
+        if document.ingested_email_id is not None and kinds == [DocKind.INVOICE]:
+            # an invoice that arrived by mail is out of scope (a person decides what it is): never created on its own
+            if not await queue.hold(db, job):
+                return
+            started = datetime.now(UTC)
+            change_id, reasons = await send_to_type_review(
+                db, document, outcome.result,
+                ["An invoice that arrived by e-mail is not read automatically: please say what this document is"],
+            )
+            log_step(
+                db, job, document.id, started, step_name=ROUTE_STEP, result=StepResult.WARNING,
+                output_summary={"disposition": "review", "stage": "classification", "reasons": reasons, "pending_change_id": str(change_id)},
+            )
+            await unit_of_work.commit(db)
+            await finish_job(db, job, JobState.SUCCEEDED)
+            return
 
     if DocKind.DISPUTE in kinds:  # the complaint first, so a payment in the same document sees it
         with_payment = DocKind.PAYMENT in kinds

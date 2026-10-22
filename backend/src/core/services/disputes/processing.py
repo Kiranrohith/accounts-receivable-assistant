@@ -24,12 +24,15 @@ from core.services.disputes import create
 from core.services.disputes.extraction import ExtractionError, extract_dispute
 from core.services.disputes.identity import DisputeIdentity, identify_complainant
 from core.services.invoices.processing import log_step, retry_job
+from core.services.mail import ingest, threads
+from core.services.mail.parse import parse_mail
 from core.services.jobs import queue
-from data.models.postgres import Dispute, Job, SourceDocument
+from data.models.postgres import Dispute, IngestedEmail, Job, SourceDocument
 from data.models.postgres.enums import DisputeCategory, DisputeStatus, StepResult
 from data.repositories import unit_of_work
 from data.repositories.disputes import disputes_repo
 from data.repositories.invoices import documents_repo
+from data.repositories.mail import emails_repo
 from data.repositories.platform import jobs_repo
 from schemas.disputes.extraction import ExtractedDispute
 
@@ -57,6 +60,18 @@ def reader_notes(extracted: ExtractedDispute, identity: DisputeIdentity) -> list
             f"(needs at least {DISPUTE_CLASSIFY_THRESHOLD}%)"
         )
     return notes
+
+
+async def _thread_dispute(db: AsyncSession, mail_row: IngestedEmail | None) -> Dispute | None:
+    """The dispute whose conversation this mail continues (B7), when it came by mail."""
+    if mail_row is None:
+        return None
+    try:
+        mail = parse_mail(ingest.eml_path(mail_row.gmail_message_id).read_bytes())
+    except OSError:
+        return None  # the kept file is gone: the mail thread id alone still joins
+    link = await threads.find_thread(db, mail, mail_row.gmail_thread_id)
+    return await disputes_repo.get_dispute(db, link.dispute_id) if link else None
 
 
 def describe(dispute: Dispute) -> dict:
@@ -112,6 +127,9 @@ async def run_dispute_steps(
     if not await queue.hold(db, job):  # a worker that lost its job writes no business rows
         return False
     started = datetime.now(UTC)
+    mail_row = await emails_repo.get_email(db, document.ingested_email_id) if document.ingested_email_id else None
+    if mail_row is not None and mail_row.sender:  # it came by mail: the sender header is the complainant's address
+        extracted.from_email = mail_row.sender
     identity = await identify_complainant(
         db, extracted, our_company_name=get_settings().our_company_name
     )
@@ -132,7 +150,10 @@ async def run_dispute_steps(
     category = DisputeCategory(extracted.category) if extracted.category else None
     notes = reader_notes(extracted, identity)
     summary = (extracted.summary or "").strip() or f"Complaint received in {document.file_name or 'an uploaded document'}"
+    from_email = (extracted.from_email or "").strip().lower() or None
+    received_at = (mail_row.received_at if mail_row and mail_row.received_at else None) or document.created_at
     targets = [i.id for i in identity.invoices] or [None]
+    thread_dispute = await _thread_dispute(db, mail_row)
     disputes: list[Dispute] = []
     for invoice_id in targets:
         created = await create.create_dispute(
@@ -140,8 +161,12 @@ async def run_dispute_steps(
             customer_id=identity.customer.id if identity.customer else None,
             invoice_id=invoice_id,
             summary=summary,
-            from_email=(extracted.from_email or "").strip().lower() or None,
-            received_at=document.created_at,
+            from_email=from_email,
+            received_at=received_at,
+            ingested_email_id=document.ingested_email_id,
+            gmail_thread_id=mail_row.gmail_thread_id if mail_row else None,
+            gmail_message_id=mail_row.gmail_message_id if mail_row else None,
+            thread_dispute=thread_dispute,
             category=category,
             payment_related=extracted.payment_related,
             confidence=extracted.confidence.category if category else None,

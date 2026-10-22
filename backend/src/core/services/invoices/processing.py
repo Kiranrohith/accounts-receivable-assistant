@@ -9,6 +9,7 @@ match a customer, route. Progress and failures are queryable from jobs, state_lo
 import asyncio
 import uuid
 from datetime import UTC, datetime
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,8 +19,9 @@ from core.services.jobs.queue import ENTITY_TYPE
 from core.services.invoices.parsing import InvoiceParseError, ParsedDocument, parse_document
 from core.services.invoices.routing import Disposition, route_extracted_invoice
 from core.services.invoices.validation import validate_extraction
+from core.services.mail.parse import parse_mail, to_markdown
 from data.models.postgres import Job, SourceDocument
-from data.models.postgres.enums import ErrorClass, JobState, StepResult
+from data.models.postgres.enums import DocType, ErrorClass, JobState, StepResult
 from data.repositories import unit_of_work
 from data.repositories.invoices import documents_repo
 from data.repositories.platform import jobs_repo, logs_repo
@@ -82,9 +84,13 @@ async def parse_step(db: AsyncSession, job: Job, document: SourceDocument) -> Pa
     """Parse the file once. Returns the parsed document, or None after failing the job."""
     started = datetime.now(UTC)
     try:
-        async with PARSE_LOCK:
-            parsed = await parse_document(document.file_path)
-    except InvoiceParseError as exc:
+        if document.doc_type is DocType.EML:  # a mail with no usable attachment: its own text is the document
+            mail = parse_mail(Path(document.file_path).read_bytes())
+            parsed = ParsedDocument(document.file_name or "mail.eml", 1, to_markdown(mail))
+        else:
+            async with PARSE_LOCK:
+                parsed = await parse_document(document.file_path)
+    except (InvoiceParseError, OSError) as exc:
         log_step(
             db, job, document.id, started, step_name="parse", result=StepResult.ERROR,
             input_summary={"file_name": document.file_name}, error_message=str(exc),

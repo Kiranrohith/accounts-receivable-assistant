@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import String, and_, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
@@ -48,6 +48,53 @@ async def latest_in_thread(db: AsyncSession, thread_id: str) -> Dispute | None:
         .where(Dispute.gmail_thread_id == thread_id)
         .order_by(Dispute.received_at.desc(), Dispute.created_at.desc())
         .limit(1)
+    )
+
+
+async def by_sent_message_ids(db: AsyncSession, message_ids: list[str]) -> Dispute | None:
+    """The dispute one of whose OUTGOING mails carries one of these Message-IDs (the newest such dispute)."""
+    if not message_ids:
+        return None
+    return await db.scalar(
+        select(Dispute)
+        .join(DisputeMessage, DisputeMessage.dispute_id == Dispute.id)
+        .where(DisputeMessage.gmail_message_id.in_(message_ids), DisputeMessage.kind == DisputeMessageKind.SENT)
+        .order_by(Dispute.received_at.desc(), Dispute.created_at.desc())
+        .limit(1)
+    )
+
+
+async def by_reference(db: AsyncSession, prefix: str) -> Dispute | None:
+    """The dispute whose reference ("DSP-" + the first 8 characters of its id) this is; None unless exactly one fits."""
+    found = list(
+        await db.scalars(
+            select(Dispute).where(cast(Dispute.id, String).like(prefix.lower() + "%")).limit(2)
+        )
+    )
+    return found[0] if len(found) == 1 else None
+
+
+async def message_exists(db: AsyncSession, dispute_id: uuid.UUID, gmail_message_id: str) -> bool:
+    return bool(
+        await db.scalar(
+            select(func.count())
+            .select_from(DisputeMessage)
+            .where(DisputeMessage.dispute_id == dispute_id, DisputeMessage.gmail_message_id == gmail_message_id)
+        )
+    )
+
+
+async def disputes_of_mail(db: AsyncSession, email_id: uuid.UUID) -> list[Dispute]:
+    """The disputes this mail raised."""
+    return list(await db.scalars(select(Dispute).where(Dispute.ingested_email_id == email_id).order_by(Dispute.created_at)))
+
+
+async def messages_of_mail(db: AsyncSession, email_id: uuid.UUID) -> list[DisputeMessage]:
+    """Every message of any dispute that came from this mail (its own first message, or a follow-up added to another)."""
+    return list(
+        await db.scalars(
+            select(DisputeMessage).where(DisputeMessage.ingested_email_id == email_id).order_by(DisputeMessage.created_at)
+        )
     )
 
 

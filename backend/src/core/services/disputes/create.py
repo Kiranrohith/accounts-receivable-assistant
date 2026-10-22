@@ -91,6 +91,7 @@ async def create_dispute(
     created_by: uuid.UUID | None = None,
     intake_notes: list[str] | None = None,
     hold_in_queue: bool = False,
+    thread_dispute: Dispute | None = None,
 ) -> Created:
     received_at = received_at or datetime.now(UTC)
     invoice = None
@@ -104,9 +105,13 @@ async def create_dispute(
     elif customer_id is not None and await customers_repo.get_by_id(db, customer_id) is None:
         raise NotFoundError("Customer not found")
 
-    in_thread = await disputes_repo.latest_in_thread(db, gmail_thread_id) if gmail_thread_id else None
+    # the conversation this complaint continues: found by the caller (a reply to our mail, a reference in the
+    # subject), or by the mail thread it sits in
+    in_thread = thread_dispute or (await disputes_repo.latest_in_thread(db, gmail_thread_id) if gmail_thread_id else None)
     if in_thread is not None and in_thread.status is not DisputeStatus.RESOLVED:  # E2
         existing = in_thread
+        if gmail_message_id and await disputes_repo.message_exists(db, existing.id, gmail_message_id):
+            return Created(existing, appended=True)  # a complaint naming several invoices adds its mail once
         await disputes_repo.insert_message(
             db,
             dispute_id=existing.id,

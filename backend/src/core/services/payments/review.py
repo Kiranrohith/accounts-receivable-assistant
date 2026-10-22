@@ -331,20 +331,25 @@ async def leave_unapplied(
     return result
 
 
-async def reject(
-    db: AsyncSession, user: User, payment_id: uuid.UUID, body: RejectPayment
-) -> ReviewResult:
-    payment = await _lock(db, payment_id, (PaymentState.NEEDS_REVIEW,))
+async def mark_rejected(db: AsyncSession, payment: Payment, user: User, reason: str) -> None:
+    """A payment under review ends Rejected. Flushes only: the caller holds the payment's lock and commits."""
     before = payment.state
     payment.state = PaymentState.REJECTED
     payment.unapplied_amount = _ZERO
     payment.held_amount = _ZERO
     payment.held_for_dispute_id = None
     payment.credited_amount = _ZERO
-    payment.match_reason = f"Rejected by {user.username}: {body.reason}"
+    payment.match_reason = f"Rejected by {user.username}: {reason}"
     payment.updated_by = user.id
     _log(db, payment, before, user, payment.match_reason)
     await db.flush()
+
+
+async def reject(
+    db: AsyncSession, user: User, payment_id: uuid.UUID, body: RejectPayment
+) -> ReviewResult:
+    payment = await _lock(db, payment_id, (PaymentState.NEEDS_REVIEW,))
+    await mark_rejected(db, payment, user, body.reason)
     result = ReviewResult(payment_id=payment.id, state=payment.state.value, message=payment.match_reason)
     await unit_of_work.commit(db)
     return result

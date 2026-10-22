@@ -39,12 +39,14 @@ from data.models.postgres.enums import ErrorClass, JobState
 from data.repositories import unit_of_work
 from data.repositories.disputes import disputes_repo
 from data.repositories.invoices import documents_repo
+from data.repositories.mail import emails_repo
 from data.repositories.platform import jobs_repo, logs_repo
 
 logger = logging.getLogger(__name__)
 
 ENTITY_TYPE = "source_document"  # what a job works on, unless it says otherwise
 ENTITY_DISPUTE = "dispute"  # a job about a dispute (its entity_id is the dispute)
+ENTITY_MAIL = "ingested_email"  # a job about a polled e-mail (its entity_id is the registry row)
 
 # Job types. The type says what the worker should do with the document:
 JOB_INTAKE = "document_intake"  # new upload: parse, classify, then extract and route
@@ -54,6 +56,8 @@ JOB_PAYMENT = "payment_extraction"  # a person decided it is a payment advice: s
 JOB_DISPUTE = "dispute_extraction"  # a person decided it is a complaint: skip the classifier
 JOB_DISPUTE_PAYMENT = "dispute_payment_extraction"  # a complaint that also holds a payment advice
 JOB_DISPUTE_CLARIFY = "dispute_clarification"  # draft (and maybe send) the first clarification
+JOB_MAIL_TRIAGE = "mail_triage"  # classify a polled e-mail and spawn what it needs
+JOB_MAIL_DUPLICATE = "mail_duplicate"  # record a re-sent file as a duplicate once the first copy has its payment
 JOB_PAYMENT_REMATCH = "payment_rematch"  # a parked payment: match it again (its hold was released)
 
 MAX_ATTEMPTS = 1 + len(OUTAGE_BACKOFF_SECONDS)  # the first run plus one per backoff step
@@ -82,8 +86,8 @@ def _jittered(seconds: float) -> float:
 def _log(db: AsyncSession, job: Job, from_state: str | None, to_state: str, reason: str | None) -> None:
     logs_repo.add_state_log(
         db,
-        # a dispute job's states are the job's, not the dispute's: they must not read as dispute states
-        entity_type="dispute_job" if job.entity_type == ENTITY_DISPUTE else (job.entity_type or ENTITY_TYPE),
+        # a dispute's or e-mail's job states are the job's, not the entity's: they must not read as its own states
+        entity_type={ENTITY_DISPUTE: "dispute_job", ENTITY_MAIL: "mail_job"}.get(job.entity_type, job.entity_type or ENTITY_TYPE),
         entity_id=job.entity_id,
         from_state=from_state,
         to_state=to_state,
@@ -118,6 +122,20 @@ async def enqueue(
     )
     _log(db, job, None, JobState.QUEUED.value, "Rerun" if rerun_of else None)
     return job
+
+
+async def cancel(db: AsyncSession, job_id: uuid.UUID, reason: str) -> bool:
+    """Withdraw a job that has not started: it ends Failed (not retryable) with the reason. False when a worker is
+    running it right now (the caller must wait). Flushes only; the caller commits."""
+    job = await jobs_repo.lock_job(db, job_id)
+    if job is None or job.state is not JobState.QUEUED:
+        return job is None or job.state is not JobState.RUNNING  # finished already: nothing to withdraw
+    jobs_repo.update_job(
+        job, state=JobState.FAILED, finished_at=_now(), last_error_class=ErrorClass.NON_RETRYABLE, last_error_message=reason
+    )
+    _log(db, job, JobState.QUEUED.value, JobState.FAILED.value, reason)
+    await unit_of_work.flush(db)
+    return True
 
 
 async def claim(db: AsyncSession, worker_id: str) -> Job | None:
@@ -242,6 +260,24 @@ async def requeue_for_shutdown(db: AsyncSession, job: Job) -> bool:
     return True
 
 
+async def defer(db: AsyncSession, job: Job, seconds: float, reason: str) -> bool:
+    """Put the running job back for later because it must wait for something else (not a failure: the attempt is not
+    counted). Commits. False if the job was not ours."""
+    if not await hold(db, job):
+        return False
+    jobs_repo.update_job(
+        job,
+        state=JobState.QUEUED,
+        run_after=_now() + timedelta(seconds=seconds),
+        locked_by=None,
+        heartbeat_at=None,
+        attempt_count=max((job.attempt_count or 1) - 1, 0),
+    )
+    _log(db, job, JobState.RUNNING.value, JobState.QUEUED.value, f"Deferred {seconds:.0f}s: {reason}")
+    await unit_of_work.commit(db)
+    return True
+
+
 # ---------------------------------------------------------------- running a job
 async def heartbeat_loop(job_id: uuid.UUID, worker_id: str) -> None:
     while True:
@@ -275,6 +311,8 @@ async def execute(job_id: uuid.UUID, worker_id: str, handlers: dict[str, Handler
             heartbeat = asyncio.create_task(heartbeat_loop(job_id, worker_id))
             if job.entity_type == ENTITY_DISPUTE:
                 document = await disputes_repo.get_dispute(db, job.entity_id) if job.entity_id else None
+            elif job.entity_type == ENTITY_MAIL:
+                document = await emails_repo.get_email(db, job.entity_id) if job.entity_id else None
             else:
                 document = await documents_repo.get_document(db, job.entity_id) if job.entity_id else None
             handler = handlers.get(job.job_type)

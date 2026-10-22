@@ -52,8 +52,28 @@ FX_LOOKBACK_DAYS: Final = 10  # weekends / holidays: use the latest rate publish
 # review. Covers a weekend plus a holiday run (Easter, Christmas) with room to spare.
 FX_MAX_STALE_DAYS: Final = 5
 
-# --- Mail labels (decision 60; ensure_labels() creates these at boot once the mail module exists) ---
+# --- Mail labels (decision 60): ensure_labels() creates these at boot ---
 GMAIL_LABEL_PROCESSED_PO: Final = "AR/Processed-PO"
+GMAIL_LABEL_PROCESSED_PAYMENT: Final = "AR/Processed-Payment"
+GMAIL_LABEL_PROCESSED_DISPUTE: Final = "AR/Processed-Dispute"
+GMAIL_LABEL_IGNORED: Final = "AR/Ignored"
+GMAIL_LABEL_TRIAGE: Final = "AR/Triage"  # waiting for a person to route it
+GMAIL_LABELS: Final = (
+    GMAIL_LABEL_PROCESSED_PAYMENT,
+    GMAIL_LABEL_PROCESSED_DISPUTE,
+    GMAIL_LABEL_PROCESSED_PO,
+    GMAIL_LABEL_IGNORED,
+    GMAIL_LABEL_TRIAGE,
+)
+
+# --- Gmail API ---
+GMAIL_API_URL: Final = "https://gmail.googleapis.com/gmail/v1/users/me"
+GMAIL_TOKEN_URL: Final = "https://oauth2.googleapis.com/token"
+GMAIL_TIMEOUT_SECONDS: Final = 30
+GMAIL_POLL_SECONDS: Final = 180  # within POLL_INTERVAL_MINUTES (2-5 min)
+GMAIL_POLL_QUERY: Final = "in:inbox newer_than:30d"  # the registry, not the query, is what stops a repeat
+GMAIL_MAX_PER_POLL: Final = 50  # a flood is taken over several polls, oldest first
+PAYMENT_AFTER_DISPUTE_SECONDS: Final = 5  # a payment job from a mail with a complaint waits this long, then looks again
 
 # --- Retries and backoff (all jittered) ---
 BACKOFF_JITTER: Final = Decimal("0.30")  # +/-30%
@@ -106,7 +126,7 @@ DISPUTE_RESOLUTION_WORKING_DAYS: Final = 10
 # --- Files and validation ---
 MAX_FILE_MB: Final = 20
 MAX_PAGES: Final = 30
-MIN_ATTACHMENT_KB: Final = 5
+MIN_ATTACHMENT_KB: Final = 5  # IMAGES only: a PDF of any size above zero qualifies
 DATE_MAX_PAST_YEARS: Final = 2
 DATE_MAX_FUTURE_DAYS: Final = 30
 DUE_DATE_MAX_FUTURE_YEARS: Final = 1

@@ -23,6 +23,38 @@ def update_job(job: Job, **fields: Any) -> None:
         setattr(job, name, value)
 
 
+async def dispute_jobs_in_flight(db: AsyncSession, email_id: uuid.UUID, exclude_job_id: uuid.UUID) -> int:
+    """Dispute jobs raised from this mail that are still queued or running (the payment waits for them)."""
+    from data.models.postgres import SourceDocument
+
+    return await db.scalar(
+        select(func.count())
+        .select_from(Job)
+        .join(SourceDocument, SourceDocument.id == Job.entity_id)
+        .where(
+            SourceDocument.ingested_email_id == email_id,
+            Job.job_type.in_(("dispute_extraction", "dispute_payment_extraction")),
+            Job.state.in_((JobState.QUEUED, JobState.RUNNING)),
+            Job.id != exclude_job_id,
+        )
+    ) or 0
+
+
+async def pending_for_entity(db: AsyncSession, entity_id: uuid.UUID) -> bool:
+    """Is a job on this entity still queued or running?"""
+    return bool(await db.scalar(select(func.count()).select_from(Job).where(Job.entity_id == entity_id, Job.state.in_((JobState.QUEUED, JobState.RUNNING)))))
+
+
+async def open_jobs_for(db: AsyncSession, entity_ids: list[uuid.UUID]) -> list[Job]:
+    """The jobs on these entities that are still queued or running."""
+    if not entity_ids:
+        return []
+    result = await db.scalars(
+        select(Job).where(Job.entity_id.in_(entity_ids), Job.state.in_((JobState.QUEUED, JobState.RUNNING)))
+    )
+    return list(result)
+
+
 async def reload_job(db: AsyncSession, job: Job) -> None:
     await db.refresh(job)
 

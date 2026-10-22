@@ -119,3 +119,13 @@ async def list_active_customers(db: AsyncSession) -> list[Customer]:
         select(Customer).where(Customer.is_active).order_by(Customer.customer_name)
     )
     return list(result)
+
+
+async def list_name_aliases(db: AsyncSession) -> list[tuple[Any, str]]:
+    """(customer id, alias) of every confirmed name alias of an active customer."""
+    rows = await db.execute(
+        select(CustomerAlias.customer_id, CustomerAlias.alias_value)
+        .join(Customer, Customer.id == CustomerAlias.customer_id)
+        .where(Customer.is_active, CustomerAlias.alias_type == AliasType.NAME)
+    )
+    return [(customer_id, value) for customer_id, value in rows]
