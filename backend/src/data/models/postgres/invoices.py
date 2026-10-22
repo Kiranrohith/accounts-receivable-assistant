@@ -35,6 +35,8 @@ from data.models.postgres.enums import (
 )
 
 MONEY = Numeric(18, 2)
+# The generated invoices.invoice_number_norm; core.services.invoices.numbers holds the same rule in Python.
+INVOICE_NO_NORM_SQL = "upper(regexp_replace(invoice_number, '[^A-Za-z0-9]', '', 'g'))"
 
 
 def _enum(cls: type, name: str) -> Enum:
@@ -50,6 +52,13 @@ class Invoice(Base, AuditMixin):
         UUID(as_uuid=True), ForeignKey("customers.id"), nullable=False
     )
     invoice_number: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    invoice_number_norm: Mapped[str] = mapped_column(
+        String,
+        Computed(INVOICE_NO_NORM_SQL, persisted=True),
+        unique=True,
+        nullable=False,
+        comment="generated: upper-case letters and digits of invoice_number only (INV-1176 = INV1176)",
+    )
     type: Mapped[InvoiceType] = mapped_column(
         _enum(InvoiceType, "invoice_type"),
         default=InvoiceType.INVOICE,

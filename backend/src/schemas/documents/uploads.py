@@ -21,6 +21,8 @@ UploadStatus = Literal[
     "Payment applied",
     "Payment partly applied",
     "Payment unapplied",
+    "Dispute created",
+    "Dispute needs classification",
 ]
 
 
@@ -29,7 +31,7 @@ class DocumentUploadSummary(BaseModel):
     status: UploadStatus  # the one thing to show a user; the fields below explain it
     # What the document turned out to be: "unknown" while it is being read, when it waits for a
     # type decision, or when it was rejected as neither an invoice nor a purchase order.
-    document_kind: Literal["invoice", "po", "payment", "unknown"]
+    document_kind: Literal["invoice", "po", "payment", "dispute", "unknown"]
     file_name: str | None
     doc_type: str | None  # pdf / docx / image
     uploaded_at: datetime | None
@@ -38,7 +40,8 @@ class DocumentUploadSummary(BaseModel):
     disposition: (
         Literal[
             "invoice_created", "version_applied", "po_created", "payment_received", "payment_applied",
-            "payment_partly_applied", "payment_unapplied", "review", "rejected",
+            "payment_partly_applied", "payment_unapplied", "dispute_created", "dispute_queued",
+            "review", "rejected",
         ]
         | None
     ) = None
@@ -47,10 +50,14 @@ class DocumentUploadSummary(BaseModel):
     po_hold: bool = False  # invoice created but on hold: it does not match its purchase order
     purchase_order_id: uuid.UUID | None = None  # set when a purchase order was created
     review_id: uuid.UUID | None = None  # set while a decision is waiting for the uploader
-    review_kind: Literal["document_type", "extraction", "version", "payment"] | None = None  # which screen decides it
+    review_kind: Literal[
+        "document_type", "extraction", "version", "payment", "dispute_classification"
+    ] | None = None  # which screen decides it
     payment_id: uuid.UUID | None = None  # set when the document became a payment
     payment_state: str | None = None  # that payment's state: Matching, Applied, NeedsReview, Rejected...
-    detected_type: str | None = None  # the reader's verdict: invoice, po, other or unclear
+    dispute_id: uuid.UUID | None = None  # the first dispute this document raised
+    dispute_ids: list[uuid.UUID] = []  # all of them: a complaint naming several invoices raises one each
+    detected_type: str | None = None  # the reader's verdict: invoice, po, payment, dispute, other or unclear
     detected_confidence: int | None = None
     customer_id: uuid.UUID | None = None  # the matched customer, when there is one
     error: str | None = None  # why it failed, or why the last attempt failed while a retry is pending
@@ -65,6 +72,7 @@ class DocumentUploadSummary(BaseModel):
 class DocumentUploadDetail(DocumentUploadSummary):
     extraction: dict | None = None  # the fields read (invoice, PO or payment shape); None if none were
     classification: dict | None = None  # the reader's raw verdict: doc_class, confidence, reason
+    dispute_extraction: dict | None = None  # the complaint read from a document that also holds a payment advice
     validation_issues: list[ValidationIssue] = []
     disposition_reasons: list[str] = []  # why it was rejected or sent to review
     linked_invoices: list[dict] = []  # purchase orders: invoices linked (and checked) on creation

@@ -16,6 +16,7 @@ import logging
 import random
 import uuid
 from collections.abc import Awaitable, Callable
+from typing import Any
 from contextlib import suppress
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -36,18 +37,23 @@ from data.clients.db import session_scope
 from data.models.postgres import Job, SourceDocument
 from data.models.postgres.enums import ErrorClass, JobState
 from data.repositories import unit_of_work
+from data.repositories.disputes import disputes_repo
 from data.repositories.invoices import documents_repo
 from data.repositories.platform import jobs_repo, logs_repo
 
 logger = logging.getLogger(__name__)
 
-ENTITY_TYPE = "source_document"
+ENTITY_TYPE = "source_document"  # what a job works on, unless it says otherwise
+ENTITY_DISPUTE = "dispute"  # a job about a dispute (its entity_id is the dispute)
 
 # Job types. The type says what the worker should do with the document:
 JOB_INTAKE = "document_intake"  # new upload: parse, classify, then extract and route
 JOB_INVOICE = "invoice_extraction"  # a person decided it is an invoice: skip the classifier
 JOB_PO = "po_extraction"  # a person decided it is a purchase order: skip the classifier
 JOB_PAYMENT = "payment_extraction"  # a person decided it is a payment advice: skip the classifier
+JOB_DISPUTE = "dispute_extraction"  # a person decided it is a complaint: skip the classifier
+JOB_DISPUTE_PAYMENT = "dispute_payment_extraction"  # a complaint that also holds a payment advice
+JOB_DISPUTE_CLARIFY = "dispute_clarification"  # draft (and maybe send) the first clarification
 JOB_PAYMENT_REMATCH = "payment_rematch"  # a parked payment: match it again (its hold was released)
 
 MAX_ATTEMPTS = 1 + len(OUTAGE_BACKOFF_SECONDS)  # the first run plus one per backoff step
@@ -61,7 +67,8 @@ retry_delays_seconds: tuple[float, ...] = OUTAGE_BACKOFF_SECONDS
 # Which worker slot is running in the current task (for fencing).
 CURRENT_WORKER: ContextVar[str | None] = ContextVar("current_worker", default=None)
 
-Handler = Callable[[AsyncSession, Job, SourceDocument], Awaitable[None]]
+# the third argument is the job's entity: a SourceDocument, or a Dispute for ENTITY_DISPUTE jobs
+Handler = Callable[[AsyncSession, Job, Any], Awaitable[None]]
 
 
 def _now() -> datetime:
@@ -75,7 +82,8 @@ def _jittered(seconds: float) -> float:
 def _log(db: AsyncSession, job: Job, from_state: str | None, to_state: str, reason: str | None) -> None:
     logs_repo.add_state_log(
         db,
-        entity_type=ENTITY_TYPE,
+        # a dispute job's states are the job's, not the dispute's: they must not read as dispute states
+        entity_type="dispute_job" if job.entity_type == ENTITY_DISPUTE else (job.entity_type or ENTITY_TYPE),
         entity_id=job.entity_id,
         from_state=from_state,
         to_state=to_state,
@@ -92,13 +100,14 @@ async def enqueue(
     entity_id: uuid.UUID,
     created_by: uuid.UUID | None,
     rerun_of: uuid.UUID | None = None,
+    entity_type: str = ENTITY_TYPE,
 ) -> Job:
     """Add a Queued job. Flushes only: the caller commits it together with its own write."""
     now = _now()
     job = await jobs_repo.insert_job(
         db,
         job_type=job_type,
-        entity_type=ENTITY_TYPE,
+        entity_type=entity_type,
         entity_id=entity_id,
         state=JobState.QUEUED,
         attempt_count=0,
@@ -264,10 +273,13 @@ async def execute(job_id: uuid.UUID, worker_id: str, handlers: dict[str, Handler
             return
         try:
             heartbeat = asyncio.create_task(heartbeat_loop(job_id, worker_id))
-            document = await documents_repo.get_document(db, job.entity_id) if job.entity_id else None
+            if job.entity_type == ENTITY_DISPUTE:
+                document = await disputes_repo.get_dispute(db, job.entity_id) if job.entity_id else None
+            else:
+                document = await documents_repo.get_document(db, job.entity_id) if job.entity_id else None
             handler = handlers.get(job.job_type)
             if document is None or handler is None:
-                reason = "the document is gone" if document is None else f"no handler for {job.job_type}"
+                reason = "the record is gone" if document is None else f"no handler for {job.job_type}"
                 await finish(db, job, JobState.FAILED, error_class=ErrorClass.NON_RETRYABLE, error=reason)
                 return
             await handler(db, job, document)

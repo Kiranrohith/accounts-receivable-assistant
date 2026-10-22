@@ -1,0 +1,12 @@
+{#- Sent when a credit note is created, with its PDF attached. -#}
+{% extends "email/base.j2" %}
+{% block subject %}Credit note {{ note_number }} issued — {{ note_amount }}{% endblock %}
+{% block content %}Dear {{ contact_name | default(customer_name, true) }},
+
+We have issued credit note {{ note_number }} for {{ note_amount }} in your
+favour{% if note_reason %} ({{ note_reason }}){% endif %}. The credit note
+document is attached for your records.
+
+You may instruct us to adjust this credit against any open or future
+invoice — simply quote {{ note_number }} (or ask us to apply available
+credit) in your payment advice.{% endblock %}

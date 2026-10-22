@@ -1,14 +1,23 @@
 """Tolerances (D7) and how a received amount is split over invoices. Pure arithmetic, no I/O.
 
 All amounts here are INR (a foreign payment is valued at its invoices' frozen rate first), against
-the invoices' collectible balance:
+the invoices' collectible balance. Two kinds of payment, two rules:
 
-  T1  |received - balance| <= ROUNDING_TOLERANCE          -> Paid (signed residual = the difference)
-  T2  foreign payment, within FX_BAND of the balance       -> Paid (signed residual absorbs it)
-  T3  received over the balance                            -> Paid + the excess becomes a credit note
-      (or, when an invoice we do not have was quoted, stays unapplied)
-  T4  received short of the balance                        -> Partly paid + flag
+  INR payment on an INR invoice
+    T1  |received - balance| <= TOLERANCE_T1_INR (inclusive)   -> Paid (signed residual = the difference)
+    T3  more than that over                                     -> Paid + the excess becomes a credit note
+    T4  more than that short                                    -> Partly paid + flag
+    There is NO percentage band for INR: INR 1.01 short is T4, INR 1.01 over is T3.
 
+  foreign payment on an invoice in the same currency
+    T1  exactly the balance (the conversion is by the frozen rate, so the invoiced amount is exact)
+    T2  any other difference within FX_BAND_PCT of the balance, short OR over (inclusive)
+                                                                -> Paid, the signed difference is the
+                                                                   residual; no credit note, no flag
+    T3  beyond the band, over                                   -> Paid + credit note for the excess
+    T4  beyond the band, short                                  -> Partly paid + flag
+
+A payment in a different currency from the invoice never reaches this module: it goes to review.
 An allocation clears the invoice's balance in T1-T3 (allocated = balance; the difference is the
 residual in T1/T2 and the excess in T3) and is exactly what was received in T4.
 """
@@ -17,7 +26,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 import uuid
 
-from constants.constants import FX_BAND, ROUNDING_TOLERANCE
+from constants.constants import FX_BAND_PCT, TOLERANCE_T1_INR
 from core.services.invoices.amounts import money
 from data.models.postgres.enums import Tolerance
 
@@ -35,11 +44,15 @@ class Fit:
 
 
 def classify(received: Decimal, balance: Decimal, *, foreign: bool) -> Fit:
+    """`foreign`: a payment in a foreign currency on an invoice in that same currency."""
     diff = money(received - balance)
-    if abs(diff) <= Decimal(ROUNDING_TOLERANCE):
+    if foreign:
+        if diff == 0:
+            return Fit(Tolerance.T1, diff)
+        if balance > 0 and abs(diff) / balance <= FX_BAND_PCT / Decimal(100):
+            return Fit(Tolerance.T2, diff)
+    elif abs(diff) <= TOLERANCE_T1_INR:
         return Fit(Tolerance.T1, diff)
-    if foreign and balance > 0 and abs(diff) / balance <= FX_BAND:
-        return Fit(Tolerance.T2, diff)
     return Fit(Tolerance.T3 if diff > 0 else Tolerance.T4, diff)
 
 

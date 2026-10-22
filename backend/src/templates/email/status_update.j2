@@ -1,0 +1,9 @@
+{#- The escalation status update. Names only the dispute reference: no dates, no amounts, no promises.
+    NOT wired in yet: the build still sends prompts/disputes/status_update.py (kept as built). -#}
+{% extends "email/base.j2" %}
+{% block subject %}Update on your query — ref {{ dispute_ref }}{% endblock %}
+{% block content %}Dear {{ contact_name | default(customer_name, true) }},
+
+Your query regarding {{ dispute_ref }} has been escalated to a senior team
+member to ensure it is resolved without further delay. They have the full
+history and will contact you directly. Thank you for your patience.{% endblock %}

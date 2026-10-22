@@ -1,7 +1,8 @@
 """Scoring and choosing the invoice set a payment pays (D6). Pure logic, no I/O.
 
 score = layer base (L1 60 / L2 45 / L3 35) + amount fit (T1 35 / T2 30 / over-short 15)
-        + modifiers: earliest due date within 60 days of the payment (+5), the customer's single
+        + modifiers: earliest due date within 60 days of the payment's stated date (+5; none when the advice
+        states no date), the customer's single
         open invoice (+5, never for a set), a quoted number that has the shape of a known invoice
         number (+3).
 Stored and shown clamped at 100; the tie rule compares the RAW scores, so clamping can neither
@@ -29,6 +30,7 @@ from constants.constants import (
     TIE_MARGIN,
 )
 from core.services.payments.tolerance import Fit, classify
+from data.repositories.invoices.numbers import normalize_invoice_no
 from data.models.postgres.enums import MatchedLayer, Tolerance
 
 _DIGITS = re.compile(r"\d+")
@@ -70,8 +72,9 @@ class Choice:
 
 
 def number_shape(number: str) -> str:
-    """INV-2026-0042 -> INV-9-9: what an invoice number looks like, ignoring its digits."""
-    return _DIGITS.sub("9", number.strip().upper())
+    """INV-2026-0042 -> INV9: what an invoice number looks like, ignoring its digits. Taken from the
+    NORMALIZED number (decision 2026-10-21), so INV2026-0042 and INV-2026-0042 have the same shape."""
+    return _DIGITS.sub("9", normalize_invoice_no(number))
 
 
 def score_set(
@@ -80,14 +83,14 @@ def score_set(
     received: Decimal,
     *,
     foreign: bool,
-    payment_date: date,
+    payment_date: date | None,
     customer_has_one_open_invoice: bool,
     quoted_shape_known: bool,
 ) -> ScoredSet:
     fit = classify(received, sum((m.balance for m in members), Decimal("0")), foreign=foreign)
     raw = LAYER_BASE_SCORE[layer.value] + AMOUNT_FIT_SCORE[_FIT_KEY.get(fit.tolerance, "OVER_SHORT")]
     earliest = min(m.due_date for m in members)
-    if abs((earliest - payment_date).days) <= DUE_DATE_MODIFIER_WINDOW_DAYS:
+    if payment_date is not None and abs((earliest - payment_date).days) <= DUE_DATE_MODIFIER_WINDOW_DAYS:
         raw += MODIFIER_DUE_WITHIN_60D
     if len(members) == 1 and customer_has_one_open_invoice:
         raw += MODIFIER_SINGLE_OPEN_INVOICE

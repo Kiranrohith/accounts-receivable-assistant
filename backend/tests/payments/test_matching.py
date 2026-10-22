@@ -196,14 +196,25 @@ def test_single_open_invoice_modifier_is_skipped_for_a_set():
     assert one.raw - both.raw == 5
 
 
+def test_the_highest_an_l2_over_or_short_payment_can_score_is_73():
+    # 45 + over/short 15 + due date 5 + single open invoice 5 + reference pattern 3: never reaches 85 by score
+    s = score(MatchedLayer.L2, [cand("A", "900")], "1000", customer_has_one_open_invoice=True, quoted_shape_known=True)
+    assert s.raw == 45 + 15 + 5 + 5 + 3 == 73
+
+
 def test_due_date_of_a_set_uses_the_earliest_member():
     early = score(MatchedLayer.L3, [cand("A", "400", due_in_days=400), cand("B", "500", due_in_days=30)], "900")
     assert early.raw == 35 + 35 + 5  # B is within 60 days
 
 
 def test_number_shape_ignores_the_digits():
-    assert number_shape("INV-2026-0042") == number_shape(" inv-2027-9 ") == "INV-9-9"
-    assert number_shape("A/12") != number_shape("A-12")
+    assert number_shape("INV-2026-0042") == number_shape(" inv-2027-9 ") == "INV9"
+
+
+def test_number_shape_is_taken_from_the_normalized_number():
+    assert number_shape("INV2026-0042") == number_shape("INV-2026-0042") == number_shape("inv 2026/0042")
+    assert number_shape("A/12") == number_shape("A-12")
+    assert number_shape("INV-2026-0042") != number_shape("PO-2026-0042")
 
 
 # ---- choosing ------------------------------------------------------------------------------

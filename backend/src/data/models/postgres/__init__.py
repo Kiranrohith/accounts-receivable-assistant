@@ -4,6 +4,7 @@ tasks modules the same way."""
 from data.models.postgres.access import Permission, Role, RolePermission, User
 from data.models.postgres.base import Base
 from data.models.postgres.customers import Customer, CustomerAlias
+from data.models.postgres.disputes import Dispute, DisputeMessage, Notification
 from data.models.postgres.documents import IngestedEmail, SourceDocument
 from data.models.postgres.invoices import (
     Invoice,
@@ -44,6 +45,9 @@ __all__ = [
     "Payment",
     "PaymentAllocation",
     "Note",
+    "Dispute",
+    "DisputeMessage",
+    "Notification",
     "Job",
     "ScheduledRun",
     "StateLog",

@@ -28,7 +28,7 @@ _ONLY_UPLOADER = " Only the person who uploaded the document can see and decide 
     summary="My uploads waiting for a document-type decision",
     description=(
         "Requires invoices.review. Documents you uploaded that the reader could not confidently "
-        "tell apart (invoice, purchase order, payment advice or something else). Pick what it is, or reject it."
+        "tell apart (invoice, purchase order, payment advice, customer complaint or something else). Pick what it is, or reject it."
         + _ONLY_UPLOADER
     ),
 )
@@ -57,9 +57,9 @@ async def review_detail(
 @router.post(
     "/{review_id}/choose",
     response_model=TypeDecision,
-    summary="Say what the document is: an invoice, a purchase order or a payment advice",
+    summary="Say what the document is: an invoice, a purchase order, a payment advice or a complaint",
     description=(
-        "Requires invoices.review. `doc_type` is `invoice`, `po` or `payment`; a reason is optional. The "
+        "Requires invoices.review. `doc_type` is `invoice`, `po`, `payment`, `dispute` or `dispute_and_payment` (a complaint that also holds a payment advice); a reason is optional. The "
         "document is read again as that kind in the background (poll the upload status), with "
         "that kind's usual checks: a document that does not fit ends in the rejected list with "
         "every reason." + _ONLY_UPLOADER

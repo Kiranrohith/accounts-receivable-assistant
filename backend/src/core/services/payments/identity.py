@@ -3,7 +3,9 @@
   L1  an invoice number the advice quotes -> that invoice's customer
   L2  the sender's e-mail -> the customer with that e-mail (or a confirmed e-mail alias)
   L3  the payer's name   -> the customer with that name (or a confirmed name alias)
-  L4  nothing identified, or the evidence disagrees -> a person decides
+  L4  nothing identified -> a person decides. Evidence that disagrees or is ambiguous also goes to a
+      person, but keeps the layer it was found at (L1/L2/L3) with no customer, so the review shows where
+      it came from.
 
 Anything doubtful is returned as an issue and the payment goes to review; this never guesses:
 quoted invoices owned by different customers (C1), the invoice's owner and the sender or payer
@@ -20,6 +22,7 @@ from data.models.postgres import Customer, Invoice
 from data.models.postgres.enums import MatchedLayer
 from data.repositories.customers import customers_repo
 from data.repositories.invoices import invoices_repo
+from data.repositories.invoices.numbers import normalize_invoice_no
 from schemas.payments.extraction import ExtractedPayment
 
 
@@ -57,8 +60,10 @@ def decide_identity(facts: IdentityFacts) -> IdentityResult:
     emails = facts.email_matches
     names = facts.name_matches
 
-    def fail(message: str) -> IdentityResult:
-        return IdentityResult(None, MatchedLayer.L4, [*issues, message], unknown)
+    def fail(message: str, layer: MatchedLayer = MatchedLayer.L4) -> IdentityResult:
+        """No customer is named. `layer` is the layer whose evidence was reached and disagreed or was
+        ambiguous (L1/L2/L3), so a reviewer sees where it came from; L4 only when nothing identified."""
+        return IdentityResult(None, layer, [*issues, message], unknown)
 
     def other_evidence_disagrees(customer: Customer) -> str | None:
         """The sender's e-mail or the payer's name names a different customer than `customer`."""
@@ -74,19 +79,21 @@ def decide_identity(facts: IdentityFacts) -> IdentityResult:
     if len(owners) > 1:
         return fail(
             f"The invoices quoted belong to different customers ({_names(owners)}); "
-            "please say who paid"
+            "please say who paid",
+            MatchedLayer.L1,
         )
     if len(owners) == 1:
         customer, layer = owners[0], MatchedLayer.L1
         conflict = other_evidence_disagrees(customer)
         if conflict:
-            return fail(conflict)
+            return fail(conflict, MatchedLayer.L1)
     # --- L2: sender e-mail ---
     elif emails:
         if len(emails) > 1:
             return fail(
                 f"The sender's e-mail address belongs to several customers ({_names(emails)}); "
-                "please say who paid"
+                "please say who paid",
+                MatchedLayer.L2,
             )
         customer, layer = emails[0], MatchedLayer.L2
         conflict = None
@@ -96,12 +103,13 @@ def decide_identity(facts: IdentityFacts) -> IdentityResult:
                 f"but the payer name belongs to '{_names(names)}'"
             )
         if conflict:
-            return fail(conflict)
+            return fail(conflict, MatchedLayer.L2)
     # --- L3: payer name ---
     elif names:
         if len(names) > 1:
             return fail(
-                f"The payer name matches several customers ({_names(names)}); please say who paid"
+                f"The payer name matches several customers ({_names(names)}); please say who paid",
+                MatchedLayer.L3,
             )
         customer, layer = names[0], MatchedLayer.L3
     else:
@@ -131,7 +139,7 @@ async def gather_facts(
 ) -> IdentityFacts:
     numbers = _clean([i.invoice_number for i in payment.invoices])
     invoices = await invoices_repo.get_by_numbers(db, numbers)
-    known = {i.invoice_number for i in invoices}
+    known = {normalize_invoice_no(i.invoice_number) for i in invoices}
     owner_ids = {i.customer_id for i in invoices}
     owners = [c for c in [await customers_repo.get_by_id(db, cid) for cid in owner_ids] if c]
 
@@ -154,7 +162,7 @@ async def gather_facts(
 
     return IdentityFacts(
         quoted_invoices=invoices,
-        unknown_numbers=[n for n in numbers if n not in known],
+        unknown_numbers=[n for n in numbers if normalize_invoice_no(n) not in known],
         quoted_owners=owners,
         email_matches=email_matches,
         name_matches=name_matches,

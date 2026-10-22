@@ -18,6 +18,7 @@ from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.services.invoices.amounts import money
+from core.services.payments import holds
 from core.services.payments.credit import Spend, note_status_after
 from core.services.payments.notes import create_credit_note
 from core.services.payments.tolerance import Plan
@@ -56,6 +57,11 @@ class Application:
     fx_rate: dict[uuid.UUID, Decimal | None] = field(default_factory=dict)
     spends: list[Spend] = field(default_factory=list)  # credit notes the advice said to use
     expected_note_remaining: dict[uuid.UUID, Decimal] = field(default_factory=dict)
+    # the slice of this remittance frozen for a dispute on one invoice (not in plan.slices)
+    held: Decimal = _ZERO
+    held_invoice_id: uuid.UUID | None = None
+    # what a person must still decide although the payment was applied in part (shown as review reasons)
+    review_notes: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -95,18 +101,30 @@ async def apply(
     before_state = payment.state
 
     plan = app.plan
-    invoices = await invoices_repo.lock_invoices(db, [s.invoice_id for s in plan.slices])
+    held = money(app.held)
+    ids = [s.invoice_id for s in plan.slices]
+    if held > 0:
+        ids.append(app.held_invoice_id)
+    invoices = await invoices_repo.lock_invoices(db, ids)
     by_id = {i.id: i for i in invoices}
+    disputes = await holds.open_disputes_by_invoice(db, invoices)
     for s in plan.slices:
         invoice = by_id.get(s.invoice_id)
         if (
             invoice is None
             or invoice.status is InvoiceStatus.PAID
-            or invoice.is_disputed
             or invoice.po_hold
+            or holds.holding_of(disputes.get(s.invoice_id))  # a dispute that holds money appeared
             or money(invoice.collectible_balance) != app.expected_balance[s.invoice_id]
         ):
             raise Contention(f"invoice {s.invoice_id} changed while the payment was being matched")
+    pinned = None
+    if held > 0:
+        holder = by_id.get(app.held_invoice_id)
+        holding_now = holds.holding_of(disputes.get(app.held_invoice_id))
+        if holder is None or holder.status is InvoiceStatus.PAID or not holding_now:
+            raise Contention(f"invoice {app.held_invoice_id} changed while the payment was being matched")
+        pinned = holding_now[0]  # the oldest holding dispute of the invoice
 
     spend_notes: dict[uuid.UUID, Note] = {}
     if app.spends:
@@ -240,21 +258,27 @@ async def apply(
     # --- the payment itself ---
     residuals = sum((s.residual or _ZERO for s in plan.slices), _ZERO)
     received = money(app.received_inr)
-    if plan.allocated_total + residuals + unapplied + credited != received:
+    if plan.allocated_total + residuals + unapplied + held + credited != received:
         # never write money that does not add up
         raise AssertionError(
             f"payment {payment.id}: {received} received != {plan.allocated_total} allocated + "
-            f"{residuals} residual + {unapplied} unapplied + {credited} credited"
+            f"{residuals} residual + {unapplied} unapplied + {held} held + {credited} credited"
         )
-    state = PaymentState.APPLIED if unapplied == 0 else PaymentState.PARTIALLY_APPLIED
+    if held > 0 and not plan.slices and unapplied == 0 and credited == 0:
+        state = PaymentState.HELD  # held in its entirety
+    elif unapplied == 0 and held == 0:
+        state = PaymentState.APPLIED
+    else:
+        state = PaymentState.PARTIALLY_APPLIED
     payment.amount_received_inr = received
     payment.unapplied_amount = unapplied
-    payment.held_amount = _ZERO
+    payment.held_amount = held
+    payment.held_for_dispute_id = pinned.id if pinned is not None else None
     payment.credited_amount = credited
     payment.confidence_score = app.score
     payment.matched_layer = app.layer
     payment.match_reason = f"{app.reason}; {_tolerance_note(plan, note)}"
-    payment.review_reasons = None
+    payment.review_reasons = app.review_notes or None
     payment.state = state
     payment.updated_by = actor
     logs_repo.add_state_log(
@@ -269,4 +293,14 @@ async def apply(
         occurred_at=now,
     )
     await db.flush()
+    touches = [
+        holds.Touch(by_id[s.invoice_id], disputes[s.invoice_id], f"{s.allocated} applied")
+        for s in plan.slices
+        if disputes.get(s.invoice_id)
+    ]
+    if pinned is not None:
+        touches.append(
+            holds.Touch(by_id[app.held_invoice_id], disputes[app.held_invoice_id], f"{held} held")
+        )
+    await holds.tell_owners(db, payment, touches, actor)
     return Applied(payment, invoices, note, state, spent)

@@ -1,0 +1,12 @@
+{#- The resolution e-mail (decision 64). Rendered as a DRAFT for the dispute owner when the dispute is
+    resolved; the owner edits the narrative into customer-safe wording and approves it. Never sent by
+    itself. A reply to it after resolution opens a new linked dispute (E3), which the last line invites. -#}
+{% extends "email/base.j2" %}
+{% block subject %}Resolution — your query on {{ dispute_ref }}{% endblock %}
+{% block content %}Dear {{ contact_name | default(customer_name, true) }},
+
+We are writing to confirm that your query regarding {{ dispute_ref }} has
+been resolved. {{ narrative }}
+
+If anything remains unclear or you disagree with this outcome, please reply
+to this email and we will take another look.{% endblock %}

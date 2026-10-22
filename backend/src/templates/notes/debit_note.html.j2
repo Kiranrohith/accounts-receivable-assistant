@@ -1,0 +1,24 @@
+<!doctype html>
+{#- The debit note document (a debit note is an invoice with type DEBIT_NOTE). Rendered to a PDF and
+    attached to that debit note's reminder e-mails. The total carries no TDS adjustment.
+    Not wired in yet. -#}
+<html lang="en">
+<head><meta charset="utf-8"><title>Debit note {{ invoice_number }}</title></head>
+<body>
+  <h1>DEBIT NOTE</h1>
+  <p><strong>Number:</strong> {{ invoice_number }}<br>
+     <strong>Date:</strong> {{ invoice_date }}<br>
+     <strong>Due date:</strong> {{ due_date }}</p>
+  <p><strong>Customer:</strong> {{ customer_name }}{% if customer_gstin %}<br>
+     <strong>GSTIN:</strong> {{ customer_gstin }}{% endif %}</p>
+  <table>
+    <tr><th>Description</th><th>Amount</th></tr>
+    {% for line in lines %}<tr><td>{{ line.description }}</td><td>{{ line.amount }}</td></tr>
+    {% endfor %}
+  </table>
+  <p><strong>Total:</strong> {{ total }}</p>
+  {% if linked_reference %}<p><strong>Against:</strong> {{ linked_reference }}</p>{% endif %}
+  <hr>
+  <p>{{ company_name }}{% if company_contact_line %}<br>{{ company_contact_line }}{% endif %}</p>
+</body>
+</html>

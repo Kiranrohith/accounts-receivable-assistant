@@ -1,0 +1,13 @@
+{#- Day 15 after the due date. -#}
+{% extends "email/base.j2" %}
+{% block subject %}Second reminder — Invoice {{ invoice_number }} ({{ days_past_due }} days past due){% endblock %}
+{% block content %}Dear {{ contact_name | default(customer_name, true) }},
+
+Our records show invoice {{ invoice_number }} remains unpaid
+{{ days_past_due }} days past its due date of {{ due_date }}. The
+outstanding balance is {{ balance }}.
+
+We request that payment be arranged within the next 7 days. If there is a
+reason this invoice cannot be settled — a dispute, a missing document, or
+payment details you need from us — please reply and we will resolve it
+promptly.{% endblock %}

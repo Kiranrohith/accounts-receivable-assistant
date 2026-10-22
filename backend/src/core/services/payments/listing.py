@@ -11,6 +11,7 @@ from core.services.payments.identities import payment_violations
 from data.models.postgres import Payment
 from data.models.postgres.enums import AllocationStatus, PaymentState
 from data.repositories.invoices import documents_repo, invoices_repo
+from data.repositories.invoices.numbers import normalize_invoice_no
 from data.repositories.payments import payments_repo
 from data.repositories.payments.payments_repo import PaymentMoney
 from data.repositories.platform import logs_repo
@@ -98,7 +99,7 @@ async def get_payment(db: AsyncSession, payment_id: uuid.UUID) -> PaymentDetail:
 
     quoted_rows = [r for r in (payment.extracted_invoice_numbers or []) if r.get("invoice_number")]
     known = {
-        i.invoice_number: i
+        normalize_invoice_no(i.invoice_number): i
         for i in await invoices_repo.get_by_numbers(db, [r["invoice_number"].strip() for r in quoted_rows])
         if i.customer_id == payment.customer_id
     }
@@ -110,8 +111,8 @@ async def get_payment(db: AsyncSession, payment_id: uuid.UUID) -> PaymentDetail:
             QuotedInvoice(
                 invoice_number=number,
                 stated_amount=Decimal(str(amount)) if amount not in (None, "") else None,
-                known=number in known,
-                invoice_status=known[number].status.value if number in known else None,
+                known=normalize_invoice_no(number) in known,
+                invoice_status=known[normalize_invoice_no(number)].status.value if normalize_invoice_no(number) in known else None,
             )
         )
 

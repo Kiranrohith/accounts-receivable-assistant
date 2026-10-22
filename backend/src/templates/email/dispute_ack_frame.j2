@@ -1,0 +1,7 @@
+{#- The fixed frame around the model-drafted acknowledgement. The drafted, DB-grounded body goes
+    between `opening` and `closing`; the 85 gate applies to that middle part only.
+    NOT wired in yet: the build still sends the model's whole draft. -#}
+{% block opening %}Dear {{ contact_name | default(customer_name, true) }},
+Thank you for writing to us about {{ dispute_ref }}.{% endblock %}
+{% block closing %}If this does not fully address your concern, please reply to this email —
+it will reach the team member handling your case directly.{% endblock %}
