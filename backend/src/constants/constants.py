@@ -142,4 +142,7 @@ JUNK_REFERENCES: Final = frozenset({"NEFT", "IMPS", "RTGS", "PAYMENT", "NA", "-"
 GSTIN_PATTERN: Final = r"^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$"  # 15 characters
 
 # --- Auth ---
-JWT_EXPIRY_HOURS: Final = 8
+ACCESS_TOKEN_MINUTES: Final = 30  # the bearer token the UI sends on every call; short, because it is readable by the page
+REFRESH_TOKEN_DAYS: Final = 7  # the HttpOnly-cookie token that mints a new access token; signed, not stored (no revocation yet)
+REFRESH_COOKIE_NAME: Final = "refresh_token"
+REFRESH_COOKIE_PATH: Final = "/auth"  # the browser sends the cookie only to the auth endpoints

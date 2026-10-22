@@ -56,7 +56,7 @@ async def main():
         check("FA can view customers (sees the new one)", "Zz Test Acme Ltd" in [x["customer_name"] for x in (await c.get("/customers", headers=FA)).json()])
 
         check("logout -> 200", (await c.post("/auth/logout", headers=H)).status_code == 200)
-        check("logout without token -> 401", (await c.post("/auth/logout")).status_code == 401)
+        check("logout needs no token (it only clears the refresh cookie) -> 200", (await c.post("/auth/logout")).status_code == 200)
 
         async with SessionLocal() as db:
             await db.execute(text("update users set is_active=false where email='fa.one@example.com'")); await db.commit()

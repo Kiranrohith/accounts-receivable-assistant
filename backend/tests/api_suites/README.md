@@ -37,7 +37,7 @@ Every other suite scripts the model (a fake returning a fixed answer), so it is 
 
 | Area | Suites |
 |---|---|
-| access, customers, files, upload | `access`, `customers`, `files`, `upload` |
+| access, refresh tokens, customers, files, upload | `access`, `refresh` (HttpOnly cookie, 30-minute access token), `customers`, `files`, `upload` |
 | invoices, versions, review | `version`, `review`, `status`, `sendback`, `fx`, `fx2` |
 | purchase orders | `po2`, `po3`, `po4`, `polist` |
 | document intake, job queue | `intake`, `e2e`, `runner` |
