@@ -62,7 +62,7 @@ class RejectedItem(BaseModel):
     rejected_id: uuid.UUID
     source_document_id: uuid.UUID | None
     duplicate_of_source_document_id: uuid.UUID | None = None  # the earlier document this one repeats
-    kind: Literal["invoice", "purchase_order", "other", "duplicate"]
+    kind: Literal["invoice", "purchase_order", "other", "duplicate", "mail_attachment"]
     file_name: str | None
     rejected_at: datetime | None
     reasons: list[str]  # all of them, in plain English
@@ -70,6 +70,7 @@ class RejectedItem(BaseModel):
     resolution: str  # None, Reuploaded, CustomerAdded, Discarded
     file_kept: bool  # false only if the file is no longer on disk
     can_send_to_review: bool = False  # a "neither" rejection its uploader can send back for a type decision
+    source_mail_link: str | None = None  # a rejected e-mail attachment: the Gmail link to the mail it came with
     invoice_number: str | None = None  # what the reader found, when it found one
     po_number: str | None = None
     customer_name: str | None = None

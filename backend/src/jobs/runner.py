@@ -11,6 +11,7 @@ from core.services.disputes import clarify
 from core.services.documents import intake
 from core.services.jobs import queue
 from core.services.jobs.worker import Worker
+from core.services.mail import handoff, ingest, triage
 from core.services.payments import rematch
 
 # One handler serves the intake types: the job type tells it whether a person already chose the
@@ -24,10 +25,13 @@ HANDLERS: dict[str, queue.Handler] = {
     queue.JOB_DISPUTE_PAYMENT: intake.handle,
     queue.JOB_DISPUTE_CLARIFY: clarify.handle,
     queue.JOB_PAYMENT_REMATCH: rematch.handle,
+    queue.JOB_MAIL_TRIAGE: triage.handle,
+    queue.JOB_MAIL_DUPLICATE: handoff.resolve_duplicates,
 }
 
 
 async def start_worker(concurrency: int | None = None) -> Worker:
+    await ingest.ensure_labels_at_boot()  # B9: a broken mailbox setup shows now, not at the first mail
     worker = Worker(HANDLERS, concurrency=concurrency or get_settings().worker_concurrency)
     await worker.start()
     return worker

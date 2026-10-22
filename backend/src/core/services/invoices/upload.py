@@ -64,7 +64,7 @@ async def _record_duplicate(
     return StoredUpload(original_id, duplicate=True)
 
 
-def _signature_matches(ext: str, data: bytes) -> bool:
+def signature_matches(ext: str, data: bytes) -> bool:
     if ext == ".pdf":
         return data.startswith(b"%PDF-")
     if ext == ".docx":
@@ -106,7 +106,7 @@ def check_upload(file_name: str, data: bytes) -> DocType:
             f"Unsupported file type '{ext or file_name}'; "
             f"supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}"
         )
-    if not _signature_matches(ext, data):
+    if not signature_matches(ext, data):
         raise UploadRejected(f"File content does not look like a {ext} file")
     if ext == ".pdf":
         pages = _pdf_page_count(data)

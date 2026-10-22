@@ -25,14 +25,14 @@ router = APIRouter(prefix="/invoices", tags=["invoices"])
     description=(
         "Requires invoices.rejected.rerun. Newest first. `kind` filters: invoice (default: "
         "invoices rejected for validation or in review), purchase_order, other (documents that "
-        "are neither an invoice nor a purchase order), duplicate (an identical file uploaded again) or "
-        "all. Resolved rejections (sent back "
+        "are neither an invoice nor a purchase order), duplicate (an identical file uploaded again), mail_attachment (an e-mail attachment we "
+        "could not use; each carries `source_mail_link`) or all. Resolved rejections (sent back "
         "for a type decision) are hidden unless include_resolved=true. `can_send_to_review` "
         "says the uploader may send a 'neither' rejection back for a document-type decision."
     ),
 )
 async def rejected(
-    kind: Literal["invoice", "purchase_order", "other", "duplicate", "all"] = Query("invoice"),
+    kind: Literal["invoice", "purchase_order", "other", "duplicate", "mail_attachment", "all"] = Query("invoice"),
     include_resolved: bool = Query(False),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),

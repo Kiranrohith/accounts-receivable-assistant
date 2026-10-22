@@ -107,7 +107,7 @@ def _rejected_item(rejected: RejectedInvoice, document: SourceDocument | None) -
     reasons = rejected.rejection_reasons or []
     codes = [r.get("code", "") for r in reasons]
     snapshot = rejected.extracted_snapshot or {}
-    kind = snapshot["kind"] if snapshot.get("kind") in ("purchase_order", "other", "duplicate") else "invoice"
+    kind = snapshot["kind"] if snapshot.get("kind") in ("purchase_order", "other", "duplicate", "mail_attachment") else "invoice"
     file_kept = bool(document and document.file_path)
     return RejectedItem(
         rejected_id=rejected.id,
@@ -123,6 +123,7 @@ def _rejected_item(rejected: RejectedInvoice, document: SourceDocument | None) -
         can_send_to_review=(
             kind == "other" and file_kept and rejected.resolution is RejectionResolution.NONE
         ),
+        source_mail_link=(snapshot.get("mail") or {}).get("link"),
         invoice_number=snapshot.get("invoice_number"),
         po_number=snapshot.get("po_number"),
         customer_name=snapshot.get("customer_name"),

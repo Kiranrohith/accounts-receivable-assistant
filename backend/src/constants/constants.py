@@ -126,7 +126,7 @@ DISPUTE_RESOLUTION_WORKING_DAYS: Final = 10
 # --- Files and validation ---
 MAX_FILE_MB: Final = 20
 MAX_PAGES: Final = 30
-MIN_ATTACHMENT_KB: Final = 5
+MIN_ATTACHMENT_KB: Final = 5  # IMAGES only: a PDF of any size above zero qualifies
 DATE_MAX_PAST_YEARS: Final = 2
 DATE_MAX_FUTURE_DAYS: Final = 30
 DUE_DATE_MAX_FUTURE_YEARS: Final = 1

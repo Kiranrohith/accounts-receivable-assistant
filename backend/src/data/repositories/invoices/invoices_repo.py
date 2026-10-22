@@ -235,17 +235,20 @@ async def list_rejected(
     is_po = snapshot_kind == "purchase_order"
     is_other = snapshot_kind == "other"
     is_duplicate = snapshot_kind == "duplicate"
+    is_mail = snapshot_kind == "mail_attachment"
     query = select(RejectedInvoice, SourceDocument).outerjoin(
         SourceDocument, SourceDocument.id == RejectedInvoice.source_document_id
     )
     if kind == "invoice":
-        query = query.where(is_po.is_not(True), is_other.is_not(True), is_duplicate.is_not(True))
+        query = query.where(is_po.is_not(True), is_other.is_not(True), is_duplicate.is_not(True), is_mail.is_not(True))
     elif kind == "duplicate":
         query = query.where(is_duplicate.is_(True))
     elif kind == "purchase_order":
         query = query.where(is_po.is_(True))
     elif kind == "other":
         query = query.where(is_other.is_(True))
+    elif kind == "mail_attachment":
+        query = query.where(is_mail.is_(True))
     if not include_resolved:
         query = query.where(RejectedInvoice.resolution == RejectionResolution.NONE)
     rows = await db.execute(
