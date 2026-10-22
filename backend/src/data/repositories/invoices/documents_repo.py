@@ -36,6 +36,16 @@ async def documents_by_ids(
     return {d.id: d for d in result}
 
 
+async def documents_of_mail(
+    db: AsyncSession, email_id: uuid.UUID, kind: DocKind | None = None
+) -> list[SourceDocument]:
+    """The documents made from one polled mail (its attachments, its own text), oldest first."""
+    query = select(SourceDocument).where(SourceDocument.ingested_email_id == email_id)
+    if kind is not None:
+        query = query.where(SourceDocument.doc_kind == kind)
+    return list(await db.scalars(query.order_by(SourceDocument.created_at, SourceDocument.id)))
+
+
 async def document_id_by_hash(db: AsyncSession, file_hash: str) -> uuid.UUID | None:
     return await db.scalar(select(SourceDocument.id).where(SourceDocument.file_hash == file_hash))
 

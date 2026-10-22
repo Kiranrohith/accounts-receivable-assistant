@@ -19,6 +19,7 @@ from data.models.postgres import Job, SourceDocument
 from data.models.postgres.enums import JobState, PaymentState, StepResult
 from data.repositories import unit_of_work
 from data.repositories.invoices import documents_repo
+from data.repositories.mail import emails_repo
 from data.repositories.payments import payments_repo
 from data.repositories.platform import jobs_repo
 from schemas.invoices.validation import Outcome
@@ -57,6 +58,10 @@ async def run_payment_steps(
         return
 
     payment = outcome.payment
+    if document.ingested_email_id is not None:  # it came by mail: the mail's sender is the address that paid
+        mail_row = await emails_repo.get_email(db, document.ingested_email_id)
+        if mail_row is not None and mail_row.sender:
+            payment.from_email = mail_row.sender
     documents_repo.save_extraction(
         document, payment.model_dump(mode="json"), payment.confidence.model_dump(mode="json")
     )

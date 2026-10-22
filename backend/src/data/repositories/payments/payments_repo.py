@@ -21,6 +21,18 @@ async def insert_payment(db: AsyncSession, **fields: Any) -> Payment:
     return payment
 
 
+async def payments_of_mail(db: AsyncSession, email_id: uuid.UUID) -> list[Payment]:
+    """Every payment this mail produced (rejected duplicates included), oldest first."""
+    return list(
+        await db.scalars(select(Payment).where(Payment.ingested_email_id == email_id).order_by(Payment.created_at, Payment.id))
+    )
+
+
+async def duplicate_recorded(db: AsyncSession, email_id: uuid.UUID, original_id: uuid.UUID) -> bool:
+    """Has this mail already been recorded as a duplicate of that payment?"""
+    return bool(await db.scalar(select(func.count()).select_from(Payment).where(Payment.ingested_email_id == email_id, Payment.duplicate_of == original_id)))
+
+
 async def get_payment(db: AsyncSession, payment_id: uuid.UUID) -> Payment | None:
     return await db.get(Payment, payment_id)
 

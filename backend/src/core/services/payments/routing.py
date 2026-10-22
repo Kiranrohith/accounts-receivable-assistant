@@ -118,6 +118,7 @@ async def route_extracted_payment(
         extracted_credit_note_ref=extracted.credit_note_reference,
         credit_note_requested=extracted.credit_note_requested,
         source_document_id=document.id,
+        ingested_email_id=document.ingested_email_id,
         created_by=document.created_by,
         updated_by=document.created_by,
         **_amount_fields(extracted),
