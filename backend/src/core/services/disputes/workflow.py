@@ -18,11 +18,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.constants import DISPUTE_DEFAULT_CONFIDENCE
 from core.exceptions.errors import ConflictError, NotFoundError, PermissionDeniedError, ValidationFailure
+from core.services import notifications
 from core.services.disputes import assignment, create, outbound, resolution
 from core.services.payments import parking
 from core.services.users.users import permission_codes_for
 from data.models.postgres import Dispute, User
-from data.models.postgres.enums import DisputeCategory, DisputeMessageKind, DisputeStatus
+from data.models.postgres.enums import DisputeCategory, DisputeMessageKind, DisputeStatus, NotificationType
 from data.repositories import unit_of_work
 from data.repositories.customers import customers_repo
 from data.repositories.disputes import disputes_repo
@@ -207,6 +208,41 @@ async def add_note(
 
 
 # ---- resolve ------------------------------------------------------------------------------------
+async def close(db: AsyncSession, dispute: Dispute, user: User, narrative: str, reason: str) -> None:
+    """The only way out of a dispute: Resolved, the invoice's flag and the money it held follow. Flushes only;
+    the caller holds the dispute's lock (invoice first) and commits."""
+    before = dispute.status
+    dispute.status = DisputeStatus.RESOLVED
+    dispute.resolved_at = datetime.now(UTC)
+    dispute.resolved_by = user.id
+    dispute.resolution_narrative = narrative
+    dispute.updated_by = user.id
+    if dispute.invoice_id is not None:  # the invoice stays flagged while another dispute on it is open
+        await unit_of_work.flush(db)  # sessions do not autoflush: the count must see this one resolved
+        invoice = await invoices_repo.get_invoice_for_update(db, dispute.invoice_id)
+        if invoice is not None and await disputes_repo.open_count_on_invoice(db, dispute.invoice_id) == 0:
+            invoice.is_disputed = False
+    assignment.log_state(db, dispute, before, reason, user_id=user.id)
+    if dispute.invoice_id is not None:  # resolving may end (or move) a hold on payments
+        await parking.queue_held_for_invoice(db, dispute.invoice_id, user.id)
+
+
+async def withdraw(db: AsyncSession, user: User, dispute_id: uuid.UUID, reason: str) -> Dispute:
+    """A dispute raised from a mail that turned out not to be a complaint (E9): closed with no e-mail to the customer,
+    its holds released, its unsent drafts set aside and its owner told. Flushes only; the caller commits."""
+    dispute = await _lock(db, dispute_id)
+    owner = dispute.assigned_to
+    await resolution.set_aside_stale_drafts(db, dispute)
+    await close(db, dispute, user, f"Withdrawn: {reason}", f"Withdrawn by {user.username}: {reason}")
+    if owner is not None and owner != user.id:
+        await notifications.create(
+            db, owner, NotificationType.DISPUTE_FOLLOW_UP,
+            f"The dispute {await assignment.label(db, dispute)} was withdrawn: {reason}",
+            entity_type="dispute", entity_id=dispute.id, actor=user.id,
+        )
+    return dispute
+
+
 async def resolve(
     db: AsyncSession, user: User, dispute_id: uuid.UUID, body: ResolveDispute
 ) -> ResolveResult:
@@ -216,21 +252,7 @@ async def resolve(
     if dispute.status is DisputeStatus.RAISED:
         raise ConflictError("Classify the dispute before resolving it")
     await authorize(db, user, dispute, must_own=True)
-    before = dispute.status
-    now = datetime.now(UTC)
-    dispute.status = DisputeStatus.RESOLVED
-    dispute.resolved_at = now
-    dispute.resolved_by = user.id
-    dispute.resolution_narrative = body.narrative.strip()
-    dispute.updated_by = user.id
-    if dispute.invoice_id is not None:  # the invoice stays flagged while another dispute on it is open
-        await unit_of_work.flush(db)  # sessions do not autoflush: the count must see this one resolved
-        invoice = await invoices_repo.get_invoice_for_update(db, dispute.invoice_id)
-        if invoice is not None and await disputes_repo.open_count_on_invoice(db, dispute.invoice_id) == 0:
-            invoice.is_disputed = False
-    assignment.log_state(db, dispute, before, f"Resolved by {user.username}", user_id=user.id)
-    if dispute.invoice_id is not None:  # resolving may end (or move) a hold on payments
-        await parking.queue_held_for_invoice(db, dispute.invoice_id, user.id)
+    await close(db, dispute, user, body.narrative.strip(), f"Resolved by {user.username}")
     # the customer's resolution e-mail: a draft for the owner, never sent by itself
     draft = await resolution.draft_for(db, dispute, body.narrative, actor=user.id)
     subject, text = outbound.split(draft.body)
