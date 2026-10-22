@@ -122,7 +122,7 @@ def test_the_message_carries_its_own_id_and_reply_headers():
 def test_a_transport_failure_is_retried_then_succeeds(monkeypatch):
     calls = []
 
-    def flaky(host, port, msg):
+    def flaky(host, port, msg, *credentials):
         calls.append(1)
         if len(calls) < 3:
             raise smtp.SmtpError("down", permanent=False)

@@ -21,12 +21,27 @@ from core.services import notifications
 from core.services.disputes import assignment
 from core.services.mail import smtp
 from data.models.postgres import Dispute, DisputeMessage
-from data.models.postgres.enums import DisputeMessageKind, DisputeStatus, NotificationType
+from data.models.postgres.enums import DisputeMessageKind, DisputeStatus, NotificationType, StepResult
 from data.repositories import unit_of_work
 from data.repositories.customers import customers_repo
+from data.repositories.platform import logs_repo
 
 _SUBJECT = "Subject: "
 _EMAIL = re.compile(r"^[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+$")
+
+
+def log_send_failure(db: AsyncSession, dispute: Dispute, to: str, exc: smtp.SmtpError) -> None:
+    """Every send that did not go out leaves a step-log row (no job: a person or the scan sent it)."""
+    logs_repo.add_step_log(
+        db,
+        entity_type="dispute",
+        entity_id=dispute.id,
+        step_name="send_email",
+        result=StepResult.ERROR,
+        input_summary={"to": to},
+        error_message=exc.message,
+        occurred_at=datetime.now(UTC),
+    )
 
 
 def reference_for(dispute_id: uuid.UUID) -> str:
@@ -76,6 +91,7 @@ async def send_draft(
     try:
         sent = await smtp.send(mail)
     except smtp.SmtpError as exc:
+        log_send_failure(db, dispute, to, exc)
         if dispute.assigned_to is not None:
             await notifications.create(
                 db,

@@ -28,8 +28,13 @@ services:
     env_file: ./backend/.env
     environment:
       DATABASE_URL: postgresql+asyncpg://ar_assistant:ar_assistant@postgres:5432/ar_assistant
+      # Containers send to Mailpit (http://localhost:8025) whatever backend/.env says. To send through Gmail from
+      # Docker instead, delete these five lines so backend/.env applies (and set SMTP_ALLOWLIST_BYPASS=false there).
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_ALLOWLIST_BYPASS: "true"
       RUN_EMBEDDED_WORKER: "false"   # the worker service below does the processing
     ports:
       - "8000:8000"
@@ -46,8 +51,13 @@ services:
     env_file: ./backend/.env
     environment:
       DATABASE_URL: postgresql+asyncpg://ar_assistant:ar_assistant@postgres:5432/ar_assistant
+      # Containers send to Mailpit (http://localhost:8025) whatever backend/.env says. To send through Gmail from
+      # Docker instead, delete these five lines so backend/.env applies (and set SMTP_ALLOWLIST_BYPASS=false there).
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_ALLOWLIST_BYPASS: "true"
     volumes:
       - raw_files:/data/raw
     depends_on:

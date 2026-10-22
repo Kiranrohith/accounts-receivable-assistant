@@ -223,6 +223,7 @@ async def _tell_customer(dispute_id) -> str:  # noqa: ANN001
         try:
             sent = await smtp.send(mail)
         except smtp.SmtpError as exc:
+            outbound.log_send_failure(db, dispute, to, exc)
             if dispute.assigned_to is not None:
                 await notifications.create(
                     db, dispute.assigned_to, NotificationType.SEND_FAILURE,
