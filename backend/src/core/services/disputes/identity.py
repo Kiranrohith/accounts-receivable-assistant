@@ -16,6 +16,7 @@ from core.services.payments.identity import IdentityFacts, decide_identity
 from data.models.postgres import Customer, Invoice
 from data.repositories.customers import customers_repo
 from data.repositories.invoices import invoices_repo
+from data.repositories.invoices.numbers import normalize_invoice_no
 from schemas.disputes.extraction import ExtractedDispute
 
 
@@ -41,7 +42,7 @@ async def gather_facts(
 ) -> IdentityFacts:
     numbers = _clean(list(extracted.invoice_numbers))
     invoices = await invoices_repo.get_by_numbers(db, numbers)
-    known = {i.invoice_number for i in invoices}
+    known = {normalize_invoice_no(i.invoice_number) for i in invoices}
     owners = [
         c for c in [await customers_repo.get_by_id(db, cid) for cid in {i.customer_id for i in invoices}] if c
     ]
@@ -65,7 +66,7 @@ async def gather_facts(
             matches[by_gstin.id] = by_gstin
     return IdentityFacts(
         quoted_invoices=invoices,
-        unknown_numbers=[n for n in numbers if n not in known],
+        unknown_numbers=[n for n in numbers if normalize_invoice_no(n) not in known],
         quoted_owners=owners,
         email_matches=email_matches,
         name_matches=list(matches.values()),

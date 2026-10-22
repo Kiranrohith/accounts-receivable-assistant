@@ -32,8 +32,12 @@ CREDIT_NOTE_PREFIX: Final = "CN"  # note numbers: CN-<year>-<6 digits>
 
 # --- Tax, tolerance, FX (D7) ---
 TDS_RATE: Final = Decimal("0.10")  # frozen at invoice creation; DEBIT_NOTE skips TDS
-ROUNDING_TOLERANCE: Final = Decimal("1")  # T1: INR 1 / 1 unit of invoice currency
-FX_BAND: Final = Decimal("0.015")  # T2: foreign-currency amount difference, +/-1.5% of collectible balance
+ROUNDING_TOLERANCE: Final = Decimal("1")  # arithmetic checks (tax totals, an advice's own split): 1 unit
+TOLERANCE_T1_INR: Final = Decimal("1.00")  # T1: INR payment vs INR invoice, +/- this, INCLUSIVE
+FX_BAND_PCT: Final = Decimal("1.5")  # T2: same-currency foreign payment, +/- % of the balance, INCLUSIVE
+# Invoice numbers are compared with everything but letters and digits removed ("INV-1176" = "inv 1176").
+# A number without its prefix ("1176") is a different number: it never matches "INV1176".
+INVOICE_NO_NORMALIZE: Final = "uppercase; strip non-alphanumerics; prefix required"
 
 # Per-currency constants map (not per-date; stated limitation). Only INR is known:
 # the foreign rates are a business input that is not in the design docs yet.

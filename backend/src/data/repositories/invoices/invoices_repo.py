@@ -21,10 +21,14 @@ from data.models.postgres.enums import (
     RejectionResolution,
 )
 from data.repositories import unit_of_work
+from data.repositories.invoices.numbers import normalize_invoice_no
 
 
 async def invoice_number_exists(db: AsyncSession, invoice_number: str) -> bool:
-    found = await db.scalar(select(Invoice.id).where(Invoice.invoice_number == invoice_number))
+    """Is there an invoice with this number, ignoring case, spaces and punctuation (INV-1 = INV1)?"""
+    found = await db.scalar(
+        select(Invoice.id).where(Invoice.invoice_number_norm == normalize_invoice_no(invoice_number))
+    )
     return found is not None
 
 
@@ -252,17 +256,20 @@ async def list_rejected(
 
 # ---------------------------------------------------------------- versions
 async def get_by_numbers(db: AsyncSession, numbers: list[str]) -> list[Invoice]:
-    """The saved invoices with exactly these numbers (unknown numbers are simply absent)."""
+    """The saved invoices with these numbers, compared normalized (INV-1176 = inv 1176); unknown
+    numbers are simply absent."""
     if not numbers:
         return []
-    result = await db.scalars(select(Invoice).where(Invoice.invoice_number.in_(numbers)))
+    result = await db.scalars(
+        select(Invoice).where(Invoice.invoice_number_norm.in_({normalize_invoice_no(n) for n in numbers}))
+    )
     return list(result)
 
 
 async def get_by_number(
     db: AsyncSession, invoice_number: str, *, for_update: bool = False
 ) -> Invoice | None:
-    query = select(Invoice).where(Invoice.invoice_number == invoice_number)
+    query = select(Invoice).where(Invoice.invoice_number_norm == normalize_invoice_no(invoice_number))
     if for_update:
         query = query.with_for_update()
     return await db.scalar(query)

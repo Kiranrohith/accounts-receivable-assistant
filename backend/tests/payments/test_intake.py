@@ -136,7 +136,7 @@ def test_l1_wins_over_a_matching_email_and_name():
 
 def test_quoted_invoices_of_different_customers_go_to_review():
     result = decide_identity(IdentityFacts(quoted_owners=[customer("A"), customer("B")]))
-    assert result.customer is None and result.layer is MatchedLayer.L4 and not result.matched
+    assert result.customer is None and result.layer is MatchedLayer.L1 and not result.matched  # the layer reached
     assert "different customers" in result.issues[0]
 
 
@@ -209,3 +209,13 @@ def test_unknown_invoice_numbers_are_carried_through():
     acme = customer("Acme")
     result = decide_identity(IdentityFacts(quoted_owners=[acme], unknown_numbers=["INV-404"]))
     assert result.unknown_numbers == ["INV-404"] and result.matched
+
+
+def test_conflicting_or_ambiguous_evidence_keeps_the_layer_it_was_found_at():
+    a, b = customer("A"), customer("B")
+    assert decide_identity(IdentityFacts(email_matches=[a, b])).layer is MatchedLayer.L2
+    assert decide_identity(IdentityFacts(name_matches=[a, b])).layer is MatchedLayer.L3
+    assert decide_identity(IdentityFacts(quoted_owners=[a], email_matches=[b])).layer is MatchedLayer.L1
+    assert decide_identity(IdentityFacts(email_matches=[a], name_matches=[b])).layer is MatchedLayer.L2
+    nothing = decide_identity(IdentityFacts())
+    assert nothing.layer is MatchedLayer.L4 and nothing.customer is None  # only "nothing identified" is L4

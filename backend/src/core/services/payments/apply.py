@@ -60,6 +60,8 @@ class Application:
     # the slice of this remittance frozen for a dispute on one invoice (not in plan.slices)
     held: Decimal = _ZERO
     held_invoice_id: uuid.UUID | None = None
+    # what a person must still decide although the payment was applied in part (shown as review reasons)
+    review_notes: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -276,7 +278,7 @@ async def apply(
     payment.confidence_score = app.score
     payment.matched_layer = app.layer
     payment.match_reason = f"{app.reason}; {_tolerance_note(plan, note)}"
-    payment.review_reasons = None
+    payment.review_reasons = app.review_notes or None
     payment.state = state
     payment.updated_by = actor
     logs_repo.add_state_log(
