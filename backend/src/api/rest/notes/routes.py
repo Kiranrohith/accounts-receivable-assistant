@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.rest.dependencies import require_permission
-from core.services.payments import note_actions, note_queries
+from core.services.payments import note_actions, note_mail, note_queries
 from data.clients.db import get_db
 from data.models.postgres import User
 from data.models.postgres.enums import NoteStatus
@@ -109,3 +109,23 @@ async def spend_note(
     db: AsyncSession = Depends(get_db),
 ) -> SpendResult:
     return await note_actions.spend_note(db, user, note_id, body)
+
+
+@router.post(
+    "/{note_id}/resend-email",
+    status_code=202,
+    summary="E-mail the credit note to the customer again",
+    description=(
+        "Requires notes.create (FTM, ADM). Every new credit note is e-mailed to its customer automatically, with its PDF "
+        "attached; use this when that failed (see `email` on the note: the reason is there) or the customer asks for it "
+        "again. The mail is queued and sent by a worker; 409 while one is already waiting."
+    ),
+    responses={404: {"description": "No such note"}, 409: {"description": "An e-mail for this note is already waiting"}},
+)
+async def resend_note_email(
+    note_id: uuid.UUID,
+    user: User = Depends(require_permission("notes.create")),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    job_id = await note_mail.resend(db, user, note_id)
+    return {"job_id": str(job_id), "message": "The credit note e-mail is queued."}

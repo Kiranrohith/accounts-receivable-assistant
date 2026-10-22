@@ -39,7 +39,15 @@ class NoteTimelineEntry(BaseModel):
     reason: str | None
 
 
+class NoteEmail(BaseModel):
+    state: Literal["queued", "sent", "failed", "not_sent"]  # not_sent: a note made before notes were e-mailed
+    to: str | None = None
+    at: datetime | None = None
+    error: str | None = None  # the plain reason when it failed
+
+
 class NoteDetail(NoteListItem):
+    email: NoteEmail  # was the customer told?
     linked_invoice_number: str | None
     linked_payment_reference: str | None
     spends: list[NoteSpendOut]  # what this note has paid, oldest first

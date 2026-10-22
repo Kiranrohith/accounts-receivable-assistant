@@ -40,6 +40,7 @@ from data.repositories import unit_of_work
 from data.repositories.disputes import disputes_repo
 from data.repositories.invoices import documents_repo
 from data.repositories.mail import emails_repo
+from data.repositories.payments import payments_repo
 from data.repositories.platform import jobs_repo, logs_repo
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,7 @@ logger = logging.getLogger(__name__)
 ENTITY_TYPE = "source_document"  # what a job works on, unless it says otherwise
 ENTITY_DISPUTE = "dispute"  # a job about a dispute (its entity_id is the dispute)
 ENTITY_MAIL = "ingested_email"  # a job about a polled e-mail (its entity_id is the registry row)
+ENTITY_NOTE = "note"  # a job about a credit note (its entity_id is the note)
 
 # Job types. The type says what the worker should do with the document:
 JOB_INTAKE = "document_intake"  # new upload: parse, classify, then extract and route
@@ -58,6 +60,7 @@ JOB_DISPUTE_PAYMENT = "dispute_payment_extraction"  # a complaint that also hold
 JOB_DISPUTE_CLARIFY = "dispute_clarification"  # draft (and maybe send) the first clarification
 JOB_MAIL_TRIAGE = "mail_triage"  # classify a polled e-mail and spawn what it needs
 JOB_MAIL_DUPLICATE = "mail_duplicate"  # record a re-sent file as a duplicate once the first copy has its payment
+JOB_CREDIT_NOTE_MAIL = "credit_note_mail"  # render a credit note's PDF and e-mail it to the customer
 JOB_PAYMENT_REMATCH = "payment_rematch"  # a parked payment: match it again (its hold was released)
 
 MAX_ATTEMPTS = 1 + len(OUTAGE_BACKOFF_SECONDS)  # the first run plus one per backoff step
@@ -87,7 +90,7 @@ def _log(db: AsyncSession, job: Job, from_state: str | None, to_state: str, reas
     logs_repo.add_state_log(
         db,
         # a dispute's or e-mail's job states are the job's, not the entity's: they must not read as its own states
-        entity_type={ENTITY_DISPUTE: "dispute_job", ENTITY_MAIL: "mail_job"}.get(job.entity_type, job.entity_type or ENTITY_TYPE),
+        entity_type={ENTITY_DISPUTE: "dispute_job", ENTITY_MAIL: "mail_job", ENTITY_NOTE: "note_job"}.get(job.entity_type, job.entity_type or ENTITY_TYPE),
         entity_id=job.entity_id,
         from_state=from_state,
         to_state=to_state,
@@ -313,6 +316,8 @@ async def execute(job_id: uuid.UUID, worker_id: str, handlers: dict[str, Handler
                 document = await disputes_repo.get_dispute(db, job.entity_id) if job.entity_id else None
             elif job.entity_type == ENTITY_MAIL:
                 document = await emails_repo.get_email(db, job.entity_id) if job.entity_id else None
+            elif job.entity_type == ENTITY_NOTE:
+                document = await payments_repo.get_note(db, job.entity_id) if job.entity_id else None
             else:
                 document = await documents_repo.get_document(db, job.entity_id) if job.entity_id else None
             handler = handlers.get(job.job_type)

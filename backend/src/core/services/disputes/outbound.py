@@ -19,12 +19,11 @@ from config.settings import get_settings
 from core.exceptions.errors import ExternalServiceError, ValidationFailure
 from core.services import notifications
 from core.services.disputes import assignment
-from core.services.mail import smtp
+from core.services.mail import sending, smtp
 from data.models.postgres import Dispute, DisputeMessage
-from data.models.postgres.enums import DisputeMessageKind, DisputeStatus, NotificationType, StepResult
+from data.models.postgres.enums import DisputeMessageKind, DisputeStatus, NotificationType
 from data.repositories import unit_of_work
 from data.repositories.customers import customers_repo
-from data.repositories.platform import logs_repo
 
 _SUBJECT = "Subject: "
 _EMAIL = re.compile(r"^[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+$")
@@ -32,16 +31,7 @@ _EMAIL = re.compile(r"^[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+$")
 
 def log_send_failure(db: AsyncSession, dispute: Dispute, to: str, exc: smtp.SmtpError) -> None:
     """Every send that did not go out leaves a step-log row (no job: a person or the scan sent it)."""
-    logs_repo.add_step_log(
-        db,
-        entity_type="dispute",
-        entity_id=dispute.id,
-        step_name="send_email",
-        result=StepResult.ERROR,
-        input_summary={"to": to},
-        error_message=exc.message,
-        occurred_at=datetime.now(UTC),
-    )
+    sending.log_send(db, entity_type="dispute", entity_id=dispute.id, step_name="send_email", to=to, error=exc)
 
 
 def reference_for(dispute_id: uuid.UUID) -> str:
