@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppFailedItemsRouteImport } from './routes/_app/failed-items'
 import { Route as AppForbiddenRouteImport } from './routes/_app/forbidden'
 import { Route as AppMailRouteImport } from './routes/_app/mail'
 import { Route as AppMyWorkRouteImport } from './routes/_app/my-work'
@@ -55,6 +56,11 @@ const AppCustomersRoute = AppCustomersRouteImport.update({
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFailedItemsRoute = AppFailedItemsRouteImport.update({
+  id: '/failed-items',
+  path: '/failed-items',
   getParentRoute: () => AppRoute,
 } as any)
 const AppForbiddenRoute = AppForbiddenRouteImport.update({
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
+  '/failed-items': typeof AppFailedItemsRoute
   '/forbidden': typeof AppForbiddenRoute
   '/mail': typeof AppMailRoute
   '/my-work': typeof AppMyWorkRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
+  '/failed-items': typeof AppFailedItemsRoute
   '/forbidden': typeof AppForbiddenRoute
   '/mail': typeof AppMailRoute
   '/my-work': typeof AppMyWorkRoute
@@ -204,6 +212,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/customers': typeof AppCustomersRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/failed-items': typeof AppFailedItemsRoute
   '/_app/forbidden': typeof AppForbiddenRoute
   '/_app/mail': typeof AppMailRoute
   '/_app/my-work': typeof AppMyWorkRoute
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/customers'
     | '/dashboard'
+    | '/failed-items'
     | '/forbidden'
     | '/mail'
     | '/my-work'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/customers'
     | '/dashboard'
+    | '/failed-items'
     | '/forbidden'
     | '/mail'
     | '/my-work'
@@ -279,6 +290,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_app/customers'
     | '/_app/dashboard'
+    | '/_app/failed-items'
     | '/_app/forbidden'
     | '/_app/mail'
     | '/_app/my-work'
@@ -340,6 +352,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/failed-items': {
+      id: '/_app/failed-items'
+      path: '/failed-items'
+      fullPath: '/failed-items'
+      preLoaderRoute: typeof AppFailedItemsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/forbidden': {
@@ -474,6 +493,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppFailedItemsRoute: typeof AppFailedItemsRoute
   AppForbiddenRoute: typeof AppForbiddenRoute
   AppMailRoute: typeof AppMailRoute
   AppMyWorkRoute: typeof AppMyWorkRoute
@@ -497,6 +517,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppFailedItemsRoute: AppFailedItemsRoute,
   AppForbiddenRoute: AppForbiddenRoute,
   AppMailRoute: AppMailRoute,
   AppMyWorkRoute: AppMyWorkRoute,
