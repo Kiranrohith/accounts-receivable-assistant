@@ -34,6 +34,12 @@ def _is_ignored(email: IngestedEmail) -> bool:
     return email.status is EmailStatus.PROCESSED and email.classification is EmailClassification.GENERAL
 
 
+def _is_unclassified(email: IngestedEmail) -> bool:
+    """Registered but never classified (the models were down): a person may route it. The automatic triage job later
+    finds it decided and finishes without touching it."""
+    return email.status is None and email.classification is None
+
+
 async def _latest_step(db: AsyncSession, email: IngestedEmail, step: str) -> dict | None:
     rows = await logs_repo.list_step_logs(db, entity_type="ingested_email", entity_id=email.id)
     matching = [r for r in rows if r.step_name == step and r.output_summary]
@@ -101,7 +107,7 @@ async def _produced(db: AsyncSession, email: IngestedEmail) -> list[dict]:
 
 
 async def list_items(db: AsyncSession, *, which: str, limit: int, offset: int) -> list[TriageItem]:
-    """`queue` (waiting for a person), `ignored` (general mail) or `routed` (handed to a pipeline)."""
+    """`queue` (waiting for a person, including mails the reader never classified), `ignored` (general mail) or `routed` (handed to a pipeline)."""
     if which == "routed":
         rows = await emails_repo.list_routed(db, limit=limit, offset=offset)
     else:
@@ -120,7 +126,7 @@ async def classify(db: AsyncSession, user: User, email_id: uuid.UUID, body: Clas
     email = await emails_repo.lock_email(db, email_id)
     if email is None:
         raise NotFoundError("Mail not found")
-    if email.status is not EmailStatus.HUMAN_TRIAGE and not _is_ignored(email):
+    if email.status is not EmailStatus.HUMAN_TRIAGE and not _is_ignored(email) and not _is_unclassified(email):
         raise ConflictError(
             "This mail is not waiting for a person: only mails in the triage queue, or in the ignored list, can be routed here"
         )
