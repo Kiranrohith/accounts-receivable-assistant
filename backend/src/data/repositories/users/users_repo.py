@@ -20,6 +20,14 @@ async def get_user_by_id(db: AsyncSession, user_id: uuid.UUID) -> User | None:
     )
 
 
+async def is_active_user_email(db: AsyncSession, email: str) -> bool:
+    """Is this address (case-insensitive) one of our active application users?"""
+    found = await db.scalar(
+        select(User.id).where(func.lower(User.email) == email.strip().lower(), User.is_active).limit(1)
+    )
+    return found is not None
+
+
 async def email_exists(db: AsyncSession, email: str) -> bool:
     return await db.scalar(select(User.id).where(User.email == email)) is not None
 

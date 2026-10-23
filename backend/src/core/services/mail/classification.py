@@ -59,7 +59,7 @@ def pre_decide(mail: ParsedMail, context: MailContext, qualification: Qualificat
     if not context.sender_known and not context.has_context:
         return Decision(
             Route.IGNORE, EmailClassification.GENERAL, 90,
-            "The sender is not one of our customers and nothing in the mail refers to our invoices or customers",
+            "The sender is not one of our customers or users and nothing in the mail refers to our invoices, customers, purchase orders or payments",
         )
     if is_bare(mail) and qualification.qualifying:
         if context.sender_known:
@@ -67,6 +67,8 @@ def pre_decide(mail: ParsedMail, context: MailContext, qualification: Qualificat
                 Route.AUTO, EmailClassification.PAYMENT, BARE_CONFIDENCE,
                 "A bare attachment from a known customer: read by the document classifier",
             )
+        if context.sender_is_staff:
+            return None  # a colleague passing a document on may mean a purchase order as well: the model reads the file names
         return Decision(
             Route.IGNORE, EmailClassification.GENERAL, 90,
             "A bare attachment from an unknown sender with nothing that refers to us",
@@ -115,6 +117,7 @@ async def classify_mail(
     body = mail.body.strip()
     prompt = USER_PROMPT_TEMPLATE.format(
         sender_known="yes" if context.sender_known else "no",
+        sender_is_staff="yes" if context.sender_is_staff else "no",
         invoice_numbers=", ".join(context.invoice_info or context.invoice_numbers) or "none",
         is_reply=(
             f"yes, in the thread of {context.thread.what}"

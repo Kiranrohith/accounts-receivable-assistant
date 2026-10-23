@@ -136,6 +136,8 @@ async def main():
         "stranger quotes us": (mail("stranger quotes us", "Please note payment of INV-1001", sender="payer@other.example"), v(MailClass.PAYMENT, 90)),
         "po and advice": (mail("po and advice", "Our PO and the payment advice", sender=K, pdf=PDF), v(MailClass.PURCHASE_ORDER, 97, mixed=True)),
         "body only po": (mail("body only po", "Please supply 10 units, this is our order", sender=K), v(MailClass.PURCHASE_ORDER, 95)),
+        "staff forwards po": (mail("staff forwards po", "Forwarded from the client", sender=s.seed_admin_email, pdf=PDF, pdf_name="BW-PO-6146.pdf"), v(MailClass.PURCHASE_ORDER, 93)),
+        "Purchase order from Brightwave Digital Ltd": (mail("Purchase order from Brightwave Digital Ltd", "Please find our PO attached", sender="buyer@new-client.example", pdf=PDF, pdf_name="PO_77.pdf"), v(MailClass.PURCHASE_ORDER, 92)),
         "bare known": (mail("", "", sender=K, pdf=PDF), None),
         "bare unknown": (mail("", "", sender="who@unknown.example", pdf=PDF, pdf_name="x.pdf"), None),
         "question": (mail("question", "What is your bank account number?", sender=K), v(MailClass.GENERAL, 96)),
@@ -169,6 +171,10 @@ async def main():
     check("and the model was never asked about the no-context mails", "spam" not in CALLS and "" not in CALLS, str(CALLS))
     r = await row("stranger quotes us")
     check("an unknown sender who quotes OUR invoice is not ignored: the model decided (payment, handed off)", r[:3] == ("Processed", "payment", 90) and "stranger quotes us" in CALLS, str(r))
+    r = await row("staff forwards po")
+    check("a mail from one of our users is read by the model, not ignored: a purchase order, handed off", r[:3] == ("Processed", "purchase_order", 93) and "staff forwards po" in CALLS, str(r))
+    r = await row("Purchase order from Brightwave Digital Ltd")
+    check("an unknown sender whose subject says purchase order is read by the model, not ignored", r[:3] == ("Processed", "purchase_order", 92) and "Purchase order from Brightwave Digital Ltd" in CALLS, str(r))
     r = await row("po and advice")
     check("a PO mixed with a payment advice goes to a person even at 97", r == ("HumanTriage", "purchase_order", 97, "AR/Triage"), str(r))
     r = await row("body only po")
