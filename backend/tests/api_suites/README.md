@@ -44,6 +44,7 @@ Every other suite scripts the model (a fake returning a fixed answer), so it is 
 | payments | `pay2` .. `pay8` (matching rules, apply, review, notes, reversal, decisions 68 and 69) |
 | my uploads | `myuploads` (the paged personal list, each row's status and reasons, the upload errors) |
 | decision queues | `queues` (catalog and counts per role, the merged list, each count against the queue's own endpoint) |
+| customer administration | `custadmin` (list figures, edit and its uniqueness, confirmed aliases, TDS recompute and its decision) |
 | unclassified mail | `unclassified` (mails the reader never classified reach a person after a wait; routing one; the automatic job then leaves it alone; stubs Gmail and the model) |
 | credit-note e-mail | `cnote` |
 | disputes | `dis1` .. `dis8` (workflow, intake, drafts, deadlines, holds, resolution) |
