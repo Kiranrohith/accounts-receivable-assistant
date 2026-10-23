@@ -139,3 +139,9 @@ async def search_log(
     ordered = column.desc().nullslast() if descending else column.asc().nullslast()
     result = await db.scalars(query.order_by(ordered, IngestedEmail.id).limit(limit).offset(offset))
     return list(result), total or 0
+
+
+async def emails_by_ids(db: AsyncSession, email_ids: set[uuid.UUID]) -> dict[uuid.UUID, IngestedEmail]:
+    if not email_ids:
+        return {}
+    return {mail.id: mail for mail in await db.scalars(select(IngestedEmail).where(IngestedEmail.id.in_(email_ids)))}

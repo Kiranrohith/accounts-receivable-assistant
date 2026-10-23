@@ -18,6 +18,7 @@ import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppFailedItemsRouteImport } from './routes/_app/failed-items'
 import { Route as AppForbiddenRouteImport } from './routes/_app/forbidden'
 import { Route as AppMailRouteImport } from './routes/_app/mail'
+import { Route as AppMailLiveRouteImport } from './routes/_app/mail-live'
 import { Route as AppMyWorkRouteImport } from './routes/_app/my-work'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppRemindersRouteImport } from './routes/_app/reminders'
@@ -77,6 +78,11 @@ const AppForbiddenRoute = AppForbiddenRouteImport.update({
 const AppMailRoute = AppMailRouteImport.update({
   id: '/mail',
   path: '/mail',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMailLiveRoute = AppMailLiveRouteImport.update({
+  id: '/mail-live',
+  path: '/mail-live',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMyWorkRoute = AppMyWorkRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/failed-items': typeof AppFailedItemsRoute
   '/forbidden': typeof AppForbiddenRoute
   '/mail': typeof AppMailRoute
+  '/mail-live': typeof AppMailLiveRoute
   '/my-work': typeof AppMyWorkRoute
   '/profile': typeof AppProfileRoute
   '/reminders': typeof AppRemindersRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/failed-items': typeof AppFailedItemsRoute
   '/forbidden': typeof AppForbiddenRoute
   '/mail': typeof AppMailRoute
+  '/mail-live': typeof AppMailLiveRoute
   '/my-work': typeof AppMyWorkRoute
   '/profile': typeof AppProfileRoute
   '/reminders': typeof AppRemindersRoute
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/_app/failed-items': typeof AppFailedItemsRoute
   '/_app/forbidden': typeof AppForbiddenRoute
   '/_app/mail': typeof AppMailRoute
+  '/_app/mail-live': typeof AppMailLiveRoute
   '/_app/my-work': typeof AppMyWorkRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/reminders': typeof AppRemindersRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/failed-items'
     | '/forbidden'
     | '/mail'
+    | '/mail-live'
     | '/my-work'
     | '/profile'
     | '/reminders'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/failed-items'
     | '/forbidden'
     | '/mail'
+    | '/mail-live'
     | '/my-work'
     | '/profile'
     | '/reminders'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/_app/failed-items'
     | '/_app/forbidden'
     | '/_app/mail'
+    | '/_app/mail-live'
     | '/_app/my-work'
     | '/_app/profile'
     | '/_app/reminders'
@@ -392,6 +404,13 @@ declare module '@tanstack/react-router' {
       path: '/mail'
       fullPath: '/mail'
       preLoaderRoute: typeof AppMailRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mail-live': {
+      id: '/_app/mail-live'
+      path: '/mail-live'
+      fullPath: '/mail-live'
+      preLoaderRoute: typeof AppMailLiveRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/my-work': {
@@ -516,6 +535,7 @@ interface AppRouteChildren {
   AppFailedItemsRoute: typeof AppFailedItemsRoute
   AppForbiddenRoute: typeof AppForbiddenRoute
   AppMailRoute: typeof AppMailRoute
+  AppMailLiveRoute: typeof AppMailLiveRoute
   AppMyWorkRoute: typeof AppMyWorkRoute
   AppProfileRoute: typeof AppProfileRoute
   AppRemindersRoute: typeof AppRemindersRoute
@@ -541,6 +561,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFailedItemsRoute: AppFailedItemsRoute,
   AppForbiddenRoute: AppForbiddenRoute,
   AppMailRoute: AppMailRoute,
+  AppMailLiveRoute: AppMailLiveRoute,
   AppMyWorkRoute: AppMyWorkRoute,
   AppProfileRoute: AppProfileRoute,
   AppRemindersRoute: AppRemindersRoute,
