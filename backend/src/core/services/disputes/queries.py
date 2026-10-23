@@ -14,6 +14,7 @@ from data.repositories.disputes import disputes_repo
 from data.repositories.invoices import invoices_repo
 from data.repositories.platform import logs_repo
 from data.repositories.purchase_orders import purchase_orders_repo as po_repo
+from schemas.common import Page
 from schemas.disputes.disputes import (
     DisputeDetail,
     DisputeInvoice,
@@ -116,6 +117,31 @@ async def list_disputes(
         offset=offset,
     )
     return [_item(d, c, i, o, today) for d, c, i, o in rows]
+
+
+async def search_disputes(
+    db: AsyncSession,
+    *,
+    statuses: list[DisputeStatus] | None,
+    open_only: bool,
+    category: DisputeCategory | None,
+    customer_id: uuid.UUID | None,
+    assigned_to: uuid.UUID | None,
+    unassigned: bool,
+    overdue: bool,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> Page[DisputeListItem]:
+    today = calendar.today_ist()
+    rows, total = await disputes_repo.search_disputes(
+        db, today=today, statuses=statuses, open_only=open_only, category=category, customer_id=customer_id,
+        assigned_to=assigned_to, unassigned=unassigned, overdue=overdue, search=search, sort=sort,
+        descending=descending, limit=limit, offset=offset,
+    )
+    return Page(items=[_item(d, c, i, o, today) for d, c, i, o in rows], total=total)
 
 
 async def classify_queue(db: AsyncSession, *, limit: int, offset: int) -> list[DisputeListItem]:

@@ -149,29 +149,27 @@ _SORTS = {
     "first_response_due": Dispute.first_response_due,
     "resolution_due": Dispute.resolution_due,
     "status": Dispute.status,
+    "category": Dispute.category,
+    "customer": Customer.customer_name,
+    "invoice": Invoice.invoice_number,
 }
 
 
-async def list_disputes(
-    db: AsyncSession,
+def _filtered(
+    query,  # noqa: ANN001
     *,
     today: date,
-    statuses: list[DisputeStatus] | None = None,
-    open_only: bool = False,
-    category: DisputeCategory | None = None,
-    customer_id: uuid.UUID | None = None,
-    invoice_id: uuid.UUID | None = None,
-    assigned_to: uuid.UUID | None = None,
-    unassigned: bool = False,
-    overdue: bool = False,
-    received_from: datetime | None = None,
-    received_to: datetime | None = None,
-    sort: str = "received_at",
-    descending: bool = True,
-    limit: int = 50,
-    offset: int = 0,
-) -> list[tuple[Dispute, str | None, str | None, str | None]]:
-    query = _named(select(Dispute))
+    statuses: list[DisputeStatus] | None,
+    open_only: bool,
+    category: DisputeCategory | None,
+    customer_id: uuid.UUID | None,
+    invoice_id: uuid.UUID | None,
+    assigned_to: uuid.UUID | None,
+    unassigned: bool,
+    overdue: bool,
+    received_from: datetime | None,
+    received_to: datetime | None,
+):  # noqa: ANN202
     if statuses:
         query = query.where(Dispute.status.in_(statuses))
     if open_only:
@@ -198,10 +196,78 @@ async def list_disputes(
         query = query.where(Dispute.received_at >= received_from)
     if received_to is not None:
         query = query.where(Dispute.received_at < received_to)
+    return query
+
+
+async def list_disputes(
+    db: AsyncSession,
+    *,
+    today: date,
+    statuses: list[DisputeStatus] | None = None,
+    open_only: bool = False,
+    category: DisputeCategory | None = None,
+    customer_id: uuid.UUID | None = None,
+    invoice_id: uuid.UUID | None = None,
+    assigned_to: uuid.UUID | None = None,
+    unassigned: bool = False,
+    overdue: bool = False,
+    received_from: datetime | None = None,
+    received_to: datetime | None = None,
+    sort: str = "received_at",
+    descending: bool = True,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[tuple[Dispute, str | None, str | None, str | None]]:
+    query = _filtered(
+        _named(select(Dispute)), today=today, statuses=statuses, open_only=open_only, category=category,
+        customer_id=customer_id, invoice_id=invoice_id, assigned_to=assigned_to, unassigned=unassigned,
+        overdue=overdue, received_from=received_from, received_to=received_to,
+    )
     column = _SORTS.get(sort, Dispute.received_at)
     ordered = column.desc().nullslast() if descending else column.asc().nullsfirst()
     rows = await db.execute(query.order_by(ordered, Dispute.id).limit(limit).offset(offset))
     return [(d, c, i, o) for d, c, i, o in rows]
+
+
+async def search_disputes(
+    db: AsyncSession,
+    *,
+    today: date,
+    statuses: list[DisputeStatus] | None,
+    open_only: bool,
+    category: DisputeCategory | None,
+    customer_id: uuid.UUID | None,
+    assigned_to: uuid.UUID | None,
+    unassigned: bool,
+    overdue: bool,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> tuple[list[tuple[Dispute, str | None, str | None, str | None]], int]:
+    """(rows, total) for the disputes page: filtered, searched, sorted and cut to one page by the database."""
+    query = _filtered(
+        _named(select(Dispute)), today=today, statuses=statuses, open_only=open_only, category=category,
+        customer_id=customer_id, invoice_id=None, assigned_to=assigned_to, unassigned=unassigned,
+        overdue=overdue, received_from=None, received_to=None,
+    )
+    if search and search.strip():
+        # What the person typed is text, not a pattern: a "%" or "_" in it must match itself.
+        escaped = search.strip().replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+        like = f"%{escaped}%"
+        query = query.where(
+            or_(
+                Dispute.summary.ilike(like, escape="\\"),
+                Customer.customer_name.ilike(like, escape="\\"),
+                Invoice.invoice_number.ilike(like, escape="\\"),
+            )
+        )
+    total = await db.scalar(select(func.count()).select_from(query.order_by(None).subquery()))
+    column = _SORTS.get(sort, Dispute.received_at)
+    ordered = column.desc().nullslast() if descending else column.asc().nullslast()
+    rows = await db.execute(query.order_by(ordered, Dispute.id).limit(limit).offset(offset))
+    return [(d, c, i, o) for d, c, i, o in rows], total or 0
 
 
 async def classify_queue(
