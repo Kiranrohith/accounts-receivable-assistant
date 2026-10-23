@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from data.models.postgres import (
@@ -58,14 +58,35 @@ async def insert_document(db: AsyncSession, **fields: Any) -> SourceDocument:
 
 
 async def list_uploaded_documents(
-    db: AsyncSession, limit: int, doc_kind: DocKind | None = DocKind.INVOICE
+    db: AsyncSession,
+    limit: int,
+    doc_kind: DocKind | None = DocKind.INVOICE,
+    *,
+    offset: int = 0,
+    created_by: uuid.UUID | None = None,
 ) -> list[SourceDocument]:
-    """Newest first; `doc_kind=None` lists every kind."""
+    """Newest first; `doc_kind=None` lists every kind; `created_by` keeps one person's uploads."""
     query = select(SourceDocument).where(SourceDocument.uploaded_via == UploadedVia.UPLOAD)
     if doc_kind is not None:
         query = query.where(SourceDocument.doc_kind == doc_kind)
-    result = await db.scalars(query.order_by(SourceDocument.created_at.desc()).limit(limit))
+    if created_by is not None:
+        query = query.where(SourceDocument.created_by == created_by)
+    result = await db.scalars(
+        query.order_by(SourceDocument.created_at.desc(), SourceDocument.id).limit(limit).offset(offset)
+    )
     return list(result)
+
+
+async def count_uploaded_documents(db: AsyncSession, created_by: uuid.UUID) -> int:
+    """How many documents one person uploaded (every kind)."""
+    return int(
+        await db.scalar(
+            select(func.count())
+            .select_from(SourceDocument)
+            .where(SourceDocument.uploaded_via == UploadedVia.UPLOAD, SourceDocument.created_by == created_by)
+        )
+        or 0
+    )
 
 
 def set_kind(document: SourceDocument, kind: DocKind) -> None:

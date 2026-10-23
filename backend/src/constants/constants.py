@@ -73,6 +73,8 @@ GMAIL_TIMEOUT_SECONDS: Final = 30
 GMAIL_POLL_SECONDS: Final = 180  # within POLL_INTERVAL_MINUTES (2-5 min)
 GMAIL_POLL_QUERY: Final = "in:inbox newer_than:30d"  # the registry, not the query, is what stops a repeat
 GMAIL_MAX_PER_POLL: Final = 50  # a flood is taken over several polls, oldest first
+# A polled mail still without a class after this long (the models are down or keep failing) is put in front of a person.
+UNCLASSIFIED_MAIL_MINUTES: Final = 30
 PAYMENT_AFTER_DISPUTE_SECONDS: Final = 5  # a payment job from a mail with a complaint waits this long, then looks again
 
 # --- Retries and backoff (all jittered) ---

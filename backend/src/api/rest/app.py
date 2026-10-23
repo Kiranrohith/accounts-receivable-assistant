@@ -15,6 +15,7 @@ from api.rest.reminders.routes import router as reminders_router
 from api.rest.tasks.routes import router as tasks_router
 from api.rest.notes.routes import router as notes_router
 from api.rest.notifications.routes import router as notifications_router
+from api.rest.queues.routes import router as queues_router
 from api.rest.payments.routes import router as payments_router
 from api.rest.invoices.listing import router as invoice_listing_router
 from api.rest.invoices.reviews import router as reviews_router
@@ -60,6 +61,7 @@ app.include_router(mail_triage_router)
 app.include_router(payments_router)
 app.include_router(notes_router)
 app.include_router(notifications_router)
+app.include_router(queues_router)
 app.include_router(disputes_router)
 app.include_router(reminders_router)
 app.include_router(tasks_router)

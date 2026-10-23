@@ -24,6 +24,7 @@ from data.models.postgres import (
     RejectedInvoice,
     SourceDocument,
     StepLog,
+    User,
 )
 from data.models.postgres.enums import DisputeStatus, DocKind, JobState, PaymentState, PendingChangeStatus
 from data.repositories.disputes import disputes_repo
@@ -31,6 +32,7 @@ from data.repositories.invoices import documents_repo, invoices_repo
 from data.repositories.payments import payments_repo
 from data.repositories.platform import jobs_repo, logs_repo
 from data.repositories.purchase_orders import purchase_orders_repo
+from schemas.common import Page
 from schemas.documents.uploads import DocumentUploadDetail, DocumentUploadSummary
 from schemas.disputes.extraction import ExtractedDispute
 from schemas.invoices.extraction import ExtractedInvoice
@@ -238,6 +240,7 @@ def _summary(
         customer_name=raw.get("customer_name") or raw.get("payer_name"),
         total_amount=raw.get("total_amount") or raw.get("amount"),
         reference_number=raw.get("reference_number"),
+        disposition_reasons=outcome.reasons,
     )
 
 
@@ -266,8 +269,7 @@ async def _outcomes(
     }
 
 
-async def list_uploads(db: AsyncSession, limit: int = 100) -> list[DocumentUploadSummary]:
-    documents = await documents_repo.list_uploaded_documents(db, limit, None)
+async def _summaries(db: AsyncSession, documents: list[SourceDocument]) -> list[DocumentUploadSummary]:
     ids = [d.id for d in documents]
     jobs = await jobs_repo.latest_jobs_for_entities(db, None, ids)
     verdicts = await logs_repo.latest_step_for_entities(db, ENTITY_TYPE, VALIDATE_STEP, ids)
@@ -277,6 +279,17 @@ async def list_uploads(db: AsyncSession, limit: int = 100) -> list[DocumentUploa
         _summary(d, jobs.get(d.id), _validation(verdicts.get(d.id)), outcomes[d.id])
         for d in documents
     ]
+
+
+async def list_uploads(db: AsyncSession, limit: int = 100) -> list[DocumentUploadSummary]:
+    return await _summaries(db, await documents_repo.list_uploaded_documents(db, limit, None))
+
+
+async def list_my_uploads(db: AsyncSession, user: User, *, limit: int, offset: int) -> Page[DocumentUploadSummary]:
+    """The person's own uploads, newest first, one page and the total."""
+    documents = await documents_repo.list_uploaded_documents(db, limit, None, offset=offset, created_by=user.id)
+    total = await documents_repo.count_uploaded_documents(db, user.id)
+    return Page[DocumentUploadSummary](items=await _summaries(db, documents), total=total)
 
 
 def _extraction(kind: str, raw: dict) -> dict | None:
@@ -311,7 +324,6 @@ async def get_upload(db: AsyncSession, document_id: uuid.UUID) -> DocumentUpload
         classification=raw.get("classification"),
         dispute_extraction=raw.get("dispute_extraction"),
         validation_issues=validation.issues if validation else [],
-        disposition_reasons=outcome.reasons,
         linked_invoices=(
             (route_step.output_summary or {}).get("linked_invoices", [])
             if route_step and summary.document_kind == "po"
