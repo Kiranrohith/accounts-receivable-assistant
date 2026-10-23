@@ -17,7 +17,8 @@ router = APIRouter(prefix="/mail/triage", tags=["mail"])
     summary="Mails waiting for a person to route them, or the ignored list",
     description=(
         "Requires mail.triage.classify (FA, ADM). `list=queue` (default): mails the classifier was not sure about, "
-        "a purchase order mixed with a payment advice, or a PO mail with nothing usable attached; newest first. "
+        "a purchase order mixed with a payment advice, a PO mail with nothing usable attached, and mails the classifier never "
+        "classified at all (no status, no suggestion) after they have waited UNCLASSIFIED_MAIL_MINUTES because the models were down; newest first. "
         "`list=ignored`: general mail that was set aside, so a wrong call can be undone. `list=routed`: mails "
         "already handed to a pipeline, newest first (where a wrong call is found and rerouted). Each item says what "
         "the classifier suggested and why, links to the mail in Gmail, and names the conversation of ours it continues."
@@ -52,7 +53,7 @@ async def triage_detail(
     response_model=ClassifyResult,
     summary="Route a mail",
     description=(
-        "Requires mail.triage.classify. Works on a mail in the queue or in the ignored list (409 otherwise). "
+        "Requires mail.triage.classify. Works on a mail in the queue (including one never classified) or in the ignored list (409 otherwise). "
         "`general` moves it to the ignored list; payment, dispute, both or purchase_order records your decision "
         "and queues it for its pipeline. Two people routing the same mail at once: one wins, the other gets 409."
     ),
