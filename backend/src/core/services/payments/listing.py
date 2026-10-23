@@ -15,6 +15,7 @@ from data.repositories.invoices.numbers import normalize_invoice_no
 from data.repositories.payments import payments_repo
 from data.repositories.payments.payments_repo import PaymentMoney
 from data.repositories.platform import logs_repo
+from schemas.common import Page
 from schemas.payments.listing import (
     AllocationOut,
     InvoicePayment,
@@ -71,6 +72,24 @@ async def list_payments(
         oldest_first=oldest_first,
     )
     return [_item(p, name, file_name) for p, name, file_name in rows]
+
+
+async def search_payments(
+    db: AsyncSession,
+    *,
+    state: PaymentState | None,
+    customer_id: uuid.UUID | None,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> Page[PaymentListItem]:
+    rows, total = await payments_repo.search_payments(
+        db, state=state, customer_id=customer_id, search=search, sort=sort, descending=descending,
+        limit=limit, offset=offset,
+    )
+    return Page(items=[_item(p, name, file_name) for p, name, file_name in rows], total=total)
 
 
 def _identity_ok(payment: Payment, allocations: list) -> bool:

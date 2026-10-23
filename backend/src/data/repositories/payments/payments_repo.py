@@ -122,6 +122,58 @@ async def list_payments(
     return [(p, name, file_name) for p, name, file_name in rows]
 
 
+_SORTS = {
+    "created": Payment.created_at,
+    "reference": Payment.reference_number,
+    "payer": Payment.payee_name,
+    "customer": Customer.customer_name,
+    "date": Payment.payment_date,
+    "amount": Payment.amount_received_inr,
+    "state": Payment.state,
+}
+
+
+async def search_payments(
+    db: AsyncSession,
+    *,
+    state: PaymentState | None,
+    customer_id: uuid.UUID | None,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> tuple[list[tuple[Payment, str | None, str | None]], int]:
+    """(rows, total) for the payments page: filtered, searched, sorted and cut to one page by the database."""
+    where = []
+    if state is not None:
+        where.append(Payment.state == state)
+    if customer_id is not None:
+        where.append(Payment.customer_id == customer_id)
+    if search and search.strip():
+        # What the person typed is text, not a pattern: a "%" or "_" in it must match itself.
+        escaped = search.strip().replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+        like = f"%{escaped}%"
+        where.append(
+            or_(
+                Payment.reference_number.ilike(like, escape="\\"),
+                Payment.payee_name.ilike(like, escape="\\"),
+                Customer.customer_name.ilike(like, escape="\\"),
+            )
+        )
+    base = (
+        select(Payment, Customer.customer_name, SourceDocument.file_name)
+        .outerjoin(Customer, Customer.id == Payment.customer_id)
+        .outerjoin(SourceDocument, SourceDocument.id == Payment.source_document_id)
+        .where(*where)
+    )
+    total = await db.scalar(select(func.count()).select_from(base.order_by(None).subquery()))
+    column = _SORTS.get(sort, Payment.created_at)
+    ordered = column.desc().nullslast() if descending else column.asc().nullslast()
+    rows = await db.execute(base.order_by(ordered, Payment.id).limit(limit).offset(offset))
+    return [(p, name, file_name) for p, name, file_name in rows], total or 0
+
+
 async def get_payment_with_names(
     db: AsyncSession, payment_id: uuid.UUID
 ) -> tuple[Payment, str | None, str | None] | None:

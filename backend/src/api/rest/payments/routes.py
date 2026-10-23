@@ -9,6 +9,7 @@ from core.services.payments import listing, note_actions, reversal, review
 from data.clients.db import get_db
 from data.models.postgres import User
 from data.models.postgres.enums import PaymentState
+from schemas.common import Page
 from schemas.payments.listing import PaymentDetail, PaymentListItem
 from schemas.payments.notes import ConvertResult, ConvertUnapplied
 from schemas.payments.reversal import ReversalResult, ReversePayment
@@ -85,6 +86,40 @@ async def reviews(
     return await listing.list_payments(
         db, state=PaymentState.NEEDS_REVIEW, customer_id=None, search=None, limit=limit,
         offset=offset, oldest_first=True,
+    )
+
+
+@router.get(
+    "/search",
+    response_model=Page[PaymentListItem],
+    summary="Payments, a page at a time",
+    description=(
+        "Requires payments.view. The same rows as GET /payments, searched, filtered, sorted and cut to one page by the "
+        "server, with the `total` of everything that matches. `q` matches the payment reference, the payer's name or the "
+        "customer's name as plain text. `sort` is one of created (default, newest first), reference, payer, customer, "
+        "date, amount, state; `dir` is asc or desc."
+    ),
+)
+async def search_payments(
+    q: str | None = Query(None, max_length=100),
+    state: _STATES | None = Query(None),
+    customer_id: uuid.UUID | None = Query(None),
+    sort: Literal["created", "reference", "payer", "customer", "date", "amount", "state"] = Query("created"),
+    dir: Literal["asc", "desc"] | None = Query(None),
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    _: User = Depends(require_permission("payments.view")),
+    db: AsyncSession = Depends(get_db),
+) -> Page[PaymentListItem]:
+    return await listing.search_payments(
+        db,
+        state=PaymentState(state) if state else None,
+        customer_id=customer_id,
+        search=q,
+        sort=sort,
+        descending=(dir == "desc") if dir else sort == "created",
+        limit=limit,
+        offset=offset,
     )
 
 
