@@ -5,6 +5,7 @@ import type { ClassifyInput, DisputeQuery, DraftEdits } from '../types/dispute'
 
 export const disputeKeys = {
   all: ['disputes'] as const,
+  dashboard: (days: number) => [...disputeKeys.all, 'dashboard', days] as const,
   list: (query: DisputeQuery) => [...disputeKeys.all, 'list', query] as const,
   detail: (disputeId: string) => [...disputeKeys.all, 'detail', disputeId] as const,
 }
@@ -15,6 +16,13 @@ export const disputeListQuery = (query: DisputeQuery) =>
     queryKey: disputeKeys.list(query),
     queryFn: () => disputeService.search(query),
     placeholderData: keepPreviousData,
+  })
+
+export const disputeDashboardQuery = (days = 30) =>
+  queryOptions({
+    queryKey: disputeKeys.dashboard(days),
+    queryFn: () => disputeService.dashboard(days),
+    staleTime: 60_000,
   })
 
 export const disputeQuery = (disputeId: string) =>

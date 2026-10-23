@@ -96,3 +96,12 @@
     @apply font-sans;
     }
 }
+
+/* Chart colours: the validated data-viz palette for the light surface (the app is light only). Marks wear these; text never does. */
+:root {
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-muted: #8f8e87;
+  --viz-grid: #e7e6e2;
+  --viz-crosshair: #9a9992;
+}

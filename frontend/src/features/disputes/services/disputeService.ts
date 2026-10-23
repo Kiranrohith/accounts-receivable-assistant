@@ -2,11 +2,17 @@ import { api } from '@/lib/axios'
 import type { Page } from '@/types/api'
 
 import type {
-  ActionResult, ClassifyInput, CreateResult, DisputeDetail, DisputeListItem, DisputeQuery, DraftEdits, DraftResult, NewDispute, ResolveResult, SendResult,
+  ActionResult, ClassifyInput, CreateResult, DisputeDashboard, DisputeDetail, DisputeListItem, DisputeQuery, DraftEdits, DraftResult, NewDispute, ResolveResult, SendResult,
 } from '../types/dispute'
 import { toSearchParams } from '../utils/view'
 
 export const disputeService = {
+  /** The figures behind the dashboard; `days` is how many days of volume to draw. */
+  async dashboard(days: number): Promise<DisputeDashboard> {
+    const { data } = await api.get<DisputeDashboard>('/disputes/dashboard', { params: { days } })
+    return data
+  },
+
   /** One page of the dispute table: filtered, searched and sorted by the server, with the total that matches. */
   async search(query: DisputeQuery): Promise<Page<DisputeListItem>> {
     const { data } = await api.get<Page<DisputeListItem>>('/disputes/search', { params: toSearchParams(query) })

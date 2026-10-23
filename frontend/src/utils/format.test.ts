@@ -1,4 +1,4 @@
-import { formatAge, formatCurrency, formatDate, formatDateTime, initials } from './format'
+import { formatAge, formatCompactInr, formatCurrency, formatDate, formatDateTime, initials } from './format'
 
 describe('formatCurrency', () => {
   it('writes rupees with Indian digit grouping', () => {
@@ -56,5 +56,26 @@ describe('initials', () => {
     expect(initials('Dinesh G V')).toBe('DG')
     expect(initials('admin')).toBe('A')
     expect(initials('')).toBe('?')
+  })
+})
+
+describe('formatCompactInr', () => {
+  it('writes crores and lakhs, trimming trailing zeros', () => {
+    expect(formatCompactInr('12500000')).toBe('₹1.25 Cr')
+    expect(formatCompactInr(30000000)).toBe('₹3 Cr')
+    expect(formatCompactInr('450000')).toBe('₹4.5 L')
+    expect(formatCompactInr(100000)).toBe('₹1 L')
+  })
+
+  it('writes anything under a lakh in full, with Indian grouping and no paise', () => {
+    expect(formatCompactInr('99999.60')).toBe('₹1,00,000')
+    expect(formatCompactInr('12345.67')).toBe('₹12,346')
+    expect(formatCompactInr(0)).toBe('₹0')
+  })
+
+  it('keeps the sign and shows a dash for nothing', () => {
+    expect(formatCompactInr('-250000')).toBe('-₹2.5 L')
+    expect(formatCompactInr(null)).toBe('—')
+    expect(formatCompactInr('abc')).toBe('—')
   })
 })
