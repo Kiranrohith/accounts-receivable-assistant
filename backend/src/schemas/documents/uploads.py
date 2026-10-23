@@ -67,6 +67,7 @@ class DocumentUploadSummary(BaseModel):
     customer_name: str | None = None  # an invoice's or PO's customer, or a payment's payer
     total_amount: str | None = None  # an invoice's or PO's total, or the amount a payment paid
     reference_number: str | None = None  # a payment's own reference (UTR, cheque number...)
+    disposition_reasons: list[str] = []  # why it was rejected or sent to review, in plain English
 
 
 class DocumentUploadDetail(DocumentUploadSummary):
@@ -74,7 +75,6 @@ class DocumentUploadDetail(DocumentUploadSummary):
     classification: dict | None = None  # the reader's raw verdict: doc_class, confidence, reason
     dispute_extraction: dict | None = None  # the complaint read from a document that also holds a payment advice
     validation_issues: list[ValidationIssue] = []
-    disposition_reasons: list[str] = []  # why it was rejected or sent to review
     linked_invoices: list[dict] = []  # purchase orders: invoices linked (and checked) on creation
     steps: list[StepOut] = []
 

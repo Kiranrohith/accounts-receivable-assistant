@@ -42,6 +42,8 @@ Every other suite scripts the model (a fake returning a fixed answer), so it is 
 | purchase orders | `po2`, `po3`, `po4`, `polist` |
 | document intake, job queue | `intake`, `e2e`, `runner` |
 | payments | `pay2` .. `pay8` (matching rules, apply, review, notes, reversal, decisions 68 and 69) |
+| my uploads | `myuploads` (the paged personal list, each row's status and reasons, the upload errors) |
+| decision queues | `queues` (catalog and counts per role, the merged list, each count against the queue's own endpoint) |
 | credit-note e-mail | `cnote` |
 | disputes | `dis1` .. `dis8` (workflow, intake, drafts, deadlines, holds, resolution) |
 | mail | `mail1` poll and registry, `mail2` triage, `mail3` hand-off, `mail4` real reader, `mail5` threads and reroute |

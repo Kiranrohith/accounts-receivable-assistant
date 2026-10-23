@@ -1,9 +1,10 @@
 """The mail registry: one row per polled Gmail message (its id is the idempotency anchor)."""
 
 import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -69,6 +70,20 @@ async def list_routed(db: AsyncSession, *, limit: int, offset: int) -> list[Inge
     return list(result)
 
 
+def waiting_for_person_condition(now: datetime | None = None):  # noqa: ANN201
+    """Mails a person must route: the reader was not sure (HumanTriage), or it has not classified the mail at all
+    for UNCLASSIFIED_MAIL_MINUTES (no status, no class: the models are down or keep failing). The queue counts and
+    its own list both use this, so they cannot drift apart."""
+    from constants.constants import UNCLASSIFIED_MAIL_MINUTES
+    from data.models.postgres.enums import EmailStatus
+
+    cutoff = (now or datetime.now(UTC)) - timedelta(minutes=UNCLASSIFIED_MAIL_MINUTES)
+    return or_(
+        IngestedEmail.status == EmailStatus.HUMAN_TRIAGE,
+        and_(IngestedEmail.status.is_(None), IngestedEmail.classification.is_(None), IngestedEmail.created_at < cutoff),
+    )
+
+
 async def list_by_state(
     db: AsyncSession, *, waiting_for_person: bool, limit: int, offset: int
 ) -> list[IngestedEmail]:
@@ -76,7 +91,7 @@ async def list_by_state(
     from data.models.postgres.enums import EmailClassification, EmailStatus
 
     if waiting_for_person:
-        condition = IngestedEmail.status == EmailStatus.HUMAN_TRIAGE
+        condition = waiting_for_person_condition()
     else:
         condition = (IngestedEmail.status == EmailStatus.PROCESSED) & (IngestedEmail.classification == EmailClassification.GENERAL)
     result = await db.scalars(

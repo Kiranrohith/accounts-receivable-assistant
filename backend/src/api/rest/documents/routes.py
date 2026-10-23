@@ -7,11 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.rest.dependencies import require_permission
 from core.exceptions.errors import ConflictError
 from core.services.documents.files import find_original
-from core.services.documents.queries import get_upload, list_uploads
+from core.services.documents.queries import get_upload, list_my_uploads, list_uploads
 from core.services.documents.rerun import rerun_upload
 from core.services.invoices.upload import MAX_FILE_BYTES, store_upload
 from data.clients.db import get_db
 from data.models.postgres import User
+from schemas.common import Page
 from schemas.documents.uploads import DocumentUploadDetail, DocumentUploadSummary, RerunResult
 from schemas.invoices.responses import UploadResult
 
@@ -128,6 +129,26 @@ async def uploads(
     db: AsyncSession = Depends(get_db),
 ) -> list[DocumentUploadSummary]:
     return await list_uploads(db, limit)
+
+
+@router.get(
+    "/my-uploads",
+    response_model=Page[DocumentUploadSummary],
+    summary="My uploads, a page at a time",
+    description=(
+        "Requires invoices.upload. Only the documents YOU uploaded, of any kind, newest first, one page with the "
+        "`total`. Each row is the same summary as GET /documents/uploads: `status` is the one label to show, "
+        "`review_id` / `review_kind` say which decision waits for you, `disposition_reasons` says why a document was "
+        "rejected or sent to review."
+    ),
+)
+async def my_uploads(
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    user: User = Depends(require_permission("invoices.upload")),
+    db: AsyncSession = Depends(get_db),
+) -> Page[DocumentUploadSummary]:
+    return await list_my_uploads(db, user, limit=limit, offset=offset)
 
 
 @router.get(
