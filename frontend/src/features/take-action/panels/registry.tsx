@@ -10,6 +10,7 @@ import { PaymentPanel } from './PaymentPanel'
 import { PoMismatchPanel } from './PoMismatchPanel'
 import { PoReviewPanel } from './PoReviewPanel'
 import { ReminderPanel } from './ReminderPanel'
+import { TdsReviewPanel } from './TdsReviewPanel'
 import { VersionReviewPanel } from './VersionReviewPanel'
 import type { PanelProps } from './types'
 
@@ -21,6 +22,7 @@ export const PANELS: Partial<Record<string, ComponentType<PanelProps>>> = {
   doc_type_review: DocTypePanel,
   invoice_review: InvoiceReviewPanel,
   version_review: VersionReviewPanel,
+  tds_review: TdsReviewPanel,
   po_review: PoReviewPanel,
   po_mismatch: PoMismatchPanel,
   payment_review: PaymentPanel,
