@@ -46,6 +46,7 @@ Every other suite scripts the model (a fake returning a fixed answer), so it is 
 | decision queues | `queues` (catalog and counts per role, the merged list, each count against the queue's own endpoint) |
 | customer administration | `custadmin` (list figures, edit and its uniqueness, confirmed aliases, TDS recompute and its decision) |
 | settings read-out | `settings` (admin only, the live constants, read-only) |
+| invoices page | `invsearch` (one page with the total, filters, text search with literal % and _, every sort, permission) |
 | unclassified mail | `unclassified` (mails the reader never classified reach a person after a wait; routing one; the automatic job then leaves it alone; stubs Gmail and the model) |
 | credit-note e-mail | `cnote` |
 | disputes | `dis1` .. `dis8` (workflow, intake, drafts, deadlines, holds, resolution) |
