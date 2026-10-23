@@ -28,6 +28,7 @@ import { Route as AppDisputesIndexRouteImport } from './routes/_app/disputes/ind
 import { Route as AppInvoicesIndexRouteImport } from './routes/_app/invoices/index'
 import { Route as AppInvoicesInvoiceIdRouteImport } from './routes/_app/invoices/$invoiceId'
 import { Route as AppPaymentsIndexRouteImport } from './routes/_app/payments/index'
+import { Route as AppPaymentsPaymentIdRouteImport } from './routes/_app/payments/$paymentId'
 import { Route as AppPurchaseOrdersIndexRouteImport } from './routes/_app/purchase-orders/index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -124,6 +125,11 @@ const AppPaymentsIndexRoute = AppPaymentsIndexRouteImport.update({
   path: '/payments/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPaymentsPaymentIdRoute = AppPaymentsPaymentIdRouteImport.update({
+  id: '/payments/$paymentId',
+  path: '/payments/$paymentId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPurchaseOrdersIndexRoute = AppPurchaseOrdersIndexRouteImport.update({
   id: '/purchase-orders/',
   path: '/purchase-orders/',
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/upload': typeof AppUploadRoute
   '/users': typeof AppUsersRoute
   '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
+  '/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
   '/disputes/': typeof AppDisputesIndexRoute
   '/invoices/': typeof AppInvoicesIndexRoute
   '/payments/': typeof AppPaymentsIndexRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/upload': typeof AppUploadRoute
   '/users': typeof AppUsersRoute
   '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
+  '/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
   '/disputes': typeof AppDisputesIndexRoute
   '/invoices': typeof AppInvoicesIndexRoute
   '/payments': typeof AppPaymentsIndexRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/_app/upload': typeof AppUploadRoute
   '/_app/users': typeof AppUsersRoute
   '/_app/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
+  '/_app/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
   '/_app/disputes/': typeof AppDisputesIndexRoute
   '/_app/invoices/': typeof AppInvoicesIndexRoute
   '/_app/payments/': typeof AppPaymentsIndexRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/upload'
     | '/users'
     | '/invoices/$invoiceId'
+    | '/payments/$paymentId'
     | '/disputes/'
     | '/invoices/'
     | '/payments/'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/upload'
     | '/users'
     | '/invoices/$invoiceId'
+    | '/payments/$paymentId'
     | '/disputes'
     | '/invoices'
     | '/payments'
@@ -256,6 +267,7 @@ export interface FileRouteTypes {
     | '/_app/upload'
     | '/_app/users'
     | '/_app/invoices/$invoiceId'
+    | '/_app/payments/$paymentId'
     | '/_app/disputes/'
     | '/_app/invoices/'
     | '/_app/payments/'
@@ -403,6 +415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPaymentsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/payments/$paymentId': {
+      id: '/_app/payments/$paymentId'
+      path: '/payments/$paymentId'
+      fullPath: '/payments/$paymentId'
+      preLoaderRoute: typeof AppPaymentsPaymentIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/purchase-orders/': {
       id: '/_app/purchase-orders/'
       path: '/purchase-orders'
@@ -427,6 +446,7 @@ interface AppRouteChildren {
   AppUploadRoute: typeof AppUploadRoute
   AppUsersRoute: typeof AppUsersRoute
   AppInvoicesInvoiceIdRoute: typeof AppInvoicesInvoiceIdRoute
+  AppPaymentsPaymentIdRoute: typeof AppPaymentsPaymentIdRoute
   AppDisputesIndexRoute: typeof AppDisputesIndexRoute
   AppInvoicesIndexRoute: typeof AppInvoicesIndexRoute
   AppPaymentsIndexRoute: typeof AppPaymentsIndexRoute
@@ -447,6 +467,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppUploadRoute: AppUploadRoute,
   AppUsersRoute: AppUsersRoute,
   AppInvoicesInvoiceIdRoute: AppInvoicesInvoiceIdRoute,
+  AppPaymentsPaymentIdRoute: AppPaymentsPaymentIdRoute,
   AppDisputesIndexRoute: AppDisputesIndexRoute,
   AppInvoicesIndexRoute: AppInvoicesIndexRoute,
   AppPaymentsIndexRoute: AppPaymentsIndexRoute,
