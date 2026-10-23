@@ -1,8 +1,8 @@
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from data.models.postgres import (
@@ -204,6 +204,68 @@ async def list_invoices(
         query.order_by(Invoice.created_at.desc(), Invoice.id).limit(limit).offset(offset)
     )
     return [(invoice, name) for invoice, name in rows]
+
+
+_SORTS = {
+    "created": Invoice.created_at,
+    "invoice_number": Invoice.invoice_number,
+    "customer": Customer.customer_name,
+    "invoice_date": Invoice.invoice_date,
+    "due_date": Invoice.due_date,
+    "amount": Invoice.amount_inr,
+    "balance": Invoice.collectible_balance,
+    "status": Invoice.status,
+}
+
+
+async def search_invoices(
+    db: AsyncSession,
+    *,
+    status: InvoiceStatus | None,
+    customer_id: uuid.UUID | None,
+    po_hold: bool | None,
+    disputed: bool | None,
+    overdue_before: date | None,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> tuple[list[tuple[Invoice, str]], int]:
+    """(rows, total) for the invoices page: filtered, searched, sorted and cut to one page by the database.
+
+    `overdue_before` keeps the invoices still to collect whose due date is before that day.
+    """
+    where = []
+    if status is not None:
+        where.append(Invoice.status == status)
+    if customer_id is not None:
+        where.append(Invoice.customer_id == customer_id)
+    if po_hold is not None:
+        where.append(Invoice.po_hold == po_hold)
+    if disputed is not None:
+        where.append(Invoice.is_disputed == disputed)
+    if overdue_before is not None:
+        where.append(Invoice.status != InvoiceStatus.PAID)
+        where.append(Invoice.due_date < overdue_before)
+    if search and search.strip():
+        # What the person typed is text, not a pattern: a "%" or "_" in it must match itself.
+        escaped = search.strip().replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+        like = f"%{escaped}%"
+        where.append(
+            or_(
+                Invoice.invoice_number.ilike(like, escape="\\"),
+                Customer.customer_name.ilike(like, escape="\\"),
+                Invoice.po_number.ilike(like, escape="\\"),
+            )
+        )
+
+    base = select(Invoice, Customer.customer_name).join(Customer, Customer.id == Invoice.customer_id).where(*where)
+    total = await db.scalar(select(func.count()).select_from(base.order_by(None).subquery()))
+    column = _SORTS.get(sort, Invoice.created_at)
+    ordered = column.desc().nullslast() if descending else column.asc().nullslast()
+    rows = await db.execute(base.order_by(ordered, Invoice.id).limit(limit).offset(offset))
+    return [(invoice, name) for invoice, name in rows], total or 0
 
 
 async def current_line_items(db: AsyncSession, invoice: Invoice) -> list[InvoiceLineItem]:

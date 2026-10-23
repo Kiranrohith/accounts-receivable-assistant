@@ -10,6 +10,7 @@ from core.services.invoices import listing
 from data.clients.db import get_db
 from data.models.postgres import User
 from data.models.postgres.enums import InvoiceStatus
+from schemas.common import Page
 from schemas.documents.type_review import SendBackResult
 from schemas.invoices.listing import InvoiceDetail, InvoiceListItem, RejectedItem
 
@@ -68,6 +69,49 @@ async def send_back(
     db: AsyncSession = Depends(get_db),
 ) -> SendBackResult:
     return await type_review.send_back_to_review(db, user, rejected_id)
+
+
+@router.get(
+    "/search",
+    response_model=Page[InvoiceListItem],
+    summary="Invoices, a page at a time",
+    description=(
+        "Requires invoices.view. The same rows as GET /invoices, searched, filtered, sorted and cut to one page by the "
+        "server, with the `total` of everything that matches. `q` matches the invoice number, the customer's name or the "
+        "PO number as plain text. Filters: status (Open, PartlyPaid, Paid), customer_id, po_hold, disputed, and overdue "
+        "(still to collect and past its due date). `sort` is one of created (default), invoice_number, customer, "
+        "invoice_date, due_date, amount, balance, status; `dir` is asc or desc (newest first when sorting by created)."
+    ),
+)
+async def search_invoices(
+    q: str | None = Query(None, max_length=100),
+    status: InvoiceStatus | None = Query(None),
+    customer_id: uuid.UUID | None = Query(None),
+    po_hold: bool | None = Query(None),
+    disputed: bool | None = Query(None),
+    overdue: bool = Query(False),
+    sort: Literal[
+        "created", "invoice_number", "customer", "invoice_date", "due_date", "amount", "balance", "status"
+    ] = Query("created"),
+    dir: Literal["asc", "desc"] | None = Query(None),
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    _: User = Depends(require_permission("invoices.view")),
+    db: AsyncSession = Depends(get_db),
+) -> Page[InvoiceListItem]:
+    return await listing.search_invoices(
+        db,
+        status=status,
+        customer_id=customer_id,
+        po_hold=po_hold,
+        disputed=disputed,
+        overdue=overdue,
+        search=q,
+        sort=sort,
+        descending=(dir == "desc") if dir else sort == "created",
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get(

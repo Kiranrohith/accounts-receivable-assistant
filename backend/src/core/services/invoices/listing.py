@@ -5,12 +5,14 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.errors import NotFoundError
+from core.services.disputes.calendar import today_ist
 from core.services.payments.listing import invoice_payments
 from data.models.postgres import Invoice, RejectedInvoice, SourceDocument
 from data.models.postgres.enums import InvoiceStatus, RejectionResolution
 from data.repositories.customers import customers_repo
 from data.repositories.invoices import documents_repo, invoices_repo
 from data.repositories.purchase_orders import purchase_orders_repo as po_repo
+from schemas.common import Page
 from schemas.invoices.listing import (
     InvoiceDetail,
     InvoiceLineOut,
@@ -60,6 +62,36 @@ async def list_invoices(
         db, status=status, customer_id=customer_id, po_hold=po_hold, limit=limit, offset=offset
     )
     return [InvoiceListItem(**_item(invoice, name)) for invoice, name in rows]
+
+
+async def search_invoices(
+    db: AsyncSession,
+    *,
+    status: InvoiceStatus | None,
+    customer_id: uuid.UUID | None,
+    po_hold: bool | None,
+    disputed: bool | None,
+    overdue: bool,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> Page[InvoiceListItem]:
+    rows, total = await invoices_repo.search_invoices(
+        db,
+        status=status,
+        customer_id=customer_id,
+        po_hold=po_hold,
+        disputed=disputed,
+        overdue_before=today_ist() if overdue else None,
+        search=search,
+        sort=sort,
+        descending=descending,
+        limit=limit,
+        offset=offset,
+    )
+    return Page(items=[InvoiceListItem(**_item(invoice, name)) for invoice, name in rows], total=total)
 
 
 async def get_invoice(db: AsyncSession, invoice_id: uuid.UUID) -> InvoiceDetail:
