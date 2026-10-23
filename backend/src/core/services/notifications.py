@@ -14,6 +14,7 @@ from data.models.postgres import Notification, User
 from data.models.postgres.enums import NotificationType
 from data.repositories import unit_of_work
 from data.repositories.platform import notifications_repo
+from schemas.common import Page
 from schemas.notifications.notifications import MarkedRead, NotificationOut, UnreadCount
 
 
@@ -66,11 +67,11 @@ def _out(n: Notification) -> NotificationOut:
 
 async def list_mine(
     db: AsyncSession, user: User, *, unread_only: bool, limit: int, offset: int
-) -> list[NotificationOut]:
-    rows = await notifications_repo.list_for_user(
+) -> Page[NotificationOut]:
+    rows, total = await notifications_repo.list_for_user(
         db, user.id, unread_only=unread_only, limit=limit, offset=offset
     )
-    return [_out(n) for n in rows]
+    return Page[NotificationOut](items=[_out(n) for n in rows], total=total)
 
 
 async def unread(db: AsyncSession, user: User) -> UnreadCount:

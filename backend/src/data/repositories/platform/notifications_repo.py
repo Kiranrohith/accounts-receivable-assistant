@@ -17,14 +17,16 @@ async def insert_notification(db: AsyncSession, **fields: Any) -> Notification:
 
 async def list_for_user(
     db: AsyncSession, user_id: uuid.UUID, *, unread_only: bool, limit: int, offset: int
-) -> list[Notification]:
+) -> tuple[list[Notification], int]:
+    """(one page, the whole match's size)."""
     query = select(Notification).where(Notification.recipient_user_id == user_id)
     if unread_only:
         query = query.where(Notification.is_read.is_(False))
+    total = await db.scalar(select(func.count()).select_from(query.subquery()))
     result = await db.scalars(
         query.order_by(Notification.created_at.desc(), Notification.id).limit(limit).offset(offset)
     )
-    return list(result)
+    return list(result), int(total or 0)
 
 
 async def unread_count(db: AsyncSession, user_id: uuid.UUID) -> int:

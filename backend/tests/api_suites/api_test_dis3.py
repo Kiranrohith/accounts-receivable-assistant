@@ -216,7 +216,7 @@ async def main():
         check("S1: steps parse, classify, dispute_extract, dispute_identify, dispute_route", steps == ["parse", "classify", "dispute_extract", "dispute_identify", "dispute_route"], str(steps))
         d1 = await detail("SCN-S1")
         check("S1: detail shows the extracted complaint", d1["extraction"] and d1["extraction"]["category"] == "Quality" and d1["extraction"]["invoice_numbers"] == ["ZEN-1"])
-        n = (await c.get("/notifications", headers={"Authorization": f"Bearer {(await c.post('/auth/login', json={'email': 'fa.a@example.com', 'password': 'pass12345'})).json()['access_token']}"})).json()
+        n = (await c.get("/notifications", headers={"Authorization": f"Bearer {(await c.post('/auth/login', json={'email': 'fa.a@example.com', 'password': 'pass12345'})).json()['access_token']}"})).json()["items"]
         check("S1: the FA is notified of the assignment", any(x["type"] == "Assignment" and x["entity_id"] == str(ds[0][0]) for x in n))
         check("S1: the dispute detail names the source document", (await c.get(f"/disputes/{ds[0][0]}", headers=H)).json()["source_document_id"] == ids["SCN-S1"])
 

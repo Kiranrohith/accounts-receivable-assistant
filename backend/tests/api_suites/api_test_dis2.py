@@ -100,7 +100,7 @@ async def main():
               det["first_response_due"] == "2027-03-03" and det["resolution_due"] == calendar.resolution_due(MONDAY).isoformat(), f"{det['first_response_due']} {det['resolution_due']}")
         check("the invoice is flagged disputed", await scalar("select is_disputed from invoices where id=:i", i=I[0]) is True)
         check("timeline: received, categorised, assigned", [t["to_state"] for t in det["timeline"]] == ["Raised", "Categorised", "Assigned"], str([t["to_state"] for t in det["timeline"]]))
-        check("the owner got an Assignment notice naming the invoice", (await get("/notifications", headers=FA)).json()[0]["type"] == "Assignment" and "D2-1" in (await get("/notifications", headers=FA)).json()[0]["message"])
+        check("the owner got an Assignment notice naming the invoice", (await get("/notifications", headers=FA)).json()["items"][0]["type"] == "Assignment" and "D2-1" in (await get("/notifications", headers=FA)).json()["items"][0]["message"])
 
         # load balancing: FA A has 1, FA B has 0 -> B; then tie -> the longest-serving (A)
         d2 = (await post("/disputes", headers=ADM, json={"invoice_id": I[1], "summary": "Wrong price", "category": "Pricing", "gmail_thread_id": "th-2"})).json()
@@ -124,7 +124,7 @@ async def main():
         r = await post("/disputes", headers=ADM, json={"invoice_id": I[0], "summary": "Customer called again", "category": "Quality", "gmail_thread_id": "th-1"})
         n = (await follow(FA_ID, d1["dispute_id"]))[0][0]
         check("E2: a follow-up entered by someone else notifies the owner (DisputeFollowUp)", r.json()["appended_to_existing"] and n == 1 and (await follow(FB_ID, d1["dispute_id"]))[0][0] == 0)
-        note = [x for x in (await get("/notifications", headers=FA)).json() if x["type"] == "DisputeFollowUp"][0]
+        note = [x for x in (await get("/notifications", headers=FA)).json()["items"] if x["type"] == "DisputeFollowUp"][0]
         check("E2: the notice points at the dispute and names the invoice", note["entity_id"] == d1["dispute_id"] and "D2-1" in note["message"])
         det = (await get(f"/disputes/{d1['dispute_id']}", headers=FA)).json()
         check("E2: both follow-ups stay visible in the dispute detail", [m["kind"] for m in det["messages"]] == ["inbound_email", "inbound_email"])
@@ -250,7 +250,7 @@ async def main():
         check("an FA cannot reassign -> 403", (await post(f"/disputes/{target}/reassign", headers=FA, json={"assigned_to": other})).status_code == 403)
         r = await post(f"/disputes/{target}/reassign", headers=ADM, json={"assigned_to": other, "reason": "holiday cover"})
         check("admin reassigns -> 200", r.status_code == 200 and r.json()["assigned_to"] == other, r.text[:120])
-        check("the new owner is notified", any(n["type"] == "Assignment" and n["entity_id"] == target for n in (await get("/notifications", headers=FA if other == FA_ID else FB)).json()))
+        check("the new owner is notified", any(n["type"] == "Assignment" and n["entity_id"] == target for n in (await get("/notifications", headers=FA if other == FA_ID else FB)).json()["items"]))
         det = (await get(f"/disputes/{target}", headers=ADM)).json()
         check("the timeline records the reassignment and why", "holiday cover" in (det["timeline"][-1]["reason"] or "") and det["timeline"][-1]["triggered_by_id"] == ADM_ID)
         check("reassigning to the same person -> 422", (await post(f"/disputes/{target}/reassign", headers=ADM, json={"assigned_to": other})).status_code == 422)
