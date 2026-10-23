@@ -10,6 +10,7 @@ from data.models.postgres import PurchaseOrder, PurchaseOrderLineItem
 from data.repositories.customers import customers_repo
 from data.repositories.invoices import documents_repo
 from data.repositories.purchase_orders import purchase_orders_repo as po_repo
+from schemas.common import Page
 from schemas.purchase_orders.listing import (
     Fulfillment,
     POLineOut,
@@ -75,6 +76,32 @@ async def list_purchase_orders(
         POListItem(**_item(po, name, lines[po.id], invoiced, counts.get(po.id, (0, 0))))
         for po, name in rows
     ]
+
+
+async def search_purchase_orders(
+    db: AsyncSession,
+    *,
+    customer_id: uuid.UUID | None,
+    fulfillment: str | None,
+    on_hold: bool | None,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> Page[POListItem]:
+    rows, total = await po_repo.search_purchase_orders(
+        db, customer_id=customer_id, fulfillment=fulfillment, on_hold=on_hold, search=search, sort=sort,
+        descending=descending, limit=limit, offset=offset,
+    )
+    ids = [po.id for po, _ in rows]
+    if not ids:
+        return Page(items=[], total=total)
+    lines = await po_repo.lines_for_orders(db, ids)
+    invoiced = await po_repo.invoiced_by_line(db, ids)
+    counts = await po_repo.invoice_counts(db, ids)
+    items = [POListItem(**_item(po, name, lines[po.id], invoiced, counts.get(po.id, (0, 0)))) for po, name in rows]
+    return Page(items=items, total=total)
 
 
 async def get_purchase_order(db: AsyncSession, po_id: uuid.UUID) -> PODetail:

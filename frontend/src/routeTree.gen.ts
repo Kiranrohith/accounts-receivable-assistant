@@ -30,6 +30,7 @@ import { Route as AppInvoicesInvoiceIdRouteImport } from './routes/_app/invoices
 import { Route as AppPaymentsIndexRouteImport } from './routes/_app/payments/index'
 import { Route as AppPaymentsPaymentIdRouteImport } from './routes/_app/payments/$paymentId'
 import { Route as AppPurchaseOrdersIndexRouteImport } from './routes/_app/purchase-orders/index'
+import { Route as AppPurchaseOrdersPurchaseOrderIdRouteImport } from './routes/_app/purchase-orders/$purchaseOrderId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -135,6 +136,12 @@ const AppPurchaseOrdersIndexRoute = AppPurchaseOrdersIndexRouteImport.update({
   path: '/purchase-orders/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPurchaseOrdersPurchaseOrderIdRoute =
+  AppPurchaseOrdersPurchaseOrderIdRouteImport.update({
+    id: '/purchase-orders/$purchaseOrderId',
+    path: '/purchase-orders/$purchaseOrderId',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AppUsersRoute
   '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
+  '/purchase-orders/$purchaseOrderId': typeof AppPurchaseOrdersPurchaseOrderIdRoute
   '/disputes/': typeof AppDisputesIndexRoute
   '/invoices/': typeof AppInvoicesIndexRoute
   '/payments/': typeof AppPaymentsIndexRoute
@@ -175,6 +183,7 @@ export interface FileRoutesByTo {
   '/users': typeof AppUsersRoute
   '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
+  '/purchase-orders/$purchaseOrderId': typeof AppPurchaseOrdersPurchaseOrderIdRoute
   '/disputes': typeof AppDisputesIndexRoute
   '/invoices': typeof AppInvoicesIndexRoute
   '/payments': typeof AppPaymentsIndexRoute
@@ -199,6 +208,7 @@ export interface FileRoutesById {
   '/_app/users': typeof AppUsersRoute
   '/_app/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/_app/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
+  '/_app/purchase-orders/$purchaseOrderId': typeof AppPurchaseOrdersPurchaseOrderIdRoute
   '/_app/disputes/': typeof AppDisputesIndexRoute
   '/_app/invoices/': typeof AppInvoicesIndexRoute
   '/_app/payments/': typeof AppPaymentsIndexRoute
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/invoices/$invoiceId'
     | '/payments/$paymentId'
+    | '/purchase-orders/$purchaseOrderId'
     | '/disputes/'
     | '/invoices/'
     | '/payments/'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/invoices/$invoiceId'
     | '/payments/$paymentId'
+    | '/purchase-orders/$purchaseOrderId'
     | '/disputes'
     | '/invoices'
     | '/payments'
@@ -268,6 +280,7 @@ export interface FileRouteTypes {
     | '/_app/users'
     | '/_app/invoices/$invoiceId'
     | '/_app/payments/$paymentId'
+    | '/_app/purchase-orders/$purchaseOrderId'
     | '/_app/disputes/'
     | '/_app/invoices/'
     | '/_app/payments/'
@@ -429,6 +442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPurchaseOrdersIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/purchase-orders/$purchaseOrderId': {
+      id: '/_app/purchase-orders/$purchaseOrderId'
+      path: '/purchase-orders/$purchaseOrderId'
+      fullPath: '/purchase-orders/$purchaseOrderId'
+      preLoaderRoute: typeof AppPurchaseOrdersPurchaseOrderIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -447,6 +467,7 @@ interface AppRouteChildren {
   AppUsersRoute: typeof AppUsersRoute
   AppInvoicesInvoiceIdRoute: typeof AppInvoicesInvoiceIdRoute
   AppPaymentsPaymentIdRoute: typeof AppPaymentsPaymentIdRoute
+  AppPurchaseOrdersPurchaseOrderIdRoute: typeof AppPurchaseOrdersPurchaseOrderIdRoute
   AppDisputesIndexRoute: typeof AppDisputesIndexRoute
   AppInvoicesIndexRoute: typeof AppInvoicesIndexRoute
   AppPaymentsIndexRoute: typeof AppPaymentsIndexRoute
@@ -468,6 +489,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppUsersRoute: AppUsersRoute,
   AppInvoicesInvoiceIdRoute: AppInvoicesInvoiceIdRoute,
   AppPaymentsPaymentIdRoute: AppPaymentsPaymentIdRoute,
+  AppPurchaseOrdersPurchaseOrderIdRoute: AppPurchaseOrdersPurchaseOrderIdRoute,
   AppDisputesIndexRoute: AppDisputesIndexRoute,
   AppInvoicesIndexRoute: AppInvoicesIndexRoute,
   AppPaymentsIndexRoute: AppPaymentsIndexRoute,

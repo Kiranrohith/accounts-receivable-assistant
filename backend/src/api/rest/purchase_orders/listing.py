@@ -1,4 +1,5 @@
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +8,8 @@ from api.rest.dependencies import require_permission
 from core.services.purchase_orders import listing
 from data.clients.db import get_db
 from data.models.postgres import User
-from schemas.purchase_orders.listing import POListItem, PODetail
+from schemas.common import Page
+from schemas.purchase_orders.listing import Fulfillment, POListItem, PODetail
 
 # Registered after the other /purchase-orders/... routers: the dynamic /{purchase_order_id}
 # path must not shadow /purchase-orders/reviews and /purchase-orders/mismatch-reviews.
@@ -35,6 +37,43 @@ async def list_purchase_orders(
 ) -> list[POListItem]:
     return await listing.list_purchase_orders(
         db, customer_id=customer_id, search=search, limit=limit, offset=offset
+    )
+
+
+@router.get(
+    "/search",
+    response_model=Page[POListItem],
+    summary="Purchase orders, a page at a time",
+    description=(
+        "Requires invoices.view. The same rows as GET /purchase-orders, searched, filtered, sorted and cut to one page by "
+        "the server, with the `total` of everything that matches. `q` matches the PO number or the customer's name as "
+        "plain text. Filters: customer_id, `fulfillment` (Not invoiced, Partly invoiced, Fully invoiced, Over-invoiced) "
+        "and `on_hold` (some linked invoice does not match the PO). `sort` is one of created (default, newest first), "
+        "po_number, customer, po_date, amount; `dir` is asc or desc."
+    ),
+)
+async def search_purchase_orders(
+    q: str | None = Query(None, max_length=100),
+    customer_id: uuid.UUID | None = Query(None),
+    fulfillment: Fulfillment | None = Query(None),
+    on_hold: bool | None = Query(None),
+    sort: Literal["created", "po_number", "customer", "po_date", "amount"] = Query("created"),
+    dir: Literal["asc", "desc"] | None = Query(None),
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    _: User = Depends(require_permission("invoices.view")),
+    db: AsyncSession = Depends(get_db),
+) -> Page[POListItem]:
+    return await listing.search_purchase_orders(
+        db,
+        customer_id=customer_id,
+        fulfillment=fulfillment,
+        on_hold=on_hold,
+        search=q,
+        sort=sort,
+        descending=(dir == "desc") if dir else sort == "created",
+        limit=limit,
+        offset=offset,
     )
 
 
