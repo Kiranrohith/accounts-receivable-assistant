@@ -3,10 +3,11 @@ from typing import Any
 
 from datetime import datetime
 
-from sqlalchemy import func, select, update
+from sqlalchemy import and_, exists, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
-from data.models.postgres import Job
+from data.models.postgres import Customer, Dispute, IngestedEmail, Job, Note, SourceDocument
 from data.models.postgres.enums import JobState
 from data.repositories import unit_of_work
 
@@ -72,6 +73,83 @@ async def latest_jobs_for_entities(
 
 async def get_job(db: AsyncSession, job_id: uuid.UUID) -> Job | None:
     return await db.get(Job, job_id)
+
+
+# ---------------------------------------------------------------- failed items
+FAILED_STATES = (JobState.FAILED, JobState.DEAD_LETTERED)
+ENTITY_BY_KIND = {"document": "source_document", "mail": "ingested_email", "dispute": "dispute", "credit_note": "note"}
+_SORTS = {"failed_at": Job.finished_at, "attempts": Job.attempt_count, "kind": Job.entity_type}
+
+
+def _newer_job_exists(job: type[Job]):  # noqa: ANN202
+    """A later job on the same entity: this one was re-run, or the work moved on."""
+    later = aliased(Job)
+    return exists().where(
+        later.entity_id == job.entity_id,
+        or_(later.created_at > job.created_at, and_(later.created_at == job.created_at, later.id > job.id)),
+    )
+
+
+async def has_newer_job(db: AsyncSession, job: Job) -> bool:
+    return bool(await db.scalar(select(_newer_job_exists(Job)).where(Job.id == job.id)))
+
+
+async def search_failed(
+    db: AsyncSession, *, kind: str | None, search: str | None, sort: str, descending: bool, limit: int, offset: int
+) -> tuple[list[Any], int]:
+    """(rows, total): the jobs that ended Failed or DeadLettered and have nothing after them, with the names of what
+    they worked on. A mail whose triage failed but which a person has since routed is not listed: nothing is left to do."""
+    entity_type = func.coalesce(Job.entity_type, "source_document")
+    customer_of_dispute, customer_of_note = aliased(Customer), aliased(Customer)
+    earlier = aliased(Job)
+    query = (
+        select(
+            Job,
+            SourceDocument.file_name.label("doc_name"),
+            SourceDocument.file_path.label("doc_path"),
+            IngestedEmail.subject.label("mail_subject"),
+            IngestedEmail.sender.label("mail_sender"),
+            Dispute.summary.label("dispute_summary"),
+            customer_of_dispute.customer_name.label("dispute_customer"),
+            Note.note_number.label("note_number"),
+            customer_of_note.customer_name.label("note_customer"),
+            func.coalesce(SourceDocument.id, IngestedEmail.id, Dispute.id, Note.id).is_not(None).label("record_exists"),
+            select(func.count())
+            .where(earlier.entity_id == Job.entity_id, earlier.job_type == Job.job_type, earlier.created_at < Job.created_at)
+            .scalar_subquery()
+            .label("earlier_runs"),
+        )
+        .outerjoin(SourceDocument, and_(entity_type == "source_document", SourceDocument.id == Job.entity_id))
+        .outerjoin(IngestedEmail, and_(entity_type == "ingested_email", IngestedEmail.id == Job.entity_id))
+        .outerjoin(Dispute, and_(entity_type == "dispute", Dispute.id == Job.entity_id))
+        .outerjoin(customer_of_dispute, customer_of_dispute.id == Dispute.customer_id)
+        .outerjoin(Note, and_(entity_type == "note", Note.id == Job.entity_id))
+        .outerjoin(customer_of_note, customer_of_note.id == Note.customer_id)
+        .where(
+            Job.state.in_(FAILED_STATES),
+            ~_newer_job_exists(Job),
+            ~and_(
+                Job.job_type == "mail_triage",
+                or_(IngestedEmail.status.is_not(None), IngestedEmail.classification.is_not(None)),
+            ),
+        )
+    )
+    if kind:
+        query = query.where(entity_type == ENTITY_BY_KIND[kind])
+    if search and search.strip():
+        # What the person typed is text, not a pattern: a "%" or "_" in it must match itself.
+        escaped = search.strip().replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+        like = f"%{escaped}%"
+        columns = (
+            SourceDocument.file_name, IngestedEmail.subject, IngestedEmail.sender, Dispute.summary,
+            customer_of_dispute.customer_name, Note.note_number, customer_of_note.customer_name, Job.last_error_message,
+        )
+        query = query.where(or_(*(column.ilike(like, escape="\\") for column in columns)))
+    total = await db.scalar(select(func.count()).select_from(query.order_by(None).subquery()))
+    column = _SORTS.get(sort, Job.finished_at)
+    ordered = column.desc().nullslast() if descending else column.asc().nullslast()
+    result = await db.execute(query.order_by(ordered, Job.id).limit(limit).offset(offset))
+    return list(result.all()), total or 0
 
 
 async def claim_next(db: AsyncSession, now: datetime) -> Job | None:

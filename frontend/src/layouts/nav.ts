@@ -1,5 +1,5 @@
 import {
-  BarChart3, BellRing, Building2, FileSpreadsheet, FileText, Inbox, LayoutDashboard, ListChecks, Mail, Scale,
+  AlertTriangle, BarChart3, BellRing, Building2, FileSpreadsheet, FileText, Inbox, LayoutDashboard, ListChecks, Mail, Scale,
   Settings, Upload, UserCog, Wallet, type LucideIcon,
 } from 'lucide-react'
 
@@ -8,7 +8,7 @@ import type { AccessKey } from '@/features/auth'
 export interface NavItem {
   to:
     | '/dashboard' | '/my-work' | '/take-action' | '/upload' | '/invoices' | '/purchase-orders' | '/payments'
-    | '/disputes' | '/reminders' | '/customers' | '/reports' | '/mail' | '/users' | '/settings'
+    | '/disputes' | '/reminders' | '/customers' | '/reports' | '/mail' | '/failed-items' | '/users' | '/settings'
   label: string
   icon: LucideIcon
   access: AccessKey
@@ -28,6 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/customers', label: 'Customers', icon: Building2, access: 'customers' },
   { to: '/reports', label: 'Reports', icon: BarChart3, access: 'reports' },
   { to: '/mail', label: 'Mail Log', icon: Mail, access: 'mail' },
+  { to: '/failed-items', label: 'Failed Items', icon: AlertTriangle, access: 'failedItems' },
   { to: '/users', label: 'Users', icon: UserCog, access: 'users' },
   { to: '/settings', label: 'Settings', icon: Settings, access: 'settings' },
 ]
