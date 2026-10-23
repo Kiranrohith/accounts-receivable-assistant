@@ -39,18 +39,29 @@ def test_candidates_repeat_once_and_are_capped():
     assert len(candidate_numbers(" ".join(f"AB{n}00" for n in range(500)))) == 60
 
 
-def test_context_is_any_of_known_sender_quoted_invoice_named_customer_or_payment_wording():
+STAFF = MailContext(sender_known=False, invoice_numbers=(), customer_named=False, sender_is_staff=True)
+
+
+def test_context_is_any_of_known_sender_staff_quoted_invoice_named_customer_or_topic_wording():
     assert KNOWN.has_context and QUOTES.has_context and MailContext(False, (), True).has_context
     assert MailContext(False, (), False, (), True).has_context
+    assert STAFF.has_context
     assert not NOTHING.has_context
 
 
-def test_payment_wording_is_recognised_in_text_and_attachment_names():
-    from core.services.mail.context import _PAYMENT_WORDS as words
+def test_topic_wording_is_recognised_in_text_and_attachment_names():
+    from core.services.mail.context import _TOPIC_WORDS as words
 
-    for text in ("payment done", "pls check, PAID today", "NEFT_Advice_123.pdf", "remittance details", "UTR 998877", "MT103 copy", "funds transferred"):
+    for text in (
+        "payment done", "pls check, PAID today", "NEFT_Advice_123.pdf", "remittance details", "UTR 998877", "MT103 copy",
+        "funds transferred", "Invoice attached", "your invoices", "Purchase order from Brightwave", "Purchase_Order.pdf",
+        "purchaseorder 12", "BW-PO-6146__CUST-018.pdf", "PO 4471", "po_number: 9",
+    ):
         assert words.search(text), text
-    for text in ("Weekly newsletter", "Meeting on Friday at 4", "Neutral party notes", "Supervisor", "Quarterly newsletter and meeting notes"):
+    for text in (
+        "Weekly newsletter", "Meeting on Friday at 4", "Neutral party notes", "Supervisor", "Quarterly newsletter and meeting notes",
+        "Post office", "Potato prices", "Uninvoiced",
+    ):
         assert not words.search(text), text
 
 
@@ -66,6 +77,11 @@ def test_an_unknown_sender_who_quotes_our_invoice_goes_on_to_the_model():
 
 def test_a_known_sender_goes_on_to_the_model():
     assert pre_decide(mail(), KNOWN, qualify([], MAIL)) is None
+
+
+def test_a_colleague_goes_on_to_the_model_even_with_a_bare_attachment():
+    assert pre_decide(mail(), STAFF, qualify([], MAIL)) is None
+    assert pre_decide(mail("", "", [PDF]), STAFF, qualify([PDF], MAIL)) is None
 
 
 def test_a_bare_attachment_from_a_known_customer_is_read_as_a_payment_candidate():

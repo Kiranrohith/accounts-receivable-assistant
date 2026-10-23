@@ -1,5 +1,5 @@
-"""What our own records say about a mail, found without a model: is the sender a customer, does the mail quote one
-of our invoices, does it name one of our customers. This is the "context" of the design rules: a mail from an
+"""What our own records say about a mail, found without a model: is the sender a customer or one of our own users,
+does the mail quote one of our invoices, does it name one of our customers. This is the "context" of the design rules: a mail from an
 unknown sender with NO context is general mail; a bare attachment from a known customer is worth reading.
 """
 
@@ -13,13 +13,16 @@ from core.services.mail.parse import ParsedMail
 from data.repositories.customers import customers_repo
 from data.repositories.invoices import invoices_repo
 from data.repositories.invoices.numbers import normalize_invoice_no
+from data.repositories.users import users_repo
 
 # something that looks like an invoice number: a letter prefix, an optional separator, then digits ("INV-1176",
 # "inv 1157", "DN2001"). A bare number never counts: the prefix is part of the number.
 _CANDIDATE = re.compile(r"[A-Za-z]{1,8}[\s/_-]?\d{3,}(?:[-/]\d+)*")
-# words a payment advice uses; an unknown sender whose mail or attachment names carry them is worth a look
-_PAYMENT_WORDS = re.compile(
-    r"(?<![a-z])(payment|paid|remit[a-z]*|neft|rtgs|imps|utr|upi|swift|mt103|cheque|advice|transfer(?:red)?)(?![a-z])",
+# words a payment advice, an invoice or a purchase order uses; an unknown sender whose mail or attachment names
+# carry them is worth a look
+_TOPIC_WORDS = re.compile(
+    r"(?<![a-z])(payment|paid|remit[a-z]*|neft|rtgs|imps|utr|upi|swift|mt103|cheque|advice|transfer(?:red)?"
+    r"|invoices?|purchase[\s_-]?orders?|po)(?![a-z])",
     re.IGNORECASE,  # a letter either side would make it part of another word; "_" and digits are not letters
 )
 _MAX_CANDIDATES = 60
@@ -32,12 +35,16 @@ class MailContext:
     invoice_numbers: tuple[str, ...]  # OUR invoice numbers the mail quotes, as stored
     customer_named: bool  # a customer's name or alias appears in the subject, text or an attachment name
     invoice_info: tuple[str, ...] = ()  # "INV-1031 (Paid)": the quoted invoices with their status in our records
-    payment_wording: bool = False  # the subject, text or an attachment name talks like a payment advice
+    topic_wording: bool = False  # the subject, text or an attachment name talks of a payment, an invoice or a PO
     thread: threads.ThreadLink | None = None  # the conversation of ours this mail continues
+    sender_is_staff: bool = False  # an active user of this application: staff may pass customers' documents on
 
     @property
     def has_context(self) -> bool:
-        return self.sender_known or bool(self.invoice_numbers) or self.customer_named or self.payment_wording or self.thread is not None
+        return (
+            self.sender_known or self.sender_is_staff or bool(self.invoice_numbers) or self.customer_named
+            or self.topic_wording or self.thread is not None
+        )
 
 
 def candidate_numbers(*texts: str) -> list[str]:
@@ -70,6 +77,7 @@ async def find_context(db: AsyncSession, mail: ParsedMail, gmail_thread_id: str 
         tuple(i.invoice_number for i in unique),
         named,
         tuple(f"{i.invoice_number} ({i.status.value})" for i in unique),
-        bool(_PAYMENT_WORDS.search(f"{mail.subject} {mail.body[:2000]} {file_names}")),
+        bool(_TOPIC_WORDS.search(f"{mail.subject} {mail.body[:2000]} {file_names}")),
         await threads.find_thread(db, mail, gmail_thread_id),
+        bool(mail.sender) and await users_repo.is_active_user_email(db, mail.sender),
     )

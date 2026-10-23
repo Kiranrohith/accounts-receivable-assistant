@@ -48,7 +48,10 @@ reminder is a payment; a reply that says "we never received the goods" is a disp
 - Attachments are listed by name, type and size only; you cannot see inside them. Use the names and the \
 mail text. A name like "Remittance_Advice.pdf", "NEFT_Advice.pdf" or "MT103" points to a payment; \
 "PO_1234.pdf" or "Purchase Order" points to a purchase order.
-- If the sender is not a known customer AND nothing in the mail refers to our invoices, our company or a \
+- A colleague of ours may pass a customer's document on (a purchase order, a payment advice, a complaint). \
+Judge it by the document and the text, not by who forwarded it: the colleague is never the payer or the \
+customer. A colleague's mail that is only about internal matters is "general".
+- If the sender is not a known customer or a colleague AND nothing in the mail refers to our invoices, our company or a \
 payment to us, it is "general". A mail that continues a thread of ours (see SYSTEM FACTS) does refer to us: \
 judge it by what it says. A bare acknowledgement ("thanks", "noted", "we are looking into it"), an out-of-office \
 reply or a question is "general"; it will be added to that conversation, not lost.
@@ -64,6 +67,7 @@ Decide what kind of mail this is.
 
 SYSTEM FACTS
 - sender is a known customer: {sender_known}
+- sender is a colleague of ours (a user of this system): {sender_is_staff}
 - invoices of ours quoted in the mail, with their status in our records: {invoice_numbers}
 - this mail is a reply in an existing thread: {is_reply}
 - attachments (name, type, size, what our system did with it): {attachments}
