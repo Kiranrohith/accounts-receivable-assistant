@@ -2,4 +2,4 @@
 export { UsersPage } from './components/UsersPage'
 export { userKeys, usersQuery, useCreateUser, useSetPassword, useUpdateUser } from './queries/userQueries'
 export type { NewUser, Person, RoleCode, UserEdits } from './types/user'
-export { roleLabel, ROLES, USER_SORTS } from './utils/view'
+export { passwordProblem, roleLabel, ROLES, USER_SORTS } from './utils/view'

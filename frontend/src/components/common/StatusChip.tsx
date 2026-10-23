@@ -58,6 +58,11 @@ const STATUS_TONE: Record<string, Tone> = {
   'Partly invoiced': 'amber',
   'Fully invoiced': 'green',
   'Over-invoiced': 'red',
+  // what became of a mail
+  'Needs a person': 'orange',
+  'Sent on': 'green',
+  'Set aside': 'gray',
+  'Not decided yet': 'blue',
   // reminder tiers
   Gentle: 'blue',
   Firm: 'amber',
