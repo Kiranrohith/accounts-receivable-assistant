@@ -1,0 +1,16 @@
+# Nothing here goes into the image: secrets, local environments, test data, caches.
+.env
+.env.*
+!.env.example
+.venv
+.pytest_cache
+**/__pycache__
+**/*.pyc
+
+# downloaded into the image by the build, never copied from this machine
+models
+
+# local-only data and tests
+sample_data
+data
+tests

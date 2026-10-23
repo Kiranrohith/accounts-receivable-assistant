@@ -22,6 +22,9 @@ dependencies = [
     "pydantic-settings>=2.15.0",
     "pyjwt>=2.15.1",
     "sqlalchemy[asyncio]>=2.1.4",
+    # Docling needs these; named here so the Linux image can take their CPU-only builds (see [tool.uv.sources] below)
+    "torch>=2.14.1",
+    "torchvision>=0.29.1",
 ]
 
 [dependency-groups]
@@ -33,3 +36,14 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+# The Linux image has no GPU: take PyTorch from its CPU-only index there (the default PyPI build drags in ~2 GB of CUDA
+# libraries). Windows and macOS builds from PyPI are already CPU-only, so development is unchanged.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]

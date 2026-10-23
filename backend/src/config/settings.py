@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     # Secure) is only for a frontend on a different site from the API.
     cookie_secure: bool = False
     cookie_samesite: Literal["lax", "strict", "none"] = "lax"
+    # The web addresses the frontend is served from (comma-separated, no trailing slash): only these may call the API from a
+    # browser. The default is the Vite dev server; set the real address(es) when deploying.
+    cors_allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     our_company_name: str | None = None  # the issuer of our invoices: never the customer
     our_company_contact_line: str | None = None  # e.g. an address or phone, in the footer of our e-mails
     our_gstin: str | None = None
@@ -41,6 +44,10 @@ class Settings(BaseSettings):
     gemini_key: str | None = None
     primary_llm_model: str = "openai/gpt-oss-120b"
     fallback_llm_model: str = "gemini-3.5-flash-lite"
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [o.strip().rstrip("/") for o in self.cors_allowed_origins.split(",") if o.strip()]
 
     @property
     def allowed_recipients(self) -> frozenset[str]:
