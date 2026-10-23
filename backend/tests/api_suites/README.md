@@ -54,6 +54,7 @@ Every other suite scripts the model (a fake returning a fixed answer), so it is 
 | dashboard figures | `dashstats` (what is owed, overdue and due soon, the aging buckets checked on every edge, top overdue customers, money received and unapplied) |
 | reports | `reports` (invoices by status, the aging bands and rows, paid invoices in a window, sorts and paging, and the PDF of each, several pages for a long one) |
 | mail log | `maillog` (every outcome, the wait before an unclassified mail counts as waiting, search, sorts, paging, permission) |
+| failed items | `faileditems` (only failed jobs with nothing after them, each kind's names, search, sorts, paging, re-run of one and several, two at once, what cannot be re-run) |
 | own password | `selfpw` (the current password is required, 422 not 401, the new one must differ, the old one stops working) |
 | unclassified mail | `unclassified` (mails the reader never classified reach a person after a wait; routing one; the automatic job then leaves it alone; stubs Gmail and the model) |
 | credit-note e-mail | `cnote` |
