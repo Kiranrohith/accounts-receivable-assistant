@@ -1,3 +1,33 @@
+# Local development needs only the two helpers:   docker compose up -d        (Postgres on 5433, Mailpit on 8025)
+# The whole application in containers:           docker compose --profile app up --build
+#   web  http://localhost:8080      api  http://localhost:8000      mail inbox  http://localhost:8025
+# The first start runs `release` once (database migrations, then the first admin from backend/.env), then starts the
+# API and the worker. Stop the backend you run by hand first: it would use the same database (and, with Gmail switched
+# on in backend/.env, poll the same mailbox).
+
+# What the three backend containers share: one image, the same settings, the same files.
+x-backend: &backend
+  build: ./backend
+  image: ar-backend:dev
+  env_file: ./backend/.env
+  environment: &backend-env
+    DATABASE_URL: postgresql+asyncpg://ar_assistant:ar_assistant@postgres:5432/ar_assistant
+    RAW_FILES_DIR: /data/raw
+    # The web page is served from here, so only this address may call the API from a browser.
+    CORS_ALLOWED_ORIGINS: http://localhost:8080
+    # Containers send to Mailpit (http://localhost:8025) whatever backend/.env says. To send through Gmail from
+    # Docker instead, delete these five lines so backend/.env applies (and set SMTP_ALLOWLIST_BYPASS=false there).
+    SMTP_HOST: mailpit
+    SMTP_PORT: 1025
+    SMTP_USER: ""
+    SMTP_PASSWORD: ""
+    SMTP_ALLOWLIST_BYPASS: "true"
+  volumes:
+    - raw_files:/data/raw
+  depends_on:
+    postgres:
+      condition: service_healthy
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -21,48 +51,56 @@ services:
       - "8025:8025"   # web UI
       - "1025:1025"   # SMTP
 
-  api:
+  # Runs once and exits: brings the database up to date, then makes sure the first admin exists.
+  release:
+    <<: *backend
     profiles: ["app"]
-    build: ./backend
-    command: uvicorn api.rest.app:app --host 0.0.0.0 --port 8000 --app-dir src
-    env_file: ./backend/.env
+    command: ["sh", "scripts/release.sh"]
+    restart: "no"
+
+  api:
+    <<: *backend
+    profiles: ["app"]
+    command: ["uvicorn", "api.rest.app:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "src"]
     environment:
-      DATABASE_URL: postgresql+asyncpg://ar_assistant:ar_assistant@postgres:5432/ar_assistant
-      # Containers send to Mailpit (http://localhost:8025) whatever backend/.env says. To send through Gmail from
-      # Docker instead, delete these five lines so backend/.env applies (and set SMTP_ALLOWLIST_BYPASS=false there).
-      SMTP_HOST: mailpit
-      SMTP_PORT: 1025
-      SMTP_USER: ""
-      SMTP_PASSWORD: ""
-      SMTP_ALLOWLIST_BYPASS: "true"
+      <<: *backend-env
       RUN_EMBEDDED_WORKER: "false"   # the worker service below does the processing
     ports:
       - "8000:8000"
-    volumes:
-      - raw_files:/data/raw
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       postgres:
         condition: service_healthy
+      release:
+        condition: service_completed_successfully
 
   worker:
+    <<: *backend
     profiles: ["app"]
-    build: ./backend
-    command: python -m jobs.runner
-    env_file: ./backend/.env
-    environment:
-      DATABASE_URL: postgresql+asyncpg://ar_assistant:ar_assistant@postgres:5432/ar_assistant
-      # Containers send to Mailpit (http://localhost:8025) whatever backend/.env says. To send through Gmail from
-      # Docker instead, delete these five lines so backend/.env applies (and set SMTP_ALLOWLIST_BYPASS=false there).
-      SMTP_HOST: mailpit
-      SMTP_PORT: 1025
-      SMTP_USER: ""
-      SMTP_PASSWORD: ""
-      SMTP_ALLOWLIST_BYPASS: "true"
-    volumes:
-      - raw_files:/data/raw
+    command: ["python", "-m", "jobs.runner"]
     depends_on:
       postgres:
         condition: service_healthy
+      release:
+        condition: service_completed_successfully
+
+  web:
+    profiles: ["app"]
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+        VITE_MAIL_VIEWER_URL: http://localhost:8025
+    image: ar-frontend:dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
 
 volumes:
   pg_data:
