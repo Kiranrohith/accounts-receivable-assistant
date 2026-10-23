@@ -1,10 +1,17 @@
 import { api } from '@/lib/axios'
 import type { Page } from '@/types/api'
 
+import type { LiveMailFeed } from '../types/live'
 import type { ClassifyResult, MailClass, MailLogItem, MailLogQuery, RerouteResult, TriageMail } from '../types/mail'
 import { toLogParams } from '../utils/view'
 
 export const mailService = {
+  /** Mail being read right now, and for a few seconds after it ends how it ended. */
+  async live(): Promise<LiveMailFeed> {
+    const { data } = await api.get<LiveMailFeed>('/mail/live')
+    return data
+  },
+
   /** One page of the mail log: filtered by what became of the mail, searched and sorted by the server, with the total that matches. */
   async log(query: MailLogQuery): Promise<Page<MailLogItem>> {
     const { data } = await api.get<Page<MailLogItem>>('/mail/log', { params: toLogParams(query) })

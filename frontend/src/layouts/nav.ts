@@ -1,5 +1,5 @@
 import {
-  AlertTriangle, BarChart3, BellRing, Building2, FileSpreadsheet, FileText, Inbox, LayoutDashboard, ListChecks, Mail, Scale, ScrollText,
+  Activity, AlertTriangle, BarChart3, BellRing, Building2, FileSpreadsheet, FileText, Inbox, LayoutDashboard, ListChecks, Mail, Scale, ScrollText,
   Settings, Upload, UserCog, Wallet, type LucideIcon,
 } from 'lucide-react'
 
@@ -8,7 +8,7 @@ import type { AccessKey } from '@/features/auth'
 export interface NavItem {
   to:
     | '/dashboard' | '/my-work' | '/take-action' | '/upload' | '/invoices' | '/purchase-orders' | '/payments'
-    | '/disputes' | '/reminders' | '/customers' | '/reports' | '/mail' | '/failed-items' | '/audit-log' | '/users' | '/settings'
+    | '/disputes' | '/reminders' | '/customers' | '/reports' | '/mail' | '/mail-live' | '/failed-items' | '/audit-log' | '/users' | '/settings'
   label: string
   icon: LucideIcon
   access: AccessKey
@@ -28,6 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/customers', label: 'Customers', icon: Building2, access: 'customers' },
   { to: '/reports', label: 'Reports', icon: BarChart3, access: 'reports' },
   { to: '/mail', label: 'Mail Log', icon: Mail, access: 'mail' },
+  { to: '/mail-live', label: 'Live Mail', icon: Activity, access: 'mail' },
   { to: '/failed-items', label: 'Failed Items', icon: AlertTriangle, access: 'failedItems' },
   { to: '/audit-log', label: 'Audit Log', icon: ScrollText, access: 'auditLog' },
   { to: '/users', label: 'Users', icon: UserCog, access: 'users' },

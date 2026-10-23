@@ -1,4 +1,5 @@
 /** Public API of the mail feature. */
+export { LiveMailPage } from './components/LiveMailPage'
 export { MailLogPage } from './components/MailLogPage'
 export { mailKeys, mailLogQuery, triageMailQuery, useClassifyMail } from './queries/mailQueries'
 export { MAIL_OUTCOMES } from './types/mail'

@@ -2,16 +2,22 @@ import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@ta
 
 import { mailService } from '../services/mailService'
 import type { MailClass, MailLogQuery } from '../types/mail'
+import { LIVE_POLL_MS } from '../utils/live'
 
 export const mailKeys = {
   all: ['mail'] as const,
   log: (query: MailLogQuery) => [...mailKeys.all, 'log', query] as const,
+  live: () => [...mailKeys.all, 'live'] as const,
   triage: (emailId: string) => [...mailKeys.all, 'triage', emailId] as const,
 }
 
 /** One page of the mail log; the old page stays on screen while the next one loads. */
 export const mailLogQuery = (query: MailLogQuery) =>
   queryOptions({ queryKey: mailKeys.log(query), queryFn: () => mailService.log(query), placeholderData: keepPreviousData })
+
+/** The mail being processed. It asks again every couple of seconds (and stops while the tab is in the background). */
+export const liveMailQuery = () =>
+  queryOptions({ queryKey: mailKeys.live(), queryFn: () => mailService.live(), refetchInterval: LIVE_POLL_MS, placeholderData: keepPreviousData })
 
 export const triageMailQuery = (emailId: string) =>
   queryOptions({
