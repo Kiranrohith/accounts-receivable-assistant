@@ -2,7 +2,6 @@
 
 from fastapi import Request, Response
 
-from api.middleware.cors import ALLOWED_ORIGINS
 from config.settings import get_settings
 from constants.constants import REFRESH_COOKIE_NAME, REFRESH_COOKIE_PATH
 from core.exceptions.errors import PermissionDeniedError
@@ -37,5 +36,5 @@ def require_same_origin(request: Request) -> None:
     """A cookie rides along on any request a browser makes, so refuse a state-changing call that a page on another origin
     started. A request with no Origin header (a script, a test) is not a browser page, so it is let through."""
     origin = request.headers.get("origin")
-    if origin is not None and origin not in ALLOWED_ORIGINS:
+    if origin is not None and origin not in get_settings().cors_origins:
         raise PermissionDeniedError("Request from an unknown origin")
