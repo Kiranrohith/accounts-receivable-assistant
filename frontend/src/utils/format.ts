@@ -16,6 +16,22 @@ export function formatCurrency(amount: string | number | null | undefined, curre
     .replace(/ /g, ' ')
 }
 
+/**
+ * A rupee amount short enough for a tile: 1.2 Cr, 4.5 L (lakh), 12,300; the full figure belongs in a tooltip. Indian grouping, as
+ * `formatCurrency` uses, and no paise.
+ */
+export function formatCompactInr(amount: string | number | null | undefined): string {
+  if (amount === null || amount === undefined || amount === '') return '—'
+  const value = typeof amount === 'number' ? amount : Number(amount)
+  if (Number.isNaN(value)) return '—'
+  const sign = value < 0 ? '-' : ''
+  const abs = Math.abs(value)
+  const trim = (n: number) => String(Math.round(n * 100) / 100)
+  if (abs >= 1e7) return `${sign}₹${trim(abs / 1e7)} Cr`
+  if (abs >= 1e5) return `${sign}₹${trim(abs / 1e5)} L`
+  return `${sign}₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(abs)}`
+}
+
 function parse(value: string | Date): Date {
   // A bare date (a due date) has no time zone: read it as that calendar day, never shift it.
   if (typeof value === 'string' && DATE_ONLY.test(value)) return new Date(`${value}T12:00:00+05:30`)

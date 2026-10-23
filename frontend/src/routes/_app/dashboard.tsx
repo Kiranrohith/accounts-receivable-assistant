@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { ComingSoon } from '@/components/common/ComingSoon'
 import { requireAccess } from '@/features/auth'
+import { DashboardPage } from '@/features/dashboard'
 
 export const Route = createFileRoute('/_app/dashboard')({
   beforeLoad: requireAccess('dashboard'),
-  component: () => <ComingSoon title="Dashboard" />,
+  component: DashboardPage,
 })

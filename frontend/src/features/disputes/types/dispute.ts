@@ -204,3 +204,40 @@ export interface CreateResult {
   assigned_to: string | null
   linked_dispute_id: string | null
 }
+
+export interface CountBy {
+  key: string
+  open: number
+  total: number
+}
+
+export interface DayVolume {
+  day: string
+  raised: number
+  resolved: number
+}
+
+export interface OwnerLoad {
+  user_id: string
+  name: string
+  open: number
+  overdue: number
+}
+
+/** The dispute dashboard: where the open ones are, how old, what about, and who is carrying them. */
+export interface DisputeDashboard {
+  open: number
+  resolved: number
+  /** Waiting in the classify queue. */
+  unclassified: number
+  escalated: number
+  first_response_overdue: number
+  resolution_overdue: number
+  average_days_to_resolve: number | null
+  by_status: CountBy[]
+  /** `key` is "Uncategorised" for those still in the queue. */
+  by_category: CountBy[]
+  open_by_age: CountBy[]
+  volume: DayVolume[]
+  owners: OwnerLoad[]
+}

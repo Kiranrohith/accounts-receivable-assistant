@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from api.middleware.cors import add_cors
 from api.middleware.error_handler import register_error_handlers
 from api.rest.customers.routes import router as customers_router
+from api.rest.dashboard.routes import router as dashboard_router
 from api.rest.settings.routes import router as settings_router
 from api.rest.disputes.routes import router as disputes_router
 from api.rest.documents.routes import router as documents_router
@@ -52,6 +53,7 @@ app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(customers_router)
+app.include_router(dashboard_router)
 app.include_router(settings_router)
 # the one upload entry for invoices and purchase orders (/documents/upload)
 app.include_router(documents_router)
