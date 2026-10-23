@@ -186,7 +186,7 @@ async def main():
         check("E: the job still ends Succeeded (the draft is the outcome), the draft is kept, status unchanged",
               jobs[0][0] == "Succeeded" and de["status"] == "Assigned" and any(m["kind"] == "draft" for m in de["messages"]) and de["first_response_at"] is None, str((jobs, de["status"])))
         check("E: the step records that it was not sent and why", st and st[-1][0] == "warning" and st[-1][1]["sent"] is False and "could not be reached" in (st[-1][2] or ""), str(st))
-        notes = (await c.get("/notifications", headers=FA if de["assigned_to"] == FA_ID else FB)).json()
+        notes = (await c.get("/notifications", headers=FA if de["assigned_to"] == FA_ID else FB)).json()["items"]
         check("E: the owner got a SendFailure notice that says the deadline keeps running", any(n["type"] == "SendFailure" and n["entity_id"] == e and "deadline keeps running" in n["message"] for n in notes), str([n["type"] for n in notes]))
         s.smtp_port = real_port
 

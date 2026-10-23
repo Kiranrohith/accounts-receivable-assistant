@@ -7,6 +7,7 @@ from api.rest.dependencies import get_current_user
 from core.services import notifications
 from data.clients.db import get_db
 from data.models.postgres import User
+from schemas.common import Page
 from schemas.notifications.notifications import MarkedRead, NotificationOut, UnreadCount
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
@@ -14,10 +15,10 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 @router.get(
     "",
-    response_model=list[NotificationOut],
+    response_model=Page[NotificationOut],
     summary="My notifications",
     description=(
-        "Any signed-in user; only your own. Newest first. `unread_only` hides the ones you have "
+        "Any signed-in user; only your own. Newest first, one page with the `total`. `unread_only` hides the ones you have "
         "read. `entity_type` / `entity_id` say what a notice is about (for example a dispute)."
     ),
 )
@@ -27,7 +28,7 @@ async def my_notifications(
     offset: int = Query(0, ge=0),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> list[NotificationOut]:
+) -> Page[NotificationOut]:
     return await notifications.list_mine(db, user, unread_only=unread_only, limit=limit, offset=offset)
 
 

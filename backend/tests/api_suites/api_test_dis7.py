@@ -179,7 +179,7 @@ async def main():
         s.smtp_port = 1
         r = await c.post(f"/disputes/{f}/messages/{mid_f}/send", headers=owner_f)
         s.smtp_port = real
-        notes = (await c.get("/notifications", headers=owner_f)).json()
+        notes = (await c.get("/notifications", headers=owner_f)).json()["items"]
         fail = [n for n in notes if n["type"] == "SendFailure" and n["entity_id"] == f]
         check("F: mail server down -> 502, the draft stays", r.status_code == 502 and [m["kind"] for m in (await detail(f))["messages"]].count("draft") == 1, r.text[:120])
         check("F: the owner is told, and the notice does not talk about a deadline", fail and "deadline" not in fail[0]["message"], str(fail))
