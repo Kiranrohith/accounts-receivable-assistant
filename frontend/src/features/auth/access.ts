@@ -23,6 +23,7 @@ export const ACCESS = {
   reports: [P.reportsView],
   mail: [P.mailTriageClassify, P.usersManage],
   failedItems: [P.failedItemsRerun],
+  auditLog: [P.logsTimelineView, P.logsSteplogView],
   users: [P.usersManage],
   settings: [P.usersManage],
   profile: [],

@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import { DocumentViewer } from '@/components/common/DocumentViewer'
 import { ErrorAlert, SkeletonBlock } from '@/components/common/QueryStates'
 import { StatusChip } from '@/components/common/StatusChip'
+import { TimelineLink } from '@/features/audit-log'
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format'
 
 import { invoiceQuery } from '../queries/invoiceQueries'
@@ -156,6 +157,9 @@ function Body({ invoice }: { invoice: InvoiceDetail }) {
           {invoice.is_disputed && <StatusChip status="Disputed" />}
           {invoice.po_hold && <StatusChip status="PO-hold" label="PO hold" />}
           {invoice.type === 'DEBIT_NOTE' && <StatusChip status="Debit note" label={typeLabel(invoice.type)} />}
+          <span className="ml-auto">
+            <TimelineLink entityType="invoice" entityId={invoice.invoice_id} />
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">
           <Link to="/customers" search={{ customer: invoice.customer_id, page: 1, size: 25 }} className="font-medium text-foreground underline-offset-2 hover:underline">

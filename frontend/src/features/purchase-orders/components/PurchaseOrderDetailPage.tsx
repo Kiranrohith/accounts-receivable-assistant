@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import { DocumentViewer } from '@/components/common/DocumentViewer'
 import { ErrorAlert, SkeletonBlock } from '@/components/common/QueryStates'
 import { StatusChip } from '@/components/common/StatusChip'
+import { TimelineLink } from '@/features/audit-log'
 import { formatCurrency, formatDate } from '@/utils/format'
 
 import { purchaseOrderQuery } from '../queries/purchaseOrderQueries'
@@ -103,6 +104,9 @@ function Body({ order }: { order: PurchaseOrderDetail }) {
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">{order.po_number}</h1>
           <StatusChip status={order.fulfillment} />
+          <span className="ml-auto">
+            <TimelineLink entityType="purchase_order" entityId={order.purchase_order_id} />
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">
           <Link to="/customers" search={{ customer: order.customer_id, page: 1, size: 25 }} className="font-medium text-foreground underline-offset-2 hover:underline">
