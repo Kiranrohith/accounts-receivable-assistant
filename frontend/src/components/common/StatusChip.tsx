@@ -53,6 +53,11 @@ const STATUS_TONE: Record<string, Tone> = {
   Sent: 'green',
   SendFailed: 'red',
   Cancelled: 'gray',
+  // purchase order fulfilment
+  'Not invoiced': 'gray',
+  'Partly invoiced': 'amber',
+  'Fully invoiced': 'green',
+  'Over-invoiced': 'red',
   // reminder tiers
   Gentle: 'blue',
   Firm: 'amber',

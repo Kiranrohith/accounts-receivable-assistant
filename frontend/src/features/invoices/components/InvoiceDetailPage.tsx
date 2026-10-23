@@ -179,7 +179,10 @@ function Body({ invoice }: { invoice: InvoiceDetail }) {
       <Section title="Purchase order">
         {invoice.linked_po ? (
           <p className="text-sm">
-            Matched to <span className="font-medium">{invoice.linked_po.po_number}</span>
+            Matched to{' '}
+            <Link to="/purchase-orders/$purchaseOrderId" params={{ purchaseOrderId: invoice.linked_po.purchase_order_id }} className="font-medium underline-offset-2 hover:underline">
+              {invoice.linked_po.po_number}
+            </Link>
             {invoice.linked_po.match_direction && <span className="text-muted-foreground"> ({invoice.linked_po.match_direction})</span>}
           </p>
         ) : (
