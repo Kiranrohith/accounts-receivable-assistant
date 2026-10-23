@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { DocumentViewer } from '@/components/common/DocumentViewer'
 import { ErrorAlert, SkeletonBlock } from '@/components/common/QueryStates'
 import { StatusChip } from '@/components/common/StatusChip'
+import { TimelineLink } from '@/features/audit-log'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -179,6 +180,9 @@ function Body({ dispute }: { dispute: DisputeDetail }) {
           <span className="text-sm">{categoryLabel(dispute.category)}</span>
           {dispute.classification_confidence !== null && <span className="text-xs text-muted-foreground">({dispute.classification_confidence}% sure)</span>}
           {dispute.payment_related && <StatusChip status="Held" label="Payment withheld" />}
+          <span className="ml-auto">
+            <TimelineLink entityType="dispute" entityId={dispute.dispute_id} />
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">
           {dispute.customer_id ? (

@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { DocumentViewer } from '@/components/common/DocumentViewer'
 import { ErrorAlert, SkeletonBlock } from '@/components/common/QueryStates'
 import { StatusChip } from '@/components/common/StatusChip'
+import { TimelineLink } from '@/features/audit-log'
 import { Button } from '@/components/ui/button'
 import { PERMISSIONS } from '@/config/constants'
 import { hasPermission, useCurrentUser } from '@/features/auth'
@@ -159,6 +160,9 @@ function Body({ payment }: { payment: PaymentDetail }) {
           <h1 className="text-2xl font-semibold tracking-tight">{payment.reference_number ?? 'Payment without a reference'}</h1>
           <StatusChip status={payment.state} label={stateLabel(payment.state)} />
           {payment.duplicate_of && <StatusChip status="Duplicate" />}
+          <span className="ml-auto">
+            <TimelineLink entityType="payment" entityId={payment.payment_id} />
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">
           {payment.customer_id ? (
