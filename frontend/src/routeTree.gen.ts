@@ -26,6 +26,7 @@ import { Route as AppUploadRouteImport } from './routes/_app/upload'
 import { Route as AppUsersRouteImport } from './routes/_app/users'
 import { Route as AppDisputesIndexRouteImport } from './routes/_app/disputes/index'
 import { Route as AppInvoicesIndexRouteImport } from './routes/_app/invoices/index'
+import { Route as AppInvoicesInvoiceIdRouteImport } from './routes/_app/invoices/$invoiceId'
 import { Route as AppPaymentsIndexRouteImport } from './routes/_app/payments/index'
 import { Route as AppPurchaseOrdersIndexRouteImport } from './routes/_app/purchase-orders/index'
 
@@ -113,6 +114,11 @@ const AppInvoicesIndexRoute = AppInvoicesIndexRouteImport.update({
   path: '/invoices/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInvoicesInvoiceIdRoute = AppInvoicesInvoiceIdRouteImport.update({
+  id: '/invoices/$invoiceId',
+  path: '/invoices/$invoiceId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPaymentsIndexRoute = AppPaymentsIndexRouteImport.update({
   id: '/payments/',
   path: '/payments/',
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/take-action': typeof AppTakeActionRoute
   '/upload': typeof AppUploadRoute
   '/users': typeof AppUsersRoute
+  '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/disputes/': typeof AppDisputesIndexRoute
   '/invoices/': typeof AppInvoicesIndexRoute
   '/payments/': typeof AppPaymentsIndexRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/take-action': typeof AppTakeActionRoute
   '/upload': typeof AppUploadRoute
   '/users': typeof AppUsersRoute
+  '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/disputes': typeof AppDisputesIndexRoute
   '/invoices': typeof AppInvoicesIndexRoute
   '/payments': typeof AppPaymentsIndexRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/_app/take-action': typeof AppTakeActionRoute
   '/_app/upload': typeof AppUploadRoute
   '/_app/users': typeof AppUsersRoute
+  '/_app/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/_app/disputes/': typeof AppDisputesIndexRoute
   '/_app/invoices/': typeof AppInvoicesIndexRoute
   '/_app/payments/': typeof AppPaymentsIndexRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/take-action'
     | '/upload'
     | '/users'
+    | '/invoices/$invoiceId'
     | '/disputes/'
     | '/invoices/'
     | '/payments/'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/take-action'
     | '/upload'
     | '/users'
+    | '/invoices/$invoiceId'
     | '/disputes'
     | '/invoices'
     | '/payments'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/_app/take-action'
     | '/_app/upload'
     | '/_app/users'
+    | '/_app/invoices/$invoiceId'
     | '/_app/disputes/'
     | '/_app/invoices/'
     | '/_app/payments/'
@@ -377,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInvoicesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/invoices/$invoiceId': {
+      id: '/_app/invoices/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/invoices/$invoiceId'
+      preLoaderRoute: typeof AppInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/payments/': {
       id: '/_app/payments/'
       path: '/payments'
@@ -407,6 +426,7 @@ interface AppRouteChildren {
   AppTakeActionRoute: typeof AppTakeActionRoute
   AppUploadRoute: typeof AppUploadRoute
   AppUsersRoute: typeof AppUsersRoute
+  AppInvoicesInvoiceIdRoute: typeof AppInvoicesInvoiceIdRoute
   AppDisputesIndexRoute: typeof AppDisputesIndexRoute
   AppInvoicesIndexRoute: typeof AppInvoicesIndexRoute
   AppPaymentsIndexRoute: typeof AppPaymentsIndexRoute
@@ -426,6 +446,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppTakeActionRoute: AppTakeActionRoute,
   AppUploadRoute: AppUploadRoute,
   AppUsersRoute: AppUsersRoute,
+  AppInvoicesInvoiceIdRoute: AppInvoicesInvoiceIdRoute,
   AppDisputesIndexRoute: AppDisputesIndexRoute,
   AppInvoicesIndexRoute: AppInvoicesIndexRoute,
   AppPaymentsIndexRoute: AppPaymentsIndexRoute,
