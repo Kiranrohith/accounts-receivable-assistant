@@ -281,6 +281,11 @@ async def _summaries(db: AsyncSession, documents: list[SourceDocument]) -> list[
     ]
 
 
+async def summarize(db: AsyncSession, documents: list[SourceDocument]) -> list[DocumentUploadSummary]:
+    """The upload-list row of each of these documents (what it is so far, and where it went)."""
+    return await _summaries(db, documents)
+
+
 async def list_uploads(db: AsyncSession, limit: int = 100) -> list[DocumentUploadSummary]:
     return await _summaries(db, await documents_repo.list_uploaded_documents(db, limit, None))
 

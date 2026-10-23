@@ -170,3 +170,14 @@ async def facets(db: AsyncSession) -> dict[str, list[str]]:
         "step_entity_types": list(await db.scalars(distinct(StepLog.entity_type))),
         "step_names": list(await db.scalars(distinct(StepLog.step_name))),
     }
+
+
+async def steps_of_jobs(db: AsyncSession, job_ids: list[uuid.UUID]) -> dict[uuid.UUID, list[tuple[str, datetime | None]]]:
+    """(step name, when) of every step each job has logged so far, oldest first."""
+    found: dict[uuid.UUID, list[tuple[str, datetime | None]]] = {}
+    if not job_ids:
+        return found
+    rows = await db.execute(select(StepLog.job_id, StepLog.step_name, StepLog.occurred_at).where(StepLog.job_id.in_(job_ids)).order_by(StepLog.occurred_at))
+    for job_id, name, when in rows.all():
+        found.setdefault(job_id, []).append((name, when))
+    return found
