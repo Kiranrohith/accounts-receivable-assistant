@@ -25,6 +25,7 @@ import { Route as AppTakeActionRouteImport } from './routes/_app/take-action'
 import { Route as AppUploadRouteImport } from './routes/_app/upload'
 import { Route as AppUsersRouteImport } from './routes/_app/users'
 import { Route as AppDisputesIndexRouteImport } from './routes/_app/disputes/index'
+import { Route as AppDisputesDisputeIdRouteImport } from './routes/_app/disputes/$disputeId'
 import { Route as AppInvoicesIndexRouteImport } from './routes/_app/invoices/index'
 import { Route as AppInvoicesInvoiceIdRouteImport } from './routes/_app/invoices/$invoiceId'
 import { Route as AppPaymentsIndexRouteImport } from './routes/_app/payments/index'
@@ -111,6 +112,11 @@ const AppDisputesIndexRoute = AppDisputesIndexRouteImport.update({
   path: '/disputes/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDisputesDisputeIdRoute = AppDisputesDisputeIdRouteImport.update({
+  id: '/disputes/$disputeId',
+  path: '/disputes/$disputeId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInvoicesIndexRoute = AppInvoicesIndexRouteImport.update({
   id: '/invoices/',
   path: '/invoices/',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/take-action': typeof AppTakeActionRoute
   '/upload': typeof AppUploadRoute
   '/users': typeof AppUsersRoute
+  '/disputes/$disputeId': typeof AppDisputesDisputeIdRoute
   '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
   '/purchase-orders/$purchaseOrderId': typeof AppPurchaseOrdersPurchaseOrderIdRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/take-action': typeof AppTakeActionRoute
   '/upload': typeof AppUploadRoute
   '/users': typeof AppUsersRoute
+  '/disputes/$disputeId': typeof AppDisputesDisputeIdRoute
   '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
   '/purchase-orders/$purchaseOrderId': typeof AppPurchaseOrdersPurchaseOrderIdRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/_app/take-action': typeof AppTakeActionRoute
   '/_app/upload': typeof AppUploadRoute
   '/_app/users': typeof AppUsersRoute
+  '/_app/disputes/$disputeId': typeof AppDisputesDisputeIdRoute
   '/_app/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/_app/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
   '/_app/purchase-orders/$purchaseOrderId': typeof AppPurchaseOrdersPurchaseOrderIdRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/take-action'
     | '/upload'
     | '/users'
+    | '/disputes/$disputeId'
     | '/invoices/$invoiceId'
     | '/payments/$paymentId'
     | '/purchase-orders/$purchaseOrderId'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/take-action'
     | '/upload'
     | '/users'
+    | '/disputes/$disputeId'
     | '/invoices/$invoiceId'
     | '/payments/$paymentId'
     | '/purchase-orders/$purchaseOrderId'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/_app/take-action'
     | '/_app/upload'
     | '/_app/users'
+    | '/_app/disputes/$disputeId'
     | '/_app/invoices/$invoiceId'
     | '/_app/payments/$paymentId'
     | '/_app/purchase-orders/$purchaseOrderId'
@@ -407,6 +419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDisputesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/disputes/$disputeId': {
+      id: '/_app/disputes/$disputeId'
+      path: '/disputes/$disputeId'
+      fullPath: '/disputes/$disputeId'
+      preLoaderRoute: typeof AppDisputesDisputeIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/invoices/': {
       id: '/_app/invoices/'
       path: '/invoices'
@@ -465,6 +484,7 @@ interface AppRouteChildren {
   AppTakeActionRoute: typeof AppTakeActionRoute
   AppUploadRoute: typeof AppUploadRoute
   AppUsersRoute: typeof AppUsersRoute
+  AppDisputesDisputeIdRoute: typeof AppDisputesDisputeIdRoute
   AppInvoicesInvoiceIdRoute: typeof AppInvoicesInvoiceIdRoute
   AppPaymentsPaymentIdRoute: typeof AppPaymentsPaymentIdRoute
   AppPurchaseOrdersPurchaseOrderIdRoute: typeof AppPurchaseOrdersPurchaseOrderIdRoute
@@ -487,6 +507,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppTakeActionRoute: AppTakeActionRoute,
   AppUploadRoute: AppUploadRoute,
   AppUsersRoute: AppUsersRoute,
+  AppDisputesDisputeIdRoute: AppDisputesDisputeIdRoute,
   AppInvoicesInvoiceIdRoute: AppInvoicesInvoiceIdRoute,
   AppPaymentsPaymentIdRoute: AppPaymentsPaymentIdRoute,
   AppPurchaseOrdersPurchaseOrderIdRoute: AppPurchaseOrdersPurchaseOrderIdRoute,

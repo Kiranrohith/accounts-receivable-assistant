@@ -1,8 +1,30 @@
 import { api } from '@/lib/axios'
+import type { Page } from '@/types/api'
 
-import type { ActionResult, ClassifyInput, DisputeDetail, DraftEdits, DraftResult, ResolveResult, SendResult } from '../types/dispute'
+import type {
+  ActionResult, ClassifyInput, CreateResult, DisputeDetail, DisputeListItem, DisputeQuery, DraftEdits, DraftResult, NewDispute, ResolveResult, SendResult,
+} from '../types/dispute'
+import { toSearchParams } from '../utils/view'
 
 export const disputeService = {
+  /** One page of the dispute table: filtered, searched and sorted by the server, with the total that matches. */
+  async search(query: DisputeQuery): Promise<Page<DisputeListItem>> {
+    const { data } = await api.get<Page<DisputeListItem>>('/disputes/search', { params: toSearchParams(query) })
+    return data
+  },
+
+  async create(input: NewDispute): Promise<CreateResult> {
+    const { data } = await api.post<CreateResult>('/disputes', {
+      summary: input.summary,
+      invoice_id: input.invoiceId || undefined,
+      customer_id: input.customerId || undefined,
+      category: input.category || undefined,
+      payment_related: input.paymentRelated,
+      from_email: input.fromEmail || undefined,
+    })
+    return data
+  },
+
   async get(disputeId: string): Promise<DisputeDetail> {
     const { data } = await api.get<DisputeDetail>(`/disputes/${disputeId}`)
     return data

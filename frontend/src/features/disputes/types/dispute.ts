@@ -39,7 +39,35 @@ export interface DisputeInvoice {
   amount_paid: string
   collectible_balance: string
   po_number: string | null
+  purchase_order_id: string | null
   po_hold: boolean
+}
+
+/** Money against the disputed invoice, from a payment or a credit note. */
+export interface DisputePayment {
+  payment_id: string | null
+  payment_reference: string | null
+  note_number: string | null
+  funded_by: 'payment' | 'credit_note'
+  allocated_amount: string
+  status: string
+  created_at: string | null
+}
+
+export interface TimelineEntry {
+  from_state: string | null
+  to_state: string
+  triggered_by_type: string | null
+  reason: string | null
+  occurred_at: string
+}
+
+/** The dispute this one follows, or one that followed it (a complaint raised again after it was resolved). */
+export interface RelatedDispute {
+  dispute_id: string
+  status: DisputeStatus
+  category: DisputeCategory | null
+  received_at: string
 }
 
 export interface HeldPayment {
@@ -58,8 +86,8 @@ export interface PossiblyRelated {
   in_same_chain: boolean
 }
 
-/** One dispute with its complaint, messages and supporting facts. The Disputes page will grow this. */
-export interface DisputeDetail {
+/** A row of the dispute list. */
+export interface DisputeListItem {
   dispute_id: string
   status: DisputeStatus
   category: DisputeCategory | null
@@ -73,8 +101,8 @@ export interface DisputeDetail {
   assigned_to: string | null
   assigned_to_name: string | null
   received_at: string
-  from_email: string | null
-  source_document_id: string | null
+  /** Calendar days (IST) since it was received; frozen once it is resolved. */
+  age_days: number
   first_response_due: string | null
   first_response_at: string | null
   first_response_overdue: boolean
@@ -82,11 +110,22 @@ export interface DisputeDetail {
   resolution_overdue: boolean
   escalated_at: string | null
   resolved_at: string | null
+  linked_dispute_id: string | null
+}
+
+/** One dispute with its complaint, messages and supporting facts. */
+export interface DisputeDetail extends DisputeListItem {
+  from_email: string | null
+  source_document_id: string | null
   resolution_narrative: string | null
   messages: DisputeMessage[]
   invoice: DisputeInvoice | null
+  payments: DisputePayment[]
   held_payments: HeldPayment[]
+  earlier_dispute: RelatedDispute | null
+  later_disputes: RelatedDispute[]
   possibly_related: PossiblyRelated[]
+  timeline: TimelineEntry[]
 }
 
 export interface ClassifyInput {
@@ -127,4 +166,41 @@ export interface SendResult {
 export interface DraftEdits {
   subject?: string
   body?: string
+}
+
+/** The tabs above the dispute table, each one a ready-made filter. */
+export const DISPUTE_VIEWS = ['open', 'mine', 'unclassified', 'escalated', 'overdue', 'resolved', 'all'] as const
+export type DisputeView = (typeof DISPUTE_VIEWS)[number]
+
+/** What the page asks the server for: the URL's filters plus its page, sort and search. */
+export interface DisputeQuery {
+  view: DisputeView
+  /** The signed-in person, for the "Mine" tab. */
+  me?: string
+  category?: DisputeCategory
+  customer?: string
+  q?: string
+  sort?: string
+  dir?: 'asc' | 'desc'
+  page: number
+  size: number
+}
+
+/** Entering a complaint by hand. With an invoice the customer follows from it. */
+export interface NewDispute {
+  summary: string
+  invoiceId?: string
+  customerId?: string
+  category?: DisputeCategory
+  paymentRelated: boolean
+  fromEmail?: string
+}
+
+export interface CreateResult {
+  dispute_id: string
+  /** The mail thread already had an open dispute, so the text became a message on it. */
+  appended_to_existing: boolean
+  status: DisputeStatus
+  assigned_to: string | null
+  linked_dispute_id: string | null
 }

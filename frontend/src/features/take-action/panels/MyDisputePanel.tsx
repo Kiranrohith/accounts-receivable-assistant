@@ -14,6 +14,7 @@ import { PERMISSIONS } from '@/config/constants'
 import { hasPermission, useCurrentUser } from '@/features/auth'
 import {
   DISPUTE_CATEGORIES,
+  DisputeThread,
   disputeQuery,
   useAddNote,
   useDraftEmail,
@@ -27,7 +28,6 @@ import { cn } from '@/lib/utils'
 import { formatCurrency, formatDate } from '@/utils/format'
 
 import { SELECT_CLASS } from './parts/CustomerPicker'
-import { DisputeThread } from './parts/DisputeThread'
 import { DraftEditor } from './parts/DraftEditor'
 import { DecidedNotice } from './parts/ReasonsBox'
 import type { PanelProps } from './types'
