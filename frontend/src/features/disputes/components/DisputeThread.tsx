@@ -1,6 +1,7 @@
-import type { DisputeMessage, MessageKind } from '@/features/disputes'
 import { cn } from '@/lib/utils'
 import { formatDateTime } from '@/utils/format'
+
+import type { DisputeMessage, MessageKind } from '../types/dispute'
 
 const LOOK: Record<MessageKind, { who: (m: DisputeMessage) => string; box: string }> = {
   inbound_email: { who: () => 'The customer wrote', box: 'bg-muted/40 mr-8' },

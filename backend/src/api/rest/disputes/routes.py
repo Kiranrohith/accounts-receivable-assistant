@@ -11,6 +11,7 @@ from core.services.disputes import deadlines, drafts, queries, workflow
 from data.clients.db import get_db
 from data.models.postgres import User
 from data.models.postgres.enums import DisputeCategory, DisputeStatus
+from schemas.common import Page
 from schemas.disputes.disputes import (
     ActionResult,
     AddNote,
@@ -117,6 +118,53 @@ async def list_disputes(
         received_to=received_to,
         sort=sort,
         descending=order == "desc",
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get(
+    "/search",
+    response_model=Page[DisputeListItem],
+    summary="Disputes, a page at a time",
+    description=(
+        "Requires disputes.dashboard.view. The same rows as GET /disputes, searched, filtered, sorted and cut to one page "
+        "by the server, with the `total` of everything that matches. `q` matches the complaint's summary, the customer's "
+        "name or the invoice number as plain text. Filters: `status` (repeat it for several), `open_only`, `category`, "
+        "`customer_id`, `assigned_to`, `unassigned`, `overdue`. `sort` is one of received_at (default, newest first), "
+        "first_response_due, resolution_due, status, category, customer, invoice; `dir` is asc or desc."
+    ),
+)
+async def search_disputes(
+    q: str | None = Query(None, max_length=100),
+    status: list[StatusName] | None = Query(None),
+    open_only: bool = Query(False),
+    category: CategoryName | None = Query(None),
+    customer_id: uuid.UUID | None = Query(None),
+    assigned_to: uuid.UUID | None = Query(None),
+    unassigned: bool = Query(False),
+    overdue: bool = Query(False),
+    sort: Literal[
+        "received_at", "first_response_due", "resolution_due", "status", "category", "customer", "invoice"
+    ] = Query("received_at"),
+    dir: Literal["asc", "desc"] | None = Query(None),
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    _: User = Depends(require_permission("disputes.dashboard.view")),
+    db: AsyncSession = Depends(get_db),
+) -> Page[DisputeListItem]:
+    return await queries.search_disputes(
+        db,
+        statuses=[DisputeStatus(s) for s in status] if status else None,
+        open_only=open_only,
+        category=DisputeCategory(category) if category else None,
+        customer_id=customer_id,
+        assigned_to=assigned_to,
+        unassigned=unassigned,
+        overdue=overdue,
+        search=q,
+        sort=sort,
+        descending=(dir != "asc"),
         limit=limit,
         offset=offset,
     )
