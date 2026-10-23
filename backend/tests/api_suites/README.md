@@ -50,6 +50,7 @@ Every other suite scripts the model (a fake returning a fixed answer), so it is 
 | payments page | `paysearch` (one page with the total, state and customer filters, text search with literal % and _, every sort, permission) |
 | purchase orders page | `posearch` (one page with the total, customer, fulfilment and on-hold filters checked against the ledger, text search with literal % and _, every sort, permission) |
 | disputes page | `dissearch` (one page with the total, status, category, customer, owner, unassigned and overdue filters, text search with literal % and _, sorts, permission) |
+| user administration | `useradmin` (edit name, e-mail and role, the last administrator is protected, a role change applies at once, setting a password) |
 | unclassified mail | `unclassified` (mails the reader never classified reach a person after a wait; routing one; the automatic job then leaves it alone; stubs Gmail and the model) |
 | credit-note e-mail | `cnote` |
 | disputes | `dis1` .. `dis8` (workflow, intake, drafts, deadlines, holds, resolution) |
