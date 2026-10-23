@@ -81,13 +81,16 @@ ENTITY_BY_KIND = {"document": "source_document", "mail": "ingested_email", "disp
 _SORTS = {"failed_at": Job.finished_at, "attempts": Job.attempt_count, "kind": Job.entity_type}
 
 
-def _newer_job_exists(job: type[Job]):  # noqa: ANN202
-    """A later job on the same entity: this one was re-run, or the work moved on."""
+def _newer_job_exists(job: type[Job], *, same_type: bool = False):  # noqa: ANN202
+    """A later job on the same entity (of the same kind, when `same_type`): this one was re-run, or the work moved on."""
     later = aliased(Job)
-    return exists().where(
+    conditions = [
         later.entity_id == job.entity_id,
         or_(later.created_at > job.created_at, and_(later.created_at == job.created_at, later.id > job.id)),
-    )
+    ]
+    if same_type:
+        conditions.append(later.job_type == job.job_type)
+    return exists().where(*conditions)
 
 
 async def has_newer_job(db: AsyncSession, job: Job) -> bool:
@@ -201,3 +204,49 @@ async def running_without_heartbeat(db: AsyncSession, cutoff: datetime) -> list[
         .with_for_update(skip_locked=True)
     )
     return list(result)
+
+
+# ---------------------------------------------------------------- live mail processing
+def _in_flight_or_recent(finished_since: datetime):  # noqa: ANN202
+    return or_(Job.state.in_((JobState.QUEUED, JobState.RUNNING)), Job.finished_at >= finished_since)
+
+
+async def live_triage_jobs(db: AsyncSession, *, finished_since: datetime, limit: int) -> list[tuple[Job, IngestedEmail]]:
+    """The newest triage job of each mail that is still queued or running, or that ended after `finished_since`."""
+    query = (
+        select(Job, IngestedEmail)
+        .join(IngestedEmail, IngestedEmail.id == Job.entity_id)
+        .where(Job.job_type == "mail_triage", Job.entity_type == "ingested_email", _in_flight_or_recent(finished_since), ~_newer_job_exists(Job, same_type=True))
+        .order_by(Job.created_at.desc(), Job.id)
+        .limit(limit)
+    )
+    return [(job, mail) for job, mail in (await db.execute(query)).all()]
+
+
+async def live_mail_document_jobs(
+    db: AsyncSession, *, job_types: tuple[str, ...], finished_since: datetime, limit: int
+) -> list[tuple[Job, SourceDocument]]:
+    """The newest job of each document that came from a mail and is still queued or running, or ended after `finished_since`.
+    A document run again has only its newest job here, so the earlier failure does not show beside the new attempt."""
+    query = (
+        select(Job, SourceDocument)
+        .join(SourceDocument, SourceDocument.id == Job.entity_id)
+        .where(
+            Job.job_type.in_(job_types),
+            or_(Job.entity_type == "source_document", Job.entity_type.is_(None)),
+            SourceDocument.ingested_email_id.is_not(None),
+            _in_flight_or_recent(finished_since),
+            ~_newer_job_exists(Job),
+        )
+        .order_by(Job.created_at.desc(), Job.id)
+        .limit(limit)
+    )
+    return [(job, document) for job, document in (await db.execute(query)).all()]
+
+
+async def waiting_line(db: AsyncSession, now: datetime) -> list[uuid.UUID]:
+    """Every queued job a worker could take now, in the order workers take them (the oldest first)."""
+    rows = await db.scalars(
+        select(Job.id).where(Job.state == JobState.QUEUED, Job.run_after <= now).order_by(Job.run_after, Job.created_at)
+    )
+    return list(rows)
