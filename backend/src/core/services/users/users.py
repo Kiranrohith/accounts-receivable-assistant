@@ -3,12 +3,12 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.errors import ConflictError, NotFoundError, ValidationFailure
-from core.services.users.auth import hash_password
+from core.services.users.auth import hash_password, verify_password
 from data.models.postgres import User
 from data.repositories import unit_of_work
 from data.repositories.unit_of_work import DuplicateRecordError
 from data.repositories.users import users_repo
-from schemas.users.users import PasswordReset, UserCreate, UserUpdate
+from schemas.users.users import ChangePassword, PasswordReset, UserCreate, UserUpdate
 
 
 async def create_user(db: AsyncSession, actor: User, data: UserCreate) -> User:
@@ -75,6 +75,17 @@ async def reset_password(db: AsyncSession, actor: User, user_id: uuid.UUID, data
         raise NotFoundError("User not found")
     password_hash = await hash_password(data.password)
     await users_repo.change_user(db, user, actor_id=actor.id, password_hash=password_hash)
+    await unit_of_work.commit(db)
+
+
+async def change_own_password(db: AsyncSession, user: User, data: ChangePassword) -> None:
+    """Someone changes their own password: they must know the current one, and the new one must be different."""
+    if not await verify_password(data.current_password, user.password_hash):
+        raise ValidationFailure("The current password is not right")
+    if data.new_password == data.current_password:
+        raise ValidationFailure("Choose a password different from the current one")
+    locked = await users_repo.lock_user(db, user.id)
+    await users_repo.change_user(db, locked, actor_id=user.id, password_hash=await hash_password(data.new_password))
     await unit_of_work.commit(db)
 
 

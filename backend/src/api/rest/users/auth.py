@@ -7,11 +7,11 @@ from api.rest.users.cookies import clear_refresh_cookie, require_same_origin, se
 from constants.constants import REFRESH_COOKIE_NAME
 from core.exceptions.errors import AuthenticationError
 from core.services.users.auth import authenticate, create_access_token, create_refresh_token, refresh_session
-from core.services.users.users import permission_codes_for
+from core.services.users.users import change_own_password, permission_codes_for
 from data.clients.db import get_db
 from data.models.postgres import User
 from schemas.users.auth import LoginRequest, MeResponse, MessageResponse, TokenResponse
-from schemas.users.users import UserOut
+from schemas.users.users import ChangePassword, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -71,6 +71,25 @@ async def refresh(request: Request, response: Response, db: AsyncSession = Depen
 async def logout(response: Response) -> MessageResponse:
     clear_refresh_cookie(response)
     return MessageResponse(message="Logged out; discard your token")
+
+
+@router.post(
+    "/password",
+    status_code=204,
+    summary="Change my own password",
+    description=(
+        "Any signed-in user. Needs the current password and a new one of 8 to 72 bytes that differs from it (422 when the current "
+        "one is wrong, or the new one is the same: not 401, which would sign the person out). Sessions already signed in keep "
+        "working until their access token expires; the refresh cookie lasts its 7 days."
+    ),
+    responses={422: {"description": "The current password is wrong, or the new one is the same"}},
+)
+async def change_password(
+    body: ChangePassword,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    await change_own_password(db, user, body)
 
 
 @router.get(

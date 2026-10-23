@@ -16,10 +16,14 @@ _PLAIN = str.maketrans(
 _BODY = re.compile(r"<body[^>]*>(.*)</body>", re.DOTALL | re.IGNORECASE)
 
 
+def latin1(text: str) -> str:
+    """Text the built-in fonts can draw: typographic characters become plain ones, anything else becomes "?"."""
+    return text.translate(_PLAIN).encode("latin-1", "replace").decode("latin-1")
+
+
 def html_to_pdf(html: str) -> bytes:
     body = _BODY.search(html)
-    text = (body.group(1) if body else html).translate(_PLAIN)
-    text = text.encode("latin-1", "replace").decode("latin-1")
+    text = latin1(body.group(1) if body else html)
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
