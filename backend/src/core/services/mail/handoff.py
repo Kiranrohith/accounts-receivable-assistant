@@ -240,13 +240,16 @@ async def hand_off(
     else:
         raise ValueError(f"nothing to hand off for a {mail_class.value} mail")
 
-    link = None
-    if mail_class in (EmailClassification.PAYMENT, EmailClassification.PURCHASE_ORDER):
-        # B7: a payment advice or a PO sent in the thread of one of our conversations leaves a note there (a complaint
-        # in the thread is joined to its dispute by the dispute pipeline itself)
-        link = await threads.find_thread(db, mail, email.gmail_thread_id)
-        if link is not None:
-            await threads.note_reply(db, link, email, threads.reply_note(mail_class.value), kind=DisputeMessageKind.INTERNAL_NOTE)
+    # B7: a payment advice or a PO sent in the thread of one of our conversations leaves a note there. A complaint in a
+    # dispute's thread is joined to its dispute by the dispute pipeline itself; in a reminder's thread it leaves a note on
+    # the invoice, because no dispute exists yet to hold it
+    link = await threads.find_thread(db, mail, email.gmail_thread_id)
+    if link is not None and (
+        mail_class in (EmailClassification.PAYMENT, EmailClassification.PURCHASE_ORDER) or link.kind == "reminder"
+    ):
+        await threads.note_reply(db, link, email, threads.reply_note(mail_class.value, link), kind=DisputeMessageKind.INTERNAL_NOTE)
+    else:
+        link = None
     if result.duplicate_pending:
         job = await queue.enqueue(db, job_type=queue.JOB_MAIL_DUPLICATE, entity_id=email.id, created_by=created_by, entity_type=queue.ENTITY_MAIL)
         result.jobs.append({"job": str(job.id), "type": queue.JOB_MAIL_DUPLICATE, "document": None, "file": "re-sent file(s)"})

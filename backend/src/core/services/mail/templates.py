@@ -50,6 +50,11 @@ def render_email(name: str, **variables: Any) -> Rendered:
     return Rendered(subject=" ".join(subject.split()), body=_tidy(body))
 
 
+def render_html(name: str, **variables: Any) -> str:
+    """Render notes/<name>.html.j2, the HTML of a generated document (it becomes a PDF)."""
+    return _env.get_template(f"notes/{name}.html.j2").render({**company_context(), **variables})
+
+
 def _tidy(text: str) -> str:
     """No run of more than one blank line, no trailing space, one final newline."""
     lines = [line.rstrip() for line in text.strip().splitlines()]

@@ -1,6 +1,6 @@
 """Credit notes. A note is born from money we hold that belongs to the customer: the excess of an
-overpayment (T3). Notes are always INR and are spent only on an explicit instruction (see the spend
-functions that follow in this module's later phase). Callers commit.
+overpayment (T3). Notes are always INR and are spent only on an explicit instruction. Every new note is e-mailed to its customer by a
+worker (a job queued here). Callers commit.
 """
 
 import uuid
@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.constants import CREDIT_NOTE_PREFIX
 from core.services.invoices.amounts import money
+from core.services.payments import note_mail
 from data.models.postgres import Note
 from data.models.postgres.enums import NoteStatus, TriggerType
 from data.repositories.payments import payments_repo
@@ -61,4 +62,5 @@ async def create_credit_note(
         reason=reason,
         occurred_at=now,
     )
+    await note_mail.queue_mail(db, note, actor)  # decision 68: the customer is told, by a worker, in this same commit
     return note

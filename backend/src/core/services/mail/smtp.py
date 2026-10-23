@@ -9,6 +9,7 @@ Only the TRANSPORT is retried (the server unreachable, a connection dropped, a 4
 import asyncio
 import smtplib
 import ssl
+from collections.abc import Sequence
 from dataclasses import dataclass
 from email.message import EmailMessage
 from email.utils import formatdate, getaddresses, make_msgid
@@ -38,8 +39,15 @@ class Sent:
 
 
 def build_message(
-    *, to: str, subject: str, body: str, sender: str, in_reply_to: str | None = None
+    *,
+    to: str,
+    subject: str,
+    body: str,
+    sender: str,
+    in_reply_to: str | None = None,
+    attachments: Sequence[tuple[str, bytes, str]] = (),
 ) -> EmailMessage:
+    """`attachments` are (file name, content, "type/subtype") triples."""
     message = EmailMessage()
     message["From"] = sender
     message["To"] = to
@@ -50,6 +58,9 @@ def build_message(
         message["In-Reply-To"] = in_reply_to
         message["References"] = in_reply_to
     message.set_content(body)
+    for name, data, mime in attachments:
+        maintype, _, subtype = mime.partition("/")
+        message.add_attachment(data, maintype=maintype, subtype=subtype, filename=name)
     return message
 
 

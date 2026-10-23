@@ -97,6 +97,13 @@ assert WATCHDOG_INTERVAL_SECONDS < STALE_HEARTBEAT_SECONDS
 POLL_INTERVAL_MINUTES: Final = (2, 5)  # gmail_poll
 REMINDER_SCAN_TIME_IST: Final = time(9, 0)
 DEADLINE_SCAN_TIME_IST: Final = time(9, 15)  # stagger only, NO data dependency
+
+# --- Reminders and the 60-day handoff ---
+REMINDER_SCAN_TIME_IST: Final = time(9, 0)  # stagger only, NO data dependency
+REMINDER_TIERS: Final = (1, 15, 30)  # days past due: gentle, firm, final
+REMINDER_TEMPLATES: Final = {1: "reminder_gentle", 15: "reminder_firm", 30: "reminder_final"}
+COLLECTION_HANDOFF_DAYS: Final = 60  # reminders stop, a person takes the invoice over
+COLLECTION_ROLE: Final = "FTM"  # who gets the collection tasks (an admin when nobody is active)
 SCHEDULER_TICK_SECONDS: Final = 30  # how often a worker looks for due schedules
 BUSINESS_TIMEZONE: Final = "Asia/Kolkata"  # business dates IST; storage UTC
 
@@ -135,4 +142,7 @@ JUNK_REFERENCES: Final = frozenset({"NEFT", "IMPS", "RTGS", "PAYMENT", "NA", "-"
 GSTIN_PATTERN: Final = r"^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$"  # 15 characters
 
 # --- Auth ---
-JWT_EXPIRY_HOURS: Final = 8
+ACCESS_TOKEN_MINUTES: Final = 30  # the bearer token the UI sends on every call; short, because it is readable by the page
+REFRESH_TOKEN_DAYS: Final = 7  # the HttpOnly-cookie token that mints a new access token; signed, not stored (no revocation yet)
+REFRESH_COOKIE_NAME: Final = "refresh_token"
+REFRESH_COOKIE_PATH: Final = "/auth"  # the browser sends the cookie only to the auth endpoints

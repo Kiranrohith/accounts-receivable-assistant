@@ -21,6 +21,7 @@ from core.services.invoices.amounts import money
 from core.services.payments import holds
 from core.services.payments.credit import note_status_after
 from core.services.payments.notes import create_credit_note
+from core.services.reminders import lifecycle as reminder_lifecycle
 from data.models.postgres import User
 from data.models.postgres.enums import InvoiceStatus, NoteStatus, PaymentState, TriggerType
 from data.repositories import unit_of_work
@@ -144,6 +145,7 @@ async def spend_note(
             triggered_by_type=TriggerType.USER, triggered_by_id=user.id, reason=text, occurred_at=now,
         )
     await db.flush()
+    await reminder_lifecycle.invoice_changed_by_money(db, [invoice.id], user_id=user.id)
     result = SpendResult(
         note_number=note.note_number,
         note_status=note.status.value,

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -8,6 +9,10 @@ class Settings(BaseSettings):
 
     database_url: str
     jwt_secret: str
+    # The refresh-token cookie. Secure must be true wherever the site is served over https; samesite 'none' (which needs
+    # Secure) is only for a frontend on a different site from the API.
+    cookie_secure: bool = False
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
     our_company_name: str | None = None  # the issuer of our invoices: never the customer
     our_company_contact_line: str | None = None  # e.g. an address or phone, in the footer of our e-mails
     our_gstin: str | None = None

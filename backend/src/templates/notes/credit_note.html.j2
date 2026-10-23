@@ -1,6 +1,6 @@
 <!doctype html>
 {#- The credit note document (rendered to a PDF, stored with uploaded_via=generated, linked through
-    notes.generated_document_id, and attached to credit_note_email). Not wired in yet. -#}
+    notes.generated_document_id, and attached to credit_note_email). -#}
 <html lang="en">
 <head><meta charset="utf-8"><title>Credit note {{ note_number }}</title></head>
 <body>
@@ -9,7 +9,7 @@
      <strong>Issue date:</strong> {{ issue_date }}</p>
   <p><strong>Customer:</strong> {{ customer_name }}{% if customer_gstin %}<br>
      <strong>GSTIN:</strong> {{ customer_gstin }}{% endif %}</p>
-  <p><strong>Amount (INR):</strong> {{ note_amount }}<br>
+  <p><strong>Amount:</strong> {{ note_amount }}<br>
      <strong>Reason:</strong> {{ note_reason }}</p>
   {% if linked_invoice_number %}<p><strong>Invoice:</strong> {{ linked_invoice_number }}</p>{% endif %}
   {% if linked_payment_reference %}<p><strong>Payment:</strong> {{ linked_payment_reference }}</p>{% endif %}

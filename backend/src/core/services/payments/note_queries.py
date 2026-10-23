@@ -6,6 +6,7 @@ from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.errors import NotFoundError
+from core.services.payments import note_mail
 from core.services.payments.identities import note_violations
 from data.models.postgres import Note
 from data.models.postgres.enums import AllocationStatus, NoteStatus
@@ -14,7 +15,7 @@ from data.repositories.invoices import invoices_repo
 from data.repositories.payments import payments_repo
 from data.repositories.payments.payments_repo import NoteMoney
 from data.repositories.platform import logs_repo
-from schemas.payments.notes import NoteDetail, NoteListItem, NoteSpendOut, NoteTimelineEntry
+from schemas.payments.notes import NoteDetail, NoteEmail, NoteListItem, NoteSpendOut, NoteTimelineEntry
 
 _ZERO = Decimal("0.00")
 
@@ -65,6 +66,7 @@ async def get_note(db: AsyncSession, note_id: uuid.UUID) -> NoteDetail:
     )
     return NoteDetail(
         **_item(note, customer.customer_name if customer else "").model_dump(),
+        email=NoteEmail(**await note_mail.status(db, note)),
         linked_invoice_number=invoice.invoice_number if invoice else None,
         linked_payment_reference=payment.reference_number if payment else None,
         spends=[

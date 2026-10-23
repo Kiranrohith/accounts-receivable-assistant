@@ -12,7 +12,7 @@ from core.services.documents import intake
 from core.services.jobs import queue
 from core.services.jobs.worker import Worker
 from core.services.mail import handoff, ingest, triage
-from core.services.payments import rematch
+from core.services.payments import note_mail, rematch
 
 # One handler serves the intake types: the job type tells it whether a person already chose the
 # kind. A re-match job only matches an already-identified payment.
@@ -25,6 +25,7 @@ HANDLERS: dict[str, queue.Handler] = {
     queue.JOB_DISPUTE_PAYMENT: intake.handle,
     queue.JOB_DISPUTE_CLARIFY: clarify.handle,
     queue.JOB_PAYMENT_REMATCH: rematch.handle,
+    queue.JOB_CREDIT_NOTE_MAIL: note_mail.handle,
     queue.JOB_MAIL_TRIAGE: triage.handle,
     queue.JOB_MAIL_DUPLICATE: handoff.resolve_duplicates,
 }

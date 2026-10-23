@@ -71,7 +71,7 @@ async def _thread_dispute(db: AsyncSession, mail_row: IngestedEmail | None) -> D
     except OSError:
         return None  # the kept file is gone: the mail thread id alone still joins
     link = await threads.find_thread(db, mail, mail_row.gmail_thread_id)
-    return await disputes_repo.get_dispute(db, link.dispute_id) if link else None
+    return await disputes_repo.get_dispute(db, link.dispute_id) if link and link.dispute_id else None
 
 
 def describe(dispute: Dispute) -> dict:
