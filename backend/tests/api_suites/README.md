@@ -48,6 +48,7 @@ Every other suite scripts the model (a fake returning a fixed answer), so it is 
 | settings read-out | `settings` (admin only, the live constants, read-only) |
 | invoices page | `invsearch` (one page with the total, filters, text search with literal % and _, every sort, permission) |
 | payments page | `paysearch` (one page with the total, state and customer filters, text search with literal % and _, every sort, permission) |
+| purchase orders page | `posearch` (one page with the total, customer, fulfilment and on-hold filters checked against the ledger, text search with literal % and _, every sort, permission) |
 | unclassified mail | `unclassified` (mails the reader never classified reach a person after a wait; routing one; the automatic job then leaves it alone; stubs Gmail and the model) |
 | credit-note e-mail | `cnote` |
 | disputes | `dis1` .. `dis8` (workflow, intake, drafts, deadlines, holds, resolution) |

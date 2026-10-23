@@ -2,7 +2,7 @@ import uuid
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import case, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from data.models.postgres import (
@@ -164,6 +164,95 @@ async def list_purchase_orders(
         query.order_by(PurchaseOrder.created_at.desc(), PurchaseOrder.id).limit(limit).offset(offset)
     )
     return [(po, name) for po, name in rows]
+
+
+_SORTS = {
+    "created": PurchaseOrder.created_at,
+    "po_number": PurchaseOrder.po_number,
+    "customer": Customer.customer_name,
+    "po_date": PurchaseOrder.po_date,
+    "amount": PurchaseOrder.total_amount,
+}
+
+
+def _fulfillment_case():
+    """The same judgement as `fulfillment_of`, in SQL: per line what was ordered against what the ledger consumed."""
+    done = (
+        select(
+            PurchaseOrderLineItem.po_id.label("po_id"),
+            PurchaseOrderLineItem.quantity.label("ordered"),
+            func.coalesce(func.sum(PoFulfillment.quantity_invoiced), 0).label("done"),
+        )
+        .outerjoin(PoFulfillment, PoFulfillment.po_line_item_id == PurchaseOrderLineItem.id)
+        .where(PurchaseOrderLineItem.quantity.is_not(None))
+        .group_by(PurchaseOrderLineItem.id, PurchaseOrderLineItem.po_id, PurchaseOrderLineItem.quantity)
+        .subquery()
+    )
+    per_po = (
+        select(
+            done.c.po_id,
+            func.bool_or(done.c.done > 0).label("any_done"),
+            func.bool_or(done.c.done > done.c.ordered).label("any_over"),
+            func.bool_and(done.c.done >= done.c.ordered).label("all_full"),
+        )
+        .group_by(done.c.po_id)
+        .subquery()
+    )
+    verdict = case(
+        (func.coalesce(per_po.c.any_done, False).is_(False), "Not invoiced"),
+        (per_po.c.any_over.is_(True), "Over-invoiced"),
+        (per_po.c.all_full.is_(True), "Fully invoiced"),
+        else_="Partly invoiced",
+    )
+    return per_po, verdict
+
+
+async def search_purchase_orders(
+    db: AsyncSession,
+    *,
+    customer_id: uuid.UUID | None,
+    fulfillment: str | None,
+    on_hold: bool | None,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> tuple[list[tuple[PurchaseOrder, str]], int]:
+    """(rows, total) for the purchase orders page: filtered, searched, sorted and cut to one page by the database."""
+    where = []
+    if customer_id is not None:
+        where.append(PurchaseOrder.customer_id == customer_id)
+    if search and search.strip():
+        # What the person typed is text, not a pattern: a "%" or "_" in it must match itself.
+        escaped = search.strip().replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+        like = f"%{escaped}%"
+        where.append(
+            or_(
+                PurchaseOrder.po_number.ilike(like, escape="\\"),
+                Customer.customer_name.ilike(like, escape="\\"),
+            )
+        )
+    if on_hold is not None:
+        held = exists().where(
+            PoInvoiceMatch.po_id == PurchaseOrder.id,
+            PoInvoiceMatch.invoice_id == Invoice.id,
+            Invoice.po_hold.is_(True),
+        )
+        where.append(held if on_hold else ~held)
+
+    base = select(PurchaseOrder, Customer.customer_name).join(Customer, Customer.id == PurchaseOrder.customer_id)
+    if fulfillment is not None:
+        per_po, verdict = _fulfillment_case()
+        base = base.outerjoin(per_po, per_po.c.po_id == PurchaseOrder.id)
+        where.append(verdict == fulfillment)
+    base = base.where(*where)
+
+    total = await db.scalar(select(func.count()).select_from(base.order_by(None).subquery()))
+    column = _SORTS.get(sort, PurchaseOrder.created_at)
+    ordered = column.desc().nullslast() if descending else column.asc().nullslast()
+    rows = await db.execute(base.order_by(ordered, PurchaseOrder.id).limit(limit).offset(offset))
+    return [(po, name) for po, name in rows], total or 0
 
 
 async def lines_for_orders(
