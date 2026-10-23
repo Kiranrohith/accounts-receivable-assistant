@@ -24,6 +24,7 @@ from data.repositories.disputes import disputes_repo
 from data.repositories.mail import emails_repo
 from data.repositories.payments import payments_repo
 from data.repositories.platform import logs_repo
+from schemas.common import Page
 from schemas.mail.triage import AttachmentView, ClassifyMail, ClassifyResult, TriageDetail, TriageItem
 
 logger = logging.getLogger(__name__)
@@ -113,6 +114,14 @@ async def list_items(db: AsyncSession, *, which: str, limit: int, offset: int) -
     else:
         rows = await emails_repo.list_by_state(db, waiting_for_person=which == "queue", limit=limit, offset=offset)
     return [await _item(db, e) for e in rows]
+
+
+async def mail_log(
+    db: AsyncSession, *, outcome: str, search: str | None, sort: str, descending: bool, limit: int, offset: int
+) -> Page[TriageItem]:
+    """Every mail we have read, one page at a time, with what became of it: waiting, routed, ignored, failed or still being read."""
+    rows, total = await emails_repo.search_log(db, outcome=outcome, search=search, sort=sort, descending=descending, limit=limit, offset=offset)
+    return Page(items=[await _item(db, e) for e in rows], total=total)
 
 
 async def get_detail(db: AsyncSession, email_id: uuid.UUID) -> TriageDetail:

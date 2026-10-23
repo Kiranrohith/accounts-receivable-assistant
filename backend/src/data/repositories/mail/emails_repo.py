@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -98,3 +98,44 @@ async def list_by_state(
         select(IngestedEmail).where(condition).order_by(IngestedEmail.received_at.desc().nulls_last(), IngestedEmail.id).limit(limit).offset(offset)
     )
     return list(result)
+
+
+_LOG_SORTS = {"received_at": IngestedEmail.received_at, "sender": IngestedEmail.sender, "subject": IngestedEmail.subject}
+
+
+def _log_condition(outcome: str):  # noqa: ANN202
+    """What each outcome of the mail log means, in terms of the mail's status and class."""
+    from data.models.postgres.enums import EmailClassification, EmailStatus
+
+    waiting = waiting_for_person_condition()
+    if outcome == "waiting":
+        return waiting
+    if outcome == "routed":
+        return and_(IngestedEmail.status == EmailStatus.PROCESSED, IngestedEmail.classification != EmailClassification.GENERAL)
+    if outcome == "ignored":
+        return and_(IngestedEmail.status == EmailStatus.PROCESSED, IngestedEmail.classification == EmailClassification.GENERAL)
+    if outcome == "failed":
+        return IngestedEmail.status == EmailStatus.FAILED
+    if outcome == "reading":  # registered, not yet decided, and not waiting for a person either
+        return and_(IngestedEmail.status.is_(None), ~func.coalesce(waiting, False))
+    return None
+
+
+async def search_log(
+    db: AsyncSession, *, outcome: str, search: str | None, sort: str, descending: bool, limit: int, offset: int
+) -> tuple[list[IngestedEmail], int]:
+    """(mails, total) for the mail log: every mail we have read, filtered by what became of it, searched, sorted and paged."""
+    query = select(IngestedEmail)
+    condition = _log_condition(outcome)
+    if condition is not None:
+        query = query.where(condition)
+    if search and search.strip():
+        # What the person typed is text, not a pattern: a "%" or "_" in it must match itself.
+        escaped = search.strip().replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+        like = f"%{escaped}%"
+        query = query.where(or_(IngestedEmail.sender.ilike(like, escape="\\"), IngestedEmail.subject.ilike(like, escape="\\")))
+    total = await db.scalar(select(func.count()).select_from(query.order_by(None).subquery()))
+    column = _LOG_SORTS.get(sort, IngestedEmail.received_at)
+    ordered = column.desc().nullslast() if descending else column.asc().nullslast()
+    result = await db.scalars(query.order_by(ordered, IngestedEmail.id).limit(limit).offset(offset))
+    return list(result), total or 0

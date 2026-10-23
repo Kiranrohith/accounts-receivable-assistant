@@ -75,6 +75,20 @@ function messageOf(error: AxiosError<{ detail?: unknown }>): string {
   return 'The request failed.'
 }
 
+/**
+ * A request made for a file (`responseType: 'blob'`) hears its error as a Blob too. When that blob is the JSON the server
+ * sends for its errors, read it, so the message ("Could not build the PDF") reaches the person instead of a generic one.
+ */
+async function readBlobError(error: AxiosError<{ detail?: unknown }>): Promise<void> {
+  const data: unknown = error.response?.data
+  if (!(data instanceof Blob) || !data.type.includes('json')) return
+  try {
+    ;(error.response as { data: unknown }).data = JSON.parse(await data.text())
+  } catch {
+    /* not JSON after all: keep the generic message */
+  }
+}
+
 type Retriable = InternalAxiosRequestConfig & { _retried?: boolean }
 
 // Auth endpoints answer 401 for reasons a refresh cannot fix (a wrong password, no cookie).
@@ -83,6 +97,7 @@ const NO_REFRESH = ['/auth/login', '/auth/refresh', '/auth/logout']
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<{ detail?: unknown }>) => {
+    await readBlobError(error)
     const status = error.response?.status ?? 0
     const config = error.config as Retriable | undefined
     const sessionCall = status === 401 && config && !NO_REFRESH.some((path) => config.url?.includes(path))

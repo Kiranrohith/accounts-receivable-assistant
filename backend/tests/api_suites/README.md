@@ -52,6 +52,9 @@ Every other suite scripts the model (a fake returning a fixed answer), so it is 
 | disputes page | `dissearch` (one page with the total, status, category, customer, owner, unassigned and overdue filters, text search with literal % and _, sorts, permission) |
 | user administration | `useradmin` (edit name, e-mail and role, the last administrator is protected, a role change applies at once, setting a password) |
 | dashboard figures | `dashstats` (what is owed, overdue and due soon, the aging buckets checked on every edge, top overdue customers, money received and unapplied) |
+| reports | `reports` (invoices by status, the aging bands and rows, paid invoices in a window, sorts and paging, and the PDF of each, several pages for a long one) |
+| mail log | `maillog` (every outcome, the wait before an unclassified mail counts as waiting, search, sorts, paging, permission) |
+| own password | `selfpw` (the current password is required, 422 not 401, the new one must differ, the old one stops working) |
 | unclassified mail | `unclassified` (mails the reader never classified reach a person after a wait; routing one; the automatic job then leaves it alone; stubs Gmail and the model) |
 | credit-note e-mail | `cnote` |
 | disputes | `dis1` .. `dis8` (workflow, intake, drafts, deadlines, holds, resolution) |

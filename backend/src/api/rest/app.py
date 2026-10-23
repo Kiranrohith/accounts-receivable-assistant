@@ -12,7 +12,9 @@ from api.rest.disputes.routes import router as disputes_router
 from api.rest.documents.routes import router as documents_router
 from api.rest.documents.type_reviews import router as type_reviews_router
 from api.rest.fx.routes import router as fx_router
+from api.rest.mail.log import router as mail_log_router
 from api.rest.mail.triage import router as mail_triage_router
+from api.rest.reports.routes import router as reports_router
 from api.rest.reminders.routes import router as reminders_router
 from api.rest.tasks.routes import router as tasks_router
 from api.rest.notes.routes import router as notes_router
@@ -61,7 +63,9 @@ app.include_router(reviews_router)
 app.include_router(version_reviews_router)
 app.include_router(type_reviews_router)
 app.include_router(fx_router)
+app.include_router(mail_log_router)
 app.include_router(mail_triage_router)
+app.include_router(reports_router)
 app.include_router(payments_router)
 app.include_router(notes_router)
 app.include_router(notifications_router)

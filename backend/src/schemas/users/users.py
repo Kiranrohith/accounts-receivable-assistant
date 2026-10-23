@@ -46,6 +46,18 @@ class PasswordReset(BaseModel):
         return value
 
 
+class ChangePassword(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=8)
+
+    @field_validator("new_password")
+    @classmethod
+    def _bcrypt_limit(cls, value: str) -> str:
+        if len(value.encode()) > 72:  # bcrypt ignores/rejects anything past 72 bytes
+            raise ValueError("Password must be at most 72 bytes")
+        return value
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
