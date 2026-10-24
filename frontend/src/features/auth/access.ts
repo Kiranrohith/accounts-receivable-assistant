@@ -17,6 +17,7 @@ export const ACCESS = {
   invoices: [P.invoicesView],
   purchaseOrders: [P.invoicesView],
   payments: [P.paymentsView],
+  creditNotes: [P.paymentsView],
   disputes: [P.disputesDashboardView],
   reminders: [P.remindersManage, P.remindersViewSent],
   customers: [P.customersView],

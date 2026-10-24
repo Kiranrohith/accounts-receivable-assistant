@@ -15,6 +15,7 @@ from data.repositories.invoices import invoices_repo
 from data.repositories.payments import payments_repo
 from data.repositories.payments.payments_repo import NoteMoney
 from data.repositories.platform import logs_repo
+from schemas.common import Page
 from schemas.payments.notes import NoteDetail, NoteEmail, NoteListItem, NoteSpendOut, NoteTimelineEntry
 
 _ZERO = Decimal("0.00")
@@ -49,6 +50,24 @@ async def list_notes(
         db, customer_id=customer_id, status=status, search=search, limit=limit, offset=offset
     )
     return [_item(n, name) for n, name in rows]
+
+
+async def search_notes(
+    db: AsyncSession,
+    *,
+    status: NoteStatus | None,
+    customer_id: uuid.UUID | None,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> Page[NoteListItem]:
+    rows, total = await payments_repo.search_notes(
+        db, status=status, customer_id=customer_id, search=search, sort=sort, descending=descending,
+        limit=limit, offset=offset,
+    )
+    return Page(items=[_item(n, name) for n, name in rows], total=total)
 
 
 async def get_note(db: AsyncSession, note_id: uuid.UUID) -> NoteDetail:

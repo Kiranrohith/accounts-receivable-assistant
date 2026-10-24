@@ -42,9 +42,10 @@ describe('diffPoEdits', () => {
 
 describe('describePoApproval', () => {
   it('mentions the invoices that were waiting for the purchase order', () => {
-    const base = { review_id: 'r', status: 'Approved' as const, purchase_order_id: 'p' }
+    const base = { review_id: 'r', status: 'Approved' as const, purchase_order_id: 'p', alias_saved: null }
     expect(describePoApproval({ ...base, linked_invoices: [] }, 'PO-77')).toBe('Purchase order PO-77 was created.')
     expect(describePoApproval({ ...base, linked_invoices: [{}] }, 'PO-77')).toContain('1 waiting invoice was linked')
     expect(describePoApproval({ ...base, linked_invoices: [{}, {}] }, 'PO-77')).toContain('2 waiting invoices were linked')
+    expect(describePoApproval({ ...base, linked_invoices: [], alias_saved: 'Acme Industries' }, 'PO-77')).toContain('“Acme Industries” was saved as another name of the customer')
   })
 })

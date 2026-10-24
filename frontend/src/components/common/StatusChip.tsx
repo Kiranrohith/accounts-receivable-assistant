@@ -34,6 +34,10 @@ const STATUS_TONE: Record<string, Tone> = {
   // payment states
   Applied: 'green',
   PartiallyApplied: 'amber',
+  // credit notes
+  PartiallyUsed: 'amber',
+  Closed: 'gray',
+  Voided: 'gray',
   // disputes
   Raised: 'amber',
   Categorised: 'teal',
