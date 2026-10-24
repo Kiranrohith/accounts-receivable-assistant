@@ -16,6 +16,7 @@ from data.models.postgres import (
 )
 from data.repositories import unit_of_work
 from data.repositories.invoices import invoices_repo
+from data.repositories.purchase_orders.numbers import normalize_po_no
 
 
 async def get_purchase_order(db: AsyncSession, po_id: uuid.UUID) -> PurchaseOrder | None:
@@ -25,9 +26,13 @@ async def get_purchase_order(db: AsyncSession, po_id: uuid.UUID) -> PurchaseOrde
 async def get_by_customer_number(
     db: AsyncSession, customer_id: uuid.UUID, po_number: str
 ) -> PurchaseOrder | None:
+    """The customer's PO with this number, ignoring case, spaces and punctuation (PO-123 = PO 123)."""
+    norm = normalize_po_no(po_number)
+    if not norm:  # nothing but punctuation names no order
+        return None
     return await db.scalar(
         select(PurchaseOrder).where(
-            PurchaseOrder.customer_id == customer_id, PurchaseOrder.po_number == po_number
+            PurchaseOrder.customer_id == customer_id, PurchaseOrder.po_number_norm == norm
         )
     )
 
@@ -35,11 +40,14 @@ async def get_by_customer_number(
 async def owner_of_number_elsewhere(
     db: AsyncSession, customer_id: uuid.UUID, po_number: str
 ) -> str | None:
-    """Name of another customer that owns a PO with this number, if any."""
+    """Name of another customer that owns a PO with this number (same spelling rule), if any."""
+    norm = normalize_po_no(po_number)
+    if not norm:
+        return None
     return await db.scalar(
         select(Customer.customer_name)
         .join(PurchaseOrder, PurchaseOrder.customer_id == Customer.id)
-        .where(PurchaseOrder.po_number == po_number, PurchaseOrder.customer_id != customer_id)
+        .where(PurchaseOrder.po_number_norm == norm, PurchaseOrder.customer_id != customer_id)
         .limit(1)
     )
 
@@ -105,13 +113,16 @@ def add_fulfillments(db: AsyncSession, rows: list[dict[str, Any]]) -> None:
 async def unlinked_invoices(
     db: AsyncSession, customer_id: uuid.UUID, po_number: str
 ) -> list[Invoice]:
-    """Invoices of this customer quoting this PO number that are not linked to any PO yet."""
+    """Invoices of this customer quoting this PO number (same spelling rule) that are not linked to any PO yet."""
+    norm = normalize_po_no(po_number)
+    if not norm:
+        return []
     linked = select(PoInvoiceMatch.invoice_id)
     result = await db.scalars(
         select(Invoice)
         .where(
             Invoice.customer_id == customer_id,
-            Invoice.po_number == po_number,
+            Invoice.po_number_norm == norm,
             Invoice.id.not_in(linked),
         )
         .order_by(Invoice.created_at, Invoice.id)
