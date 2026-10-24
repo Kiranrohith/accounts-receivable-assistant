@@ -3,9 +3,9 @@ import { linesChanged, toLineForms, toLinePayload } from './lines'
 import { describePoApproval, diffPoEdits, poLinesOf, toPoForm } from './poEdits'
 
 const extraction: ExtractedPo = {
-  po_number: 'PO-77', po_date: '2026-02-01', customer_name: 'Acme Corp', customer_gstin: null, currency: 'INR', total_amount: '5000.00',
+  po_number: 'PO-77', po_date: '2026-02-01', customer_name: 'Acme Corp', tax_id_type: null, tax_id_value: null, tax_id_raw_label: null, currency: 'INR', total_amount: '5000.00',
   line_items: [{ description: 'Licence', quantity: '10', unit_price: '500.00', line_total: '5000.00' }],
-  confidence: { po_number: 99, po_date: 90, customer_name: 90, customer_gstin: null, currency: 99, total_amount: 95, line_items: 90 },
+  confidence: { po_number: 99, po_date: 90, customer_name: 90, tax_id: null, currency: 99, total_amount: 95, line_items: 90 },
 }
 
 describe('lines', () => {

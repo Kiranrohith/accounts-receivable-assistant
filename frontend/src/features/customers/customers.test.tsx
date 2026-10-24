@@ -6,15 +6,15 @@ import { env } from '@/config/env'
 import { ADMIN, renderApp } from '@/test/renderApp'
 import { server } from '@/test/server'
 
-import type { Customer } from './types/customer'
-import { diffCustomerEdits, EMPTY_CUSTOMER, toPayload, validateNewCustomer } from './utils/newCustomer'
+import type { Customer, NewCustomer } from './types/customer'
+import { diffCustomerEdits, EMPTY_CUSTOMER, normalizeTaxId, toPayload, validateNewCustomer } from './utils/newCustomer'
 import { viewCustomers } from './utils/view'
 
 const endpoint = (path: string) => `${env.apiBaseUrl}${path}`
 
 const customer = (n: number, over: Partial<Customer> = {}): Customer => ({
   id: `c-${n}`, customer_name: `Customer ${String(n).padStart(2, '0')}`, contact: `Contact ${n}`, email: `ap${n}@example.test`,
-  gstin: `29ABCDE${String(1000 + n)}F1Z5`, deducts_tds: false, billing_currency: 'INR', country: 'India', is_active: true, created_at: '2026-01-05T00:00:00Z',
+  tax_id: `29ABCDE${String(1000 + n)}F1Z5`, tax_id_type: 'GSTIN', deducts_tds: false, billing_currency: 'INR', country: 'India', is_active: true, created_at: '2026-01-05T00:00:00Z',
   open_invoices: 0, overdue_invoices: 0, outstanding: '0.00', unapplied_cash: '0.00', ...over,
 })
 
@@ -39,7 +39,7 @@ describe('viewCustomers', () => {
     expect(viewCustomers(all, { page: 1, size: 25, sort: 'nonsense' }).rows[0].customer_name).toBe('acme corp')
   })
 
-  it('searches name, GSTIN, e-mail and contact, ignoring case, and counts what matched', () => {
+  it('searches name, tax ID, e-mail and contact, ignoring case, and counts what matched', () => {
     expect(viewCustomers(all, { page: 1, size: 25, q: 'ACME' })).toMatchObject({ total: 1 })
     expect(viewCustomers(all, { page: 1, size: 25, q: 'ap3@' })).toMatchObject({ total: 1 })
     expect(viewCustomers(all, { page: 1, size: 25, q: '29abcde1002' })).toMatchObject({ total: 1 })
@@ -60,31 +60,61 @@ describe('viewCustomers', () => {
 })
 
 describe('diffCustomerEdits', () => {
-  const current = { customer_name: 'Acme Corp', contact: 'Ravi', email: 'ap@acme.test', gstin: '29ABCDE1234F1Z5', billing_currency: 'INR', country: 'India' }
+  const current = { customer_name: 'Acme Corp', contact: 'Ravi', email: 'ap@acme.test', tax_id: '29ABCDE1234F1Z5', tax_id_type: 'GSTIN' as const, billing_currency: 'INR', country: 'India' }
 
   it('sends nothing when nothing changed, even if the case or spaces differ', () => {
-    expect(diffCustomerEdits(current, { ...current, email: 'AP@acme.test', gstin: '29abcde1234f1z5', contact: ' Ravi ', billing_currency: 'inr' })).toEqual({})
+    expect(diffCustomerEdits(current, { ...current, email: 'AP@acme.test', tax_id: '29abcde1234f1z5', contact: ' Ravi ', billing_currency: 'inr' })).toEqual({})
   })
 
   it('sends only what changed, cleaned', () => {
-    expect(diffCustomerEdits(current, { ...current, country: ' Nepal ', gstin: '29abcde9999f1z5' })).toEqual({ country: 'Nepal', gstin: '29ABCDE9999F1Z5' })
+    expect(diffCustomerEdits(current, { ...current, country: ' Nepal ', tax_id: '29abcde9999f1z5' })).toEqual({ country: 'Nepal', tax_id: '29abcde9999f1z5', tax_id_type: 'GSTIN' })
+  })
+})
+
+describe('diffCustomerEdits for a tax ID', () => {
+  const current = { customer_name: 'Brightwave', contact: 'Sam', email: 'ap@bw.test', tax_id: 'GB284773109', tax_id_type: 'VAT' as const, billing_currency: 'GBP', country: 'United Kingdom' }
+
+  it('a different spelling of the same id is no change', () => {
+    expect(diffCustomerEdits(current, { ...current, tax_id: 'gb 284 7731 09' })).toEqual({})
+  })
+
+  it('changing only the type sends the id with it, because the server checks them together', () => {
+    expect(diffCustomerEdits(current, { ...current, tax_id_type: 'OTHER' })).toEqual({ tax_id: 'GB284773109', tax_id_type: 'OTHER' })
   })
 })
 
 describe('new customer form rules', () => {
-  const valid = { ...EMPTY_CUSTOMER, customer_name: 'Acme', contact: 'Ravi', email: 'ap@acme.test', gstin: '29abcde1234f1z5' }
+  const valid = { ...EMPTY_CUSTOMER, customer_name: 'Acme', contact: 'Ravi', email: 'ap@acme.test', tax_id: '29abcde1234f1z5' }
 
-  it('accepts a complete form, even with a lower-case GSTIN', () => {
+  it('accepts a complete form, even with a lower-case tax ID', () => {
     expect(validateNewCustomer(valid)).toEqual({})
   })
 
   it('says what is wrong, field by field', () => {
-    const errors = validateNewCustomer({ ...EMPTY_CUSTOMER, email: 'nope', gstin: '123', billing_currency: 'RUPEE' })
-    expect(Object.keys(errors).sort()).toEqual(['billing_currency', 'contact', 'customer_name', 'email', 'gstin'])
+    const errors = validateNewCustomer({ ...EMPTY_CUSTOMER, email: 'nope', tax_id: '123', billing_currency: 'RUPEE' })
+    expect(Object.keys(errors).sort()).toEqual(['billing_currency', 'contact', 'customer_name', 'email', 'tax_id'])
   })
 
-  it('sends it trimmed, with the GSTIN and currency in capitals', () => {
-    expect(toPayload({ ...valid, customer_name: '  Acme ', billing_currency: 'inr' })).toMatchObject({ customer_name: 'Acme', gstin: '29ABCDE1234F1Z5', billing_currency: 'INR' })
+  it('checks the tax ID against the shape of its type', () => {
+    const check = (tax_id: string, tax_id_type: NewCustomer['tax_id_type']) => validateNewCustomer({ ...valid, tax_id, tax_id_type }).tax_id
+    expect(check('GB 284 7731 09', 'VAT')).toBeUndefined()
+    expect(check('G284773109', 'VAT')).toMatch(/A VAT number is two letters/)
+    expect(check('94-3456789', 'EIN')).toBeUndefined()
+    expect(check('94-345678', 'EIN')).toMatch(/9 digits/)
+    expect(check('100123456700003', 'TRN')).toBeUndefined()
+    expect(check('10012345670000', 'TRN')).toMatch(/15 digits/)
+    expect(check('29ABCDE1234F1Z5', 'EIN')).toMatch(/9 digits/) // a GSTIN claimed as an EIN
+    expect(check('UEN 201934512K', 'OTHER')).toBeUndefined() // no shape for OTHER
+    expect(check('  - . ', 'OTHER')).toBe('Enter the tax ID.')
+  })
+
+  it('normalizes a tax ID the way the server stores it', () => {
+    expect(normalizeTaxId('gb 284-7731/09')).toBe('GB284773109')
+    expect(normalizeTaxId(' 94.3456789 ')).toBe('943456789')
+  })
+
+  it('sends it trimmed, with the currency in capitals and the tax ID as typed', () => {
+    expect(toPayload({ ...valid, customer_name: '  Acme ', billing_currency: 'inr' })).toMatchObject({ customer_name: 'Acme', tax_id: '29abcde1234f1z5', tax_id_type: 'GSTIN', billing_currency: 'INR' })
   })
 })
 
@@ -100,7 +130,7 @@ const rows = () => screen.getAllByRole('row').slice(1)
 const manager = { ...ADMIN, permissions: [...ADMIN.permissions, 'customers.manage'] }
 
 describe('Customers page', () => {
-  it('lists customers with GSTIN, currency, a TDS chip and the contact', async () => {
+  it('lists customers with tax ID, currency, a TDS chip and the contact', async () => {
     list([customer(1, { deducts_tds: true }), customer(2)])
     renderApp('/customers')
     const first = (await screen.findByText('Customer 01')).closest('tr')!
@@ -207,7 +237,7 @@ describe('Add customer', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Add customer/ }))
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Add customer' }))
     expect(await screen.findByText('Enter the customer name.')).toBeInTheDocument()
-    expect(screen.getByText(/A GSTIN is 15 characters/)).toBeInTheDocument()
+    expect(screen.getByText('Enter the tax ID.')).toBeInTheDocument()
     expect(posted).toBe(0)
   })
 
@@ -226,25 +256,58 @@ describe('Add customer', () => {
     )
     renderApp('/customers', manager)
     await userEvent.click(await screen.findByRole('button', { name: /Add customer/ }))
-    await fill({ 'Customer name': ' Globex Ltd ', 'Contact person': 'Ravi', 'E-mail': 'ap@globex.test', GSTIN: '29abcde1234f1z5' })
+    await fill({ 'Customer name': ' Globex Ltd ', 'Contact person': 'Ravi', 'E-mail': 'ap@globex.test', 'Tax ID': '29abcde1234f1z5' })
     await userEvent.click(screen.getByLabelText(/deducts TDS/))
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add customer' }))
     await waitFor(() => expect(posted).toEqual([{
-      customer_name: 'Globex Ltd', contact: 'Ravi', email: 'ap@globex.test', gstin: '29ABCDE1234F1Z5', deducts_tds: true, billing_currency: 'INR', country: 'India',
+      customer_name: 'Globex Ltd', contact: 'Ravi', email: 'ap@globex.test', tax_id: '29abcde1234f1z5', tax_id_type: 'GSTIN', deducts_tds: true, billing_currency: 'INR', country: 'India',
     }]))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(await screen.findByText('Globex Ltd was added.')).toBeInTheDocument()
     expect(await screen.findAllByText('Globex Ltd')).not.toHaveLength(0)
   })
 
-  it('a duplicate keeps the form open with what was typed and shows the server reason', async () => {
-    list([customer(1)])
-    server.use(http.post(endpoint('/customers'), () => HttpResponse.json({ detail: 'A customer with the same GSTIN already exists' }, { status: 409 })))
+  it('the type defaults to GSTIN and a VAT number is sent with its type', async () => {
+    const posted: unknown[] = []
+    server.use(
+      http.get(endpoint('/customers'), () => HttpResponse.json([customer(1)])),
+      http.post(endpoint('/customers'), async ({ request }) => {
+        posted.push(await request.json())
+        return HttpResponse.json(customer(2), { status: 201 })
+      }),
+    )
     renderApp('/customers', manager)
     await userEvent.click(await screen.findByRole('button', { name: /Add customer/ }))
-    await fill({ 'Customer name': 'Globex', 'Contact person': 'Ravi', 'E-mail': 'ap@globex.test', GSTIN: '29ABCDE1234F1Z5' })
+    const kind = screen.getByLabelText('Tax ID type')
+    expect(kind).toHaveValue('GSTIN')
+    await userEvent.selectOptions(kind, 'VAT')
+    await fill({ 'Customer name': 'Brightwave', 'Contact person': 'Sam', 'E-mail': 'ap@bw.test', 'Tax ID': 'GB 284 7731 09' })
+    await userEvent.clear(screen.getByLabelText('Billing currency'))
+    await userEvent.type(screen.getByLabelText('Billing currency'), 'GBP')
+    await userEvent.clear(screen.getByLabelText('Country'))
+    await userEvent.type(screen.getByLabelText('Country'), 'United Kingdom')
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add customer' }))
-    expect(await screen.findByText('A customer with the same GSTIN already exists')).toBeInTheDocument()
+    await waitFor(() => expect(posted).toEqual([expect.objectContaining({ tax_id: 'GB 284 7731 09', tax_id_type: 'VAT', billing_currency: 'GBP', country: 'United Kingdom' })]))
+  })
+
+  it('a GSTIN-shaped id under the VAT type is stopped with the VAT rule', async () => {
+    list([customer(1)])
+    renderApp('/customers', manager)
+    await userEvent.click(await screen.findByRole('button', { name: /Add customer/ }))
+    await userEvent.selectOptions(screen.getByLabelText('Tax ID type'), 'VAT')
+    await fill({ 'Customer name': 'Brightwave', 'Contact person': 'Sam', 'E-mail': 'ap@bw.test', 'Tax ID': '29ABCDE1234F1Z5' })
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add customer' }))
+    expect(await screen.findByText(/A VAT number is two letters/)).toBeInTheDocument()
+  })
+
+  it('a duplicate keeps the form open with what was typed and shows the server reason', async () => {
+    list([customer(1)])
+    server.use(http.post(endpoint('/customers'), () => HttpResponse.json({ detail: 'A customer with the same tax ID already exists' }, { status: 409 })))
+    renderApp('/customers', manager)
+    await userEvent.click(await screen.findByRole('button', { name: /Add customer/ }))
+    await fill({ 'Customer name': 'Globex', 'Contact person': 'Ravi', 'E-mail': 'ap@globex.test', 'Tax ID': '29ABCDE1234F1Z5' })
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Add customer' }))
+    expect(await screen.findByText('A customer with the same tax ID already exists')).toBeInTheDocument()
     expect(screen.getByLabelText('Customer name')).toHaveValue('Globex')
   })
 

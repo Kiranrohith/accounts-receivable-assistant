@@ -46,13 +46,13 @@ async def main():
         check("FA cannot create users -> 403", (await c.post("/admin/users", headers=FA, json={"name": "Z", "email": "z@example.com", "password": "zzzzzzzz1", "role": "FA"})).status_code == 403)
         check("FA cannot list users -> 403", (await c.get("/admin/users", headers=FA)).status_code == 403)
 
-        cust = {"customer_name": "Zz Test Acme Ltd", "gstin": "29abcde1234f1z5", "email": "ZZ.AP@Acme-test.com", "billing_currency": "inr", "country": "India", "contact": "A. Rao", "deducts_tds": True}
+        cust = {"customer_name": "Zz Test Acme Ltd", "tax_id": "29abcde1234f1z5", "email": "ZZ.AP@Acme-test.com", "billing_currency": "inr", "country": "India", "contact": "A. Rao", "deducts_tds": True}
         check("FA cannot add customer -> 403", (await c.post("/customers", headers=FA, json=cust)).status_code == 403)
         r = await c.post("/customers", headers=FT, json=cust)
-        check("FTM adds customer -> 201, normalised", r.status_code == 201 and r.json()["gstin"] == "29ABCDE1234F1Z5" and r.json()["billing_currency"] == "INR" and r.json()["deducts_tds"] is True, str(r.status_code))
+        check("FTM adds customer -> 201, normalised", r.status_code == 201 and r.json()["tax_id"] == "29ABCDE1234F1Z5" and r.json()["billing_currency"] == "INR" and r.json()["deducts_tds"] is True, str(r.status_code))
         check("duplicate GSTIN -> 409", (await c.post("/customers", headers=FT, json=cust)).status_code == 409)
-        check("invalid GSTIN -> 422", (await c.post("/customers", headers=FT, json={**cust, "gstin": "BADGSTIN"})).status_code == 422)
-        check("customer without GSTIN now refused -> 422", (await c.post("/customers", headers=FT, json={k: v for k, v in {**cust, "customer_name": "Zz Globex", "email": "zz.g@globex-test.com"}.items() if k != "gstin"})).status_code == 422)
+        check("invalid GSTIN -> 422", (await c.post("/customers", headers=FT, json={**cust, "tax_id": "BADGSTIN"})).status_code == 422)
+        check("customer without GSTIN now refused -> 422", (await c.post("/customers", headers=FT, json={k: v for k, v in {**cust, "customer_name": "Zz Globex", "email": "zz.g@globex-test.com"}.items() if k != "tax_id"})).status_code == 422)
         check("FA can view customers (sees the new one)", "Zz Test Acme Ltd" in [x["customer_name"] for x in (await c.get("/customers", headers=FA)).json()])
 
         check("logout -> 200", (await c.post("/auth/logout", headers=H)).status_code == 200)

@@ -37,7 +37,7 @@ def check(name, cond, extra=""):
 def inv(number, **kw):
     base = dict(
         invoice_number=number, customer_name="Zenith Softlabs Pvt Ltd",
-        customer_gstin="33AABCZ1234F1Z5", invoice_date=date(2026, 10, 1), due_date=date(2026, 10, 31),
+        tax_id_value="33AABCZ1234F1Z5", invoice_date=date(2026, 10, 1), due_date=date(2026, 10, 31),
         currency="INR", total_amount=Decimal("10000"), confidence=FieldConfidences(**ALL),
         line_items=[LineItem(description="Consulting", quantity=Decimal("1"))],
     )
@@ -46,8 +46,8 @@ def inv(number, **kw):
 
 
 CASES = {
-    "review1": inv("INV-RV-1", customer_name="Unknown Corp Ltd", customer_gstin=None),
-    "review2": inv("INV-RV-2", customer_name="Unknown Corp Ltd", customer_gstin=None),
+    "review1": inv("INV-RV-1", customer_name="Unknown Corp Ltd", tax_id_value=None),
+    "review2": inv("INV-RV-2", customer_name="Unknown Corp Ltd", tax_id_value=None),
     "ok1": inv("INV-LS-1", line_items=[LineItem(description="Laptop", quantity=Decimal("2")), LineItem(description="Monitor", quantity=Decimal("1"))]),
     "usd1": inv("INV-LS-2", currency="USD", total_amount=Decimal("1000"), invoice_date=date(2026, 10, 5)),
     "held1": inv("INV-LS-3", po_number="PO-LS", line_items=[LineItem(description="Laptop", quantity=Decimal("5"))]),
@@ -99,11 +99,11 @@ async def main():
         await c.post("/admin/users", headers=ADM, json={"name": "Fa Two", "email": "fa.two@example.com", "password": "pass12345", "role": "FA"})
         FA = {"Authorization": f"Bearer {(await login('fa.two@example.com', 'pass12345')).json()['access_token']}"}
         cust = lambda **kw: {"contact": "Contact", "country": "India", "billing_currency": "INR", **kw}
-        for body in (cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", gstin="33AABCZ1234F1Z5", deducts_tds=True),
-                     cust(customer_name="Meridian Tech Solutions Pvt Ltd", email="ap@meridian.com", gstin="29AABCM5678K1Z3", deducts_tds=False)):
+        for body in (cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", tax_id="33AABCZ1234F1Z5", deducts_tds=True),
+                     cust(customer_name="Meridian Tech Solutions Pvt Ltd", email="ap@meridian.com", tax_id="29AABCM5678K1Z3", deducts_tds=False)):
             assert (await c.post("/customers", headers=ADM, json=body)).status_code == 201
         async with SessionLocal() as db:
-            zen = (await db.execute(text("select id from customers where gstin='33AABCZ1234F1Z5'"))).scalar()
+            zen = (await db.execute(text("select id from customers where tax_id='33AABCZ1234F1Z5'"))).scalar()
             po = PurchaseOrder(customer_id=zen, po_number="PO-LS", po_date=date(2026, 9, 1))
             db.add(po)
             await db.flush()

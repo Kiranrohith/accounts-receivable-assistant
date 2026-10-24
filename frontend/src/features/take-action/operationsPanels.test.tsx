@@ -18,7 +18,7 @@ function quiet() {
     http.get(endpoint('/queues/items'), () => HttpResponse.json({ items: [], total: 0 })),
     http.get(endpoint('/notifications'), () => HttpResponse.json({ items: [], total: 0 })),
     http.get(endpoint('/notifications/unread-count'), () => HttpResponse.json({ unread: 0 })),
-    http.get(endpoint('/customers'), () => HttpResponse.json([{ id: ACME, customer_name: 'Acme Corporation', gstin: null, is_active: true }])),
+    http.get(endpoint('/customers'), () => HttpResponse.json([{ id: ACME, customer_name: 'Acme Corporation', tax_id: null, is_active: true }])),
     http.get(endpoint('/invoices'), () => HttpResponse.json([{ invoice_id: INV, invoice_number: 'INV-001', status: 'Open', customer_id: ACME, customer_name: 'Acme Corporation', due_date: '2026-03-31', invoice_currency: 'INR', fx_rate: null, collectible_balance: '1000.00', is_disputed: false, po_hold: false }])),
   )
 }
@@ -217,7 +217,7 @@ const task = (over: Record<string, unknown> = {}) => ({
   assigned_to: 'u1', assigned_to_name: 'Asha', created_at: '2026-03-15T03:30:00Z', closed_reason: null, closed_at: null, closed_note: null, history: [],
   payload: {
     invoice: { invoice_number: 'INV-2026-005', type: 'INVOICE', invoice_date: '2026-01-01', due_date: '2026-01-15', days_overdue: 60, currency: 'INR', collectible_total: '100000.00', amount_paid: '40000.00', balance: '60000.00', balance_text: 'INR 60,000.00', status: 'PartlyPaid' },
-    customer: { customer_id: ACME, name: 'Acme Corporation', contact: 'Ravi', email: 'ap@acme.test', gstin: null },
+    customer: { customer_id: ACME, name: 'Acme Corporation', contact: 'Ravi', email: 'ap@acme.test', tax_id: null, tax_id_type: null },
     payments: [{ payment_id: 'p1', payment_reference: 'UTR-1', credit_note: null, amount: '40000.00', status: 'Active', at: '2026-02-01T00:00:00Z' }],
     reminders: [{ reminder_id: 'r1', tier: 1, state: 'Sent', sent_at: '2026-01-16T00:00:00Z', sent_to: 'ap@acme.test' }],
   }, ...over,

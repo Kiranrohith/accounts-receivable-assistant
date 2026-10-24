@@ -142,7 +142,7 @@ async def main():
     smtp.retry_delays_seconds = (0, 0, 0)
 
     async with SessionLocal() as db:
-        c = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="Anita", email=K, gstin="29ABCDE1234F1Z5",
+        c = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="Anita", email=K, tax_id_type="GSTIN", tax_id="29ABCDE1234F1Z5",
                      deducts_tds=False, billing_currency="INR", country="India")
         db.add(c)
         await db.flush()

@@ -23,7 +23,7 @@ from pydantic import BaseModel
 
 from config.settings import get_settings
 from constants.constants import BACKOFF_JITTER, LLM_RETRY_DELAYS_SECONDS
-from core.services.customers.gstin import with_gstin_from_text
+from core.services.customers.tax_id import read_tax_id
 from core.services.invoices.tax import with_tax_total
 from prompts.invoices.extraction import USER_PROMPT_TEMPLATE, build_system_prompt
 from schemas.invoices.extraction import ExtractedInvoice
@@ -40,6 +40,7 @@ class ExtractionOutcome:
     invoice: ExtractedInvoice
     model_used: str
     attempts: int
+    tax_id_note: str | None = None  # why the reader's tax ID was left out (it failed the shape of its type), if it was
 
 
 @dataclass(frozen=True)
@@ -148,8 +149,8 @@ async def extract_invoice(markdown: str) -> ExtractionOutcome:
         HumanMessage(USER_PROMPT_TEMPLATE.format(document=markdown)),
     ]
     invoice, model_used, attempts = await run_structured_extraction(ExtractedInvoice, messages)
-    # the reader sometimes gives our own GSTIN, or none, for the customer: take the document's other GSTIN instead
-    invoice = with_gstin_from_text(invoice, markdown, settings.our_gstin)
+    # the tax ID must have the shape of its type; when the reader gave none, our own GSTIN or a bad one, take the document's other id
+    invoice, tax_id_note = read_tax_id(invoice, markdown, settings.our_gstin)
     # two or more itemised taxes are often printed without a combined total: add them up
     invoice = with_tax_total(invoice)
-    return ExtractionOutcome(invoice, model_used, attempts)
+    return ExtractionOutcome(invoice, model_used, attempts, tax_id_note)

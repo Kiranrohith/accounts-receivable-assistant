@@ -1,3 +1,5 @@
+from prompts.tax_id import tax_id_rules
+
 SYSTEM_PROMPT = """\
 You read a single invoice for an accounts-receivable system and extract structured data \
 from it. The document was converted to \
@@ -13,28 +15,14 @@ Return exactly the fields in the requested schema. Rules:
 GENERAL
 - Never guess or invent. If a field is not clearly present, return null (or an empty \
 list). A missing value is correct; a wrong value is harmful.
-- Copy identifiers exactly as printed (invoice number, GSTIN, PO number), including \
+- Copy identifiers exactly as printed (invoice number, tax identifier, PO number), including \
 prefixes, slashes and hyphens. OCR sometimes joins words ("AcmeTradersPvtLtd"); \
 restore normal spacing in names, but do not alter identifiers.
 - Extract only from this document. Do not use outside knowledge.
 
 PARTIES
-- The invoice is issued BY a seller TO a customer (the buyer, shown as "Bill To", \
-"Buyer", "Customer", "Sold To" or similar). customer_name and customer_gstin are the \
-BUYER's. Never return the seller's name or the seller's GSTIN as the customer's.
-- An invoice prints (at least) TWO GSTINs: the seller's and the buyer's. They may be \
-labelled "GSTIN", "GSTIN/UIN", "GST No", "GST Reg No" or "Tax ID", and they can sit \
-anywhere: the letterhead, the bill-to / ship-to blocks, the footer, or an [embedded image] \
-section. Search the WHOLE document, not only one block.
-- Work by elimination. List every GSTIN you can see. The seller's is the one in the \
-letterhead / "From" / seller block (and the one that equals OUR GSTIN when that is given \
-below). customer_gstin is the OTHER one, from the bill-to / buyer / customer block. When the \
-document shows exactly two different GSTINs and one is the seller's, the other is the \
-buyer's: return it, even if its label is missing or unusual. Never return the seller's GSTIN \
-as the customer's.
-- Return null for customer_gstin only when the document shows no GSTIN other than the seller's.
-- A GSTIN is 15 characters (for example 29ABCDE1234F1Z5). Return it uppercase with no \
-spaces; if what you read is not 15 characters, return null.
+- The invoice is issued BY a seller TO a customer (the buyer, shown as "Bill To", "Buyer", "Customer", "Sold To" or similar). customer_name and the tax identifier (tax_id_type, tax_id_value, tax_id_raw_label) are the BUYER's. Never return the seller's name or the seller's identifier as the customer's.
+<<TAX_ID_RULES>>
 
 DOCUMENT TYPE
 - document_type is DEBIT_NOTE only if the document is titled or clearly labelled as a \
@@ -82,8 +70,13 @@ CONFIDENCE
 and read from the document. 90-100: printed clearly and unambiguous. 60-89: readable \
 but with some doubt (OCR noise, ambiguous label or date format). Below 60: mostly a \
 guess. Use null for a field you returned as null. Use the "tax" confidence for \
-tax_total and tax_breakdown together.
+tax_total and tax_breakdown together, and the "tax_id" confidence for the customer's tax \
+identifier (its three fields together).
 """
+SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+    "<<TAX_ID_RULES>>\n",
+    tax_id_rules("An invoice", "seller", "buyer", "the bill-to / buyer / customer block"),
+)
 
 USER_PROMPT_TEMPLATE = """\
 Extract the invoice fields from the document below.
@@ -113,6 +106,6 @@ def build_system_prompt(our_company_name: str | None, our_gstin: str | None) -> 
         + f"- We are the SELLER on the invoices you read: {details}.\n"
         + "- Our name and our GSTIN are NEVER the customer's. The customer is the other "
         + "party. If the document shows our GSTIN, it is the seller's: ignore it and return "
-        + "the OTHER GSTIN printed in the document as customer_gstin (null only if there "
-        + "is none).\n"
+        + "the OTHER tax identifier printed in the document as the customer's (null only "
+        + "if there is none).\n"
     )

@@ -37,8 +37,8 @@ async def main():
 
         cust = lambda **kw: {"contact": "Contact", "country": "India", "billing_currency": "INR", **kw}
         for body in (
-            cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", gstin="33AABCZ1234F1Z5", deducts_tds=True),
-            cust(customer_name="Meridian Tech Solutions Pvt Ltd", email="ap@meridian.com", gstin="29AABCM5678K1Z3", deducts_tds=False),
+            cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", tax_id="33AABCZ1234F1Z5", deducts_tds=True),
+            cust(customer_name="Meridian Tech Solutions Pvt Ltd", email="ap@meridian.com", tax_id="29AABCM5678K1Z3", deducts_tds=False),
         ):
             assert (await c.post("/customers", headers=A, json=body)).status_code == 201
         custs = {x["customer_name"]: x["id"] for x in (await c.get("/customers", headers=A)).json()}
@@ -124,7 +124,7 @@ async def main():
             check("edit making due date earlier than invoice date -> 422, still pending", r.status_code == 422 and "before the invoice date" in r.json()["detail"] and (await q("select status::text from pending_invoice_changes where id=:i", i=R10)).scalar() == "Pending", r.json()["detail"][:100])
             r = await ap(R10, reason="check")
             check("GSTIN unknown but name known, no fix -> 422", r.status_code == 422)
-            r = await ap(R10, reason="GSTIN was misread, corrected from the PDF", edits={"customer_gstin": "33AABCZ1234F1Z5"})
+            r = await ap(R10, reason="GSTIN was misread, corrected from the PDF", edits={"tax_id_value": "33AABCZ1234F1Z5"})
             check("approve with the right GSTIN -> invoice created", r.status_code == 200, str(r.json())[:100])
 
             # ---- unsupported currency: cannot approve, can reject ----

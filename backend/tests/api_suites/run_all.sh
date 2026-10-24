@@ -8,7 +8,7 @@
 # api_test_mail4 reads the seed kit (not in git): it runs only when KIT_DIR points at it, otherwise it is listed as
 # skipped, never silently dropped. The exit code is non-zero when any suite that ran failed.
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODEL="api_test_dis3_llm api_test_intake api_test_e2e api_test_pay3 api_test_fx2 api_test_po2 api_test_po3 api_test_po4 api_test_review api_test_upload api_test_sendback api_test_mail4"
+MODEL="api_test_dis3_llm api_test_taxid_llm api_test_intake api_test_e2e api_test_pay3 api_test_fx2 api_test_po2 api_test_po3 api_test_po4 api_test_review api_test_upload api_test_sendback api_test_mail4"
 
 NO_MODEL=0; FILTERS=()
 for arg in "$@"; do

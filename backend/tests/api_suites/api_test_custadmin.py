@@ -42,7 +42,7 @@ async def customer(label, *, tds=False):
     _n[0] += 1
     async with SessionLocal() as db:
         c = Customer(customer_name=f"{label} Ltd", contact="Anita", email=f"ap@{label.lower()}-{RUN}.example.com",
-                     gstin=f"29ABCDE{_n[0]:04d}F1Z5", deducts_tds=tds, billing_currency="INR", country="India")
+                     tax_id_type="GSTIN", tax_id=f"29ABCDE{_n[0]:04d}F1Z5", deducts_tds=tds, billing_currency="INR", country="India")
         db.add(c)
         await db.commit()
         return c.id
@@ -101,7 +101,7 @@ async def main():
               r.status_code == 200 and (a["open_invoices"], a["overdue_invoices"], D(a["outstanding"]), D(a["unapplied_cash"])) == (3, 2, D("3300"), D("150")), str(a))
         z = by["Quiet Ltd"]
         check("a customer with nothing owed shows zeros, not nothing", (z["open_invoices"], z["overdue_invoices"], D(z["outstanding"]), D(z["unapplied_cash"])) == (0, 0, D("0"), D("0")), str(z))
-        check("the old fields are still there for the pickers", {"id", "customer_name", "gstin", "deducts_tds", "is_active"} <= set(a))
+        check("the old fields are still there for the pickers", {"id", "customer_name", "tax_id", "deducts_tds", "is_active"} <= set(a))
 
         # ======================================== B. one customer
         r = await c.get(f"/customers/{acme}", headers=FA)
@@ -117,18 +117,18 @@ async def main():
         check("FTM edits some fields; the rest stay; the currency is upper-cased", r.status_code == 200 and r.json()["contact"] == "Ravi" and r.json()["country"] == "Nepal"
               and r.json()["billing_currency"] == "NPR" and r.json()["customer_name"] == "Quiet Ltd", r.text[:200])
         check("an empty body -> 422", (await c.patch(f"/customers/{quiet}", headers=FTM1, json={})).status_code == 422)
-        check("a bad GSTIN -> 422", (await c.patch(f"/customers/{quiet}", headers=FTM1, json={"gstin": "123"})).status_code == 422)
+        check("a bad tax ID -> 422", (await c.patch(f"/customers/{quiet}", headers=FTM1, json={"tax_id": "123"})).status_code == 422)
         check("a bad currency -> 422", (await c.patch(f"/customers/{quiet}", headers=FTM1, json={"billing_currency": "RUPEE"})).status_code == 422)
-        acme_gstin = (await c.get(f"/customers/{acme}", headers=FA)).json()["gstin"]
-        r = await c.patch(f"/customers/{quiet}", headers=FTM1, json={"gstin": acme_gstin})
-        check("another customer's GSTIN -> 409 naming what clashes", r.status_code == 409 and "GSTIN" in r.json()["detail"], r.text[:200])
+        acme_gstin = (await c.get(f"/customers/{acme}", headers=FA)).json()["tax_id"]
+        r = await c.patch(f"/customers/{quiet}", headers=FTM1, json={"tax_id": acme_gstin})
+        check("another customer's tax ID -> 409 naming what clashes", r.status_code == 409 and "tax ID" in r.json()["detail"], r.text[:200])
         r = await c.patch(f"/customers/{quiet}", headers=FTM1, json={"customer_name": "  acme   LTD "})
         check("another customer's name (any case, any spacing) -> 409", r.status_code == 409 and "name" in r.json()["detail"], r.text[:200])
         r = await c.patch(f"/customers/{quiet}", headers=FTM1, json={"email": f"AP@ACME-{RUN}.example.com"})
         check("another customer's e-mail (any case) -> 409", r.status_code == 409 and "email" in r.json()["detail"], r.text[:200])
         own = (await c.get(f"/customers/{quiet}", headers=FA)).json()
-        r = await c.patch(f"/customers/{quiet}", headers=FTM1, json={"gstin": own["gstin"], "customer_name": own["customer_name"], "email": own["email"]})
-        check("sending its OWN GSTIN, name and e-mail back is not a clash", r.status_code == 200, r.text[:200])
+        r = await c.patch(f"/customers/{quiet}", headers=FTM1, json={"tax_id": own["tax_id"], "customer_name": own["customer_name"], "email": own["email"]})
+        check("sending its OWN tax ID, name and e-mail back is not a clash", r.status_code == 200, r.text[:200])
         check("404 for an unknown customer on edit", (await c.patch(f"/customers/{uuid.uuid4()}", headers=FTM1, json=body)).status_code == 404)
         audit = await q("select updated_by from customers where id=:i", i=quiet)
         check("the editor is recorded", audit[0][0] is not None)

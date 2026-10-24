@@ -10,13 +10,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PERMISSIONS } from '@/config/constants'
 import { hasPermission, useCurrentUser } from '@/features/auth'
+import { TAX_ID_TYPES, TAX_ID_TYPE_LABEL } from '@/features/customers'
 
 import { poReviewQuery, useApprovePo, useRejectPo } from '../queries/poReviewQueries'
 import type { PoReview } from '../services/poReviewService'
 import { LOW_CONFIDENCE } from '../utils/invoiceEdits'
 import type { LineForm } from '../utils/lines'
 import { describePoApproval, diffPoEdits, PO_FIELDS, poLinesOf, toPoForm, type PoFormValues } from '../utils/poEdits'
-import { CustomerPicker } from './parts/CustomerPicker'
+import { CustomerPicker, SELECT_CLASS } from './parts/CustomerPicker'
 import { LineEditor } from './parts/LineEditor'
 import { DecidedNotice, ReasonsBox } from './parts/ReasonsBox'
 import type { PanelProps } from './types'
@@ -79,7 +80,7 @@ function PoReviewForm({ review, itemId, onDone }: { review: PoReview; itemId: st
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {PO_FIELDS.map((field) => {
-                    const sure = extraction.confidence[field.confidence]
+                    const sure = field.confidence ? extraction.confidence[field.confidence] : null
                     const low = sure !== null && sure < LOW_CONFIDENCE
                     return (
                       <div key={field.key} className="space-y-1">
@@ -87,14 +88,25 @@ function PoReviewForm({ review, itemId, onDone }: { review: PoReview; itemId: st
                           {field.label}
                           {low && <span className="ml-2 text-xs font-normal text-amber-700">{sure}% sure</span>}
                         </Label>
-                        <Input
-                          id={`f-${field.key}`}
-                          type={field.kind === 'date' ? 'date' : 'text'}
-                          inputMode={field.kind === 'amount' ? 'decimal' : undefined}
-                          value={form[field.key]}
-                          onChange={(e) => setForm((current) => ({ ...current, [field.key]: e.target.value }))}
-                          aria-invalid={low || undefined}
-                        />
+                        {field.kind === 'taxType' ? (
+                          <select id={`f-${field.key}`} className={SELECT_CLASS} value={form[field.key]} onChange={(e) => setForm((current) => ({ ...current, [field.key]: e.target.value }))}>
+                            <option value="">Not known</option>
+                            {TAX_ID_TYPES.map((type) => (
+                              <option key={type} value={type}>
+                                {TAX_ID_TYPE_LABEL[type]}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <Input
+                            id={`f-${field.key}`}
+                            type={field.kind === 'date' ? 'date' : 'text'}
+                            inputMode={field.kind === 'amount' ? 'decimal' : undefined}
+                            value={form[field.key]}
+                            onChange={(e) => setForm((current) => ({ ...current, [field.key]: e.target.value }))}
+                            aria-invalid={low || undefined}
+                          />
+                        )}
                       </div>
                     )
                   })}

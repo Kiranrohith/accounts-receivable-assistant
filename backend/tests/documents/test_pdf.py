@@ -8,7 +8,7 @@ from core.services.mail import templates
 
 NOTE = dict(
     note_number="CN-2026-000007", issue_date="22 Oct 2026", customer_name="Zenith Softlabs Pvt Ltd",
-    customer_gstin="29ABCDE1234F1Z5", note_amount="INR 1,234.00", note_reason="Overpayment of INV-1001",
+    customer_tax_id="29ABCDE1234F1Z5", customer_tax_id_label="GSTIN", note_amount="INR 1,234.00", note_reason="Overpayment of INV-1001",
     linked_invoice_number="INV-1001", linked_payment_reference="UTR123",
 )
 
@@ -26,7 +26,7 @@ def test_the_credit_note_becomes_a_pdf_with_every_fact_on_it():
 
 
 def test_optional_lines_are_left_out_when_there_is_nothing_to_say():
-    data = html_to_pdf(templates.render_html("credit_note", **{**NOTE, "customer_gstin": "", "linked_invoice_number": "", "linked_payment_reference": ""}))
+    data = html_to_pdf(templates.render_html("credit_note", **{**NOTE, "customer_tax_id": "", "linked_invoice_number": "", "linked_payment_reference": ""}))
     text = words_of(data)
     assert "GSTIN" not in text and "Invoice:" not in text and "Payment:" not in text
 
@@ -40,6 +40,6 @@ def test_characters_the_fonts_lack_do_not_fail_the_document():
 def test_the_debit_note_template_renders_to_html():
     html = templates.render_html(
         "debit_note", invoice_number="DN-1", invoice_date="1 Oct 2026", due_date="31 Oct 2026", customer_name="Zenith",
-        customer_gstin="", lines=[{"description": "Late fee", "amount": "INR 500.00"}], total="INR 500.00", linked_reference="INV-1",
+        customer_tax_id="", customer_tax_id_label="Tax ID", lines=[{"description": "Late fee", "amount": "INR 500.00"}], total="INR 500.00", linked_reference="INV-1",
     )
     assert "DEBIT NOTE" in html and "Late fee" in html

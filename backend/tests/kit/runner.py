@@ -130,13 +130,13 @@ async def seed(kit: Path) -> dict[str, dict]:
     async with SessionLocal() as db:
         for c in customers:
             row = Customer(
-                customer_name=c["customer_name"], contact=c["contact"], email=c["email"], gstin=c["gstin"],
+                customer_name=c["customer_name"], contact=c["contact"], email=c["email"], tax_id_type="GSTIN", tax_id=c["gstin"],
                 deducts_tds=c["deducts_tds"], billing_currency=c["billing_currency"], country=c["country"],
                 is_active=c.get("is_active", True),
             )
             db.add(row)
             await db.flush()
-            ids[c["customer_code"]] = {"id": row.id, "gstin": c["gstin"]}
+            ids[c["customer_code"]] = {"id": row.id, "tax_id": c["gstin"]}
             for a in c.get("aliases", []):
                 db.add(CustomerAlias(customer_id=row.id, alias_type=AliasType(a["alias_type"]), alias_value=a["alias_value"]))
         for a in aliases:

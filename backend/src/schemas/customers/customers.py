@@ -6,9 +6,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, StringConstraints, field_validator, model_validator
 
-from constants.constants import GSTIN_PATTERN
-
-_GSTIN = re.compile(GSTIN_PATTERN)
+from schemas.customers.tax_id import TaxIdType
 
 
 def _collapse_spaces(value: object) -> object:
@@ -29,18 +27,11 @@ class CustomerCreate(BaseModel):
     customer_name: Text
     contact: Text
     email: EmailStr
-    gstin: str
+    tax_id: str  # checked against its type and stored normalized by the service
+    tax_id_type: TaxIdType = TaxIdType.GSTIN
     deducts_tds: bool
     billing_currency: str
     country: Text
-
-    @field_validator("gstin")
-    @classmethod
-    def _gstin(cls, value: str) -> str:
-        value = value.strip().upper()
-        if not _GSTIN.match(value):
-            raise ValueError("GSTIN must be 15 characters, e.g. 29ABCDE1234F1Z5")
-        return value
 
     @field_validator("billing_currency")
     @classmethod
@@ -58,7 +49,8 @@ class CustomerOut(BaseModel):
     customer_name: str
     contact: str | None
     email: str | None
-    gstin: str | None
+    tax_id: str | None
+    tax_id_type: TaxIdType | None
     deducts_tds: bool
     billing_currency: str | None
     country: str | None
@@ -82,20 +74,11 @@ class CustomerUpdate(BaseModel):
     customer_name: Text | None = None
     contact: Text | None = None
     email: EmailStr | None = None
-    gstin: str | None = None
+    tax_id: str | None = None
+    tax_id_type: TaxIdType | None = None
     deducts_tds: bool | None = None
     billing_currency: str | None = None
     country: Text | None = None
-
-    @field_validator("gstin")
-    @classmethod
-    def _gstin(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        value = value.strip().upper()
-        if not _GSTIN.match(value):
-            raise ValueError("GSTIN must be 15 characters, e.g. 29ABCDE1234F1Z5")
-        return value
 
     @field_validator("billing_currency")
     @classmethod

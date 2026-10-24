@@ -1,13 +1,13 @@
 import type { ExtractedInvoice, FieldConfidences, InvoiceDecision, InvoiceEdits } from '../services/invoiceReviewService'
 
-export type FieldKind = 'text' | 'date' | 'amount'
+export type FieldKind = 'text' | 'date' | 'amount' | 'taxType'
 
 export interface FieldDef {
   key: keyof Omit<InvoiceEdits, 'document_type'>
   label: string
   kind: FieldKind
-  /** The reader's confidence for this field lives under this key (tax_total is called "tax" there). */
-  confidence: keyof FieldConfidences
+  /** The reader's confidence for this field lives under this key (tax_total is called "tax" there); none for the id's type. */
+  confidence?: keyof FieldConfidences
 }
 
 /** The values a person can correct, in the order they read on an invoice. */
@@ -16,7 +16,8 @@ export const FIELDS: FieldDef[] = [
   { key: 'invoice_date', label: 'Invoice date', kind: 'date', confidence: 'invoice_date' },
   { key: 'due_date', label: 'Due date', kind: 'date', confidence: 'due_date' },
   { key: 'customer_name', label: 'Customer name', kind: 'text', confidence: 'customer_name' },
-  { key: 'customer_gstin', label: 'Customer GSTIN', kind: 'text', confidence: 'customer_gstin' },
+  { key: 'tax_id_type', label: 'Tax ID type', kind: 'taxType' },
+  { key: 'tax_id_value', label: 'Customer tax ID', kind: 'text', confidence: 'tax_id' },
   { key: 'currency', label: 'Currency', kind: 'text', confidence: 'currency' },
   { key: 'subtotal', label: 'Subtotal', kind: 'amount', confidence: 'subtotal' },
   { key: 'tax_total', label: 'Tax', kind: 'amount', confidence: 'tax' },

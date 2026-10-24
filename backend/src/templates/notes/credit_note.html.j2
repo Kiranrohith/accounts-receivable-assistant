@@ -7,8 +7,8 @@
   <h1>CREDIT NOTE</h1>
   <p><strong>Note number:</strong> {{ note_number }}<br>
      <strong>Issue date:</strong> {{ issue_date }}</p>
-  <p><strong>Customer:</strong> {{ customer_name }}{% if customer_gstin %}<br>
-     <strong>GSTIN:</strong> {{ customer_gstin }}{% endif %}</p>
+  <p><strong>Customer:</strong> {{ customer_name }}{% if customer_tax_id %}<br>
+     <strong>{{ customer_tax_id_label }}:</strong> {{ customer_tax_id }}{% endif %}</p>
   <p><strong>Amount:</strong> {{ note_amount }}<br>
      <strong>Reason:</strong> {{ note_reason }}</p>
   {% if linked_invoice_number %}<p><strong>Invoice:</strong> {{ linked_invoice_number }}</p>{% endif %}

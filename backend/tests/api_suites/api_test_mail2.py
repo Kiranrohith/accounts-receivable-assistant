@@ -123,7 +123,7 @@ async def main():
     queue.retry_delays_seconds = (3600, 3600, 3600)  # a retried job is not due again within this test
 
     async with SessionLocal() as db:
-        c = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="Anita", email="ap@zenith.test", gstin="29ABCDE1234F1Z5",
+        c = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="Anita", email="ap@zenith.test", tax_id_type="GSTIN", tax_id="29ABCDE1234F1Z5",
                      deducts_tds=False, billing_currency="INR", country="India")
         db.add(c)
         await db.flush()

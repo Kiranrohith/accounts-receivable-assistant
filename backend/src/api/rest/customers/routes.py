@@ -37,7 +37,7 @@ _NOT_FOUND = {404: {"description": "No such customer"}}
     response_model=CustomerOut,
     status_code=status.HTTP_201_CREATED,
     summary="Add a customer",
-    description="Requires customers.manage. GSTIN, when given, must be unique.",
+    description="Requires customers.manage. The tax ID (a GSTIN, a VAT number, a TRN, an EIN or other; GSTIN when no type is sent) is checked against the shape of its type, stored without spaces, dots, hyphens or slashes, and must be unique.",
 )
 async def create(
     body: CustomerCreate,
@@ -139,11 +139,11 @@ async def detail(
     response_model=CustomerDetail,
     summary="Edit a customer",
     description=(
-        "Requires customers.manage. Send only the fields to change. GSTIN, name and e-mail must stay unique (409 "
+        "Requires customers.manage. Send only the fields to change. Tax ID, name and e-mail must stay unique (409 "
         "otherwise). Changing `deducts_tds` is prospective: it applies to invoices created from now on; use "
         "POST /customers/{id}/recompute-tds for the ones already saved."
     ),
-    responses={**_NOT_FOUND, 409: {"description": "Another customer has the same GSTIN, name or e-mail"}},
+    responses={**_NOT_FOUND, 409: {"description": "Another customer has the same tax ID, name or e-mail"}},
 )
 async def edit(
     customer_id: uuid.UUID,

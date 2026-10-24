@@ -2,17 +2,18 @@ import type { ExtractedPo, PoConfidences, PoDecision, PoEdits } from '../service
 import { linesChanged, toLineForms, toLinePayload, type LineForm } from './lines'
 
 export interface PoFieldDef {
-  key: 'po_number' | 'po_date' | 'customer_name' | 'customer_gstin' | 'currency' | 'total_amount'
+  key: 'po_number' | 'po_date' | 'customer_name' | 'tax_id_type' | 'tax_id_value' | 'currency' | 'total_amount'
   label: string
-  kind: 'text' | 'date' | 'amount'
-  confidence: keyof PoConfidences
+  kind: 'text' | 'date' | 'amount' | 'taxType'
+  confidence?: keyof PoConfidences
 }
 
 export const PO_FIELDS: PoFieldDef[] = [
   { key: 'po_number', label: 'PO number', kind: 'text', confidence: 'po_number' },
   { key: 'po_date', label: 'PO date', kind: 'date', confidence: 'po_date' },
   { key: 'customer_name', label: 'Customer name', kind: 'text', confidence: 'customer_name' },
-  { key: 'customer_gstin', label: 'Customer GSTIN', kind: 'text', confidence: 'customer_gstin' },
+  { key: 'tax_id_type', label: 'Tax ID type', kind: 'taxType' },
+  { key: 'tax_id_value', label: 'Customer tax ID', kind: 'text', confidence: 'tax_id' },
   { key: 'currency', label: 'Currency', kind: 'text', confidence: 'currency' },
   { key: 'total_amount', label: 'Total', kind: 'amount', confidence: 'total_amount' },
 ]

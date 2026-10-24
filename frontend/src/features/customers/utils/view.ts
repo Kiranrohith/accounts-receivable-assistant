@@ -1,6 +1,6 @@
 import type { Customer } from '../types/customer'
 
-export const CUSTOMER_SORTS = ['name', 'gstin', 'currency', 'open', 'outstanding'] as const
+export const CUSTOMER_SORTS = ['name', 'tax_id', 'currency', 'open', 'outstanding'] as const
 export type CustomerSort = (typeof CUSTOMER_SORTS)[number]
 
 export interface CustomerView {
@@ -13,7 +13,7 @@ export interface CustomerView {
 
 const SORT_VALUE: Record<CustomerSort, (c: Customer) => string | number> = {
   name: (c) => c.customer_name,
-  gstin: (c) => c.gstin ?? '',
+  tax_id: (c) => c.tax_id ?? '',
   currency: (c) => c.billing_currency ?? '',
   open: (c) => c.open_invoices,
   outstanding: (c) => Number(c.outstanding),
@@ -30,7 +30,7 @@ function compare(a: string | number, b: string | number): number {
 export function viewCustomers(all: Customer[], view: CustomerView): { rows: Customer[]; total: number } {
   const needle = (view.q ?? '').trim().toLowerCase()
   const matching = needle
-    ? all.filter((c) => [c.customer_name, c.gstin, c.email, c.contact].some((field) => (field ?? '').toLowerCase().includes(needle)))
+    ? all.filter((c) => [c.customer_name, c.tax_id, c.email, c.contact].some((field) => (field ?? '').toLowerCase().includes(needle)))
     : all
 
   const key = (CUSTOMER_SORTS as readonly string[]).includes(view.sort ?? '') ? (view.sort as CustomerSort) : 'name'

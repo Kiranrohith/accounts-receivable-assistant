@@ -44,7 +44,7 @@ def validate_purchase_order(po: ExtractedPurchaseOrder) -> ValidationResult:
                 "No PO number could be read; it may be on the document, please check")
 
     # --- customer identity ---
-    if _missing(po.customer_name) and _missing(po.customer_gstin):
+    if _missing(po.customer_name) and _missing(po.tax_id_value):
         add(Severity.FAIL, "missing_field", "customer_name", "The customer is missing")
 
     # --- line items ---

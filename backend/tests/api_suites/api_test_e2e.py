@@ -38,8 +38,8 @@ async def main():
         H = {"Authorization": f"Bearer {tok}"}
         cust = lambda **kw: {"contact": "Contact", "country": "India", "billing_currency": "INR", **kw}
         for body in (
-            cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", gstin="33AABCZ1234F1Z5", deducts_tds=True),
-            cust(customer_name="Meridian Tech Solutions Pvt Ltd", email="ap@meridian.com", gstin="29AABCM5678K1Z3", deducts_tds=False),
+            cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", tax_id="33AABCZ1234F1Z5", deducts_tds=True),
+            cust(customer_name="Meridian Tech Solutions Pvt Ltd", email="ap@meridian.com", tax_id="29AABCM5678K1Z3", deducts_tds=False),
         ):
             assert (await c.post("/customers", headers=H, json=body)).status_code == 201
         ids = {}
@@ -62,7 +62,7 @@ async def main():
 
             u = lst["c01_gstin_match.docx"]
             ex = (await det("c01_gstin_match.docx")).json()["extraction"]
-            check("c01 extracted CLIENT gstin, not ours", ex["customer_gstin"] == "33AABCZ1234F1Z5", str(ex["customer_gstin"]))
+            check("c01 extracted CLIENT gstin, not ours", ex["tax_id_value"] == "33AABCZ1234F1Z5", str(ex["tax_id_value"]))
             check("c01 -> invoice created for Zenith", u["disposition"] == "invoice_created" and u["customer_id"] == ZEN and u["invoice_id"])
             row = (await q(
                 "select customer_id::text, status::text, type::text, invoice_currency, amount_inr, fx_rate_invoice, "

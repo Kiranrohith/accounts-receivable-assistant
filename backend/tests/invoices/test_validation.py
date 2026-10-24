@@ -15,7 +15,7 @@ def make(**overrides) -> ExtractedInvoice:
     base = dict(
         invoice_number="INV-1",
         customer_name="Acme Traders Pvt Ltd",
-        customer_gstin="29ABCDE1234F1Z5",
+        tax_id_type="GSTIN", tax_id_value="29ABCDE1234F1Z5",
         invoice_date=date(2026, 10, 1),
         due_date=date(2026, 10, 31),
         currency="INR",
@@ -57,8 +57,8 @@ def test_blank_string_counts_as_missing():
     assert result.outcome is Outcome.FAIL
 
 
-def test_gstin_is_not_required():
-    assert validate_extraction(make(customer_gstin=None), today=TODAY).outcome is Outcome.PASS
+def test_a_tax_id_is_not_required():
+    assert validate_extraction(make(tax_id_value=None, tax_id_type=None), today=TODAY).outcome is Outcome.PASS
 
 
 def test_all_reasons_reported_not_just_first():
@@ -179,7 +179,7 @@ def test_value_without_any_confidence_goes_to_review():
 
 
 def test_low_confidence_on_optional_field_is_ignored():
-    conf = FieldConfidences(**{**ALL_95, "po_number": 10, "customer_gstin": 10})
+    conf = FieldConfidences(**{**ALL_95, "po_number": 10, "tax_id": 10})
     assert validate_extraction(make(confidence=conf), today=TODAY).outcome is Outcome.PASS
 
 

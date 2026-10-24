@@ -1,9 +1,10 @@
+import type { TaxIdType } from '@/features/customers'
 import { api } from '@/lib/axios'
 
 export interface FieldConfidences {
   invoice_number: number | null
   customer_name: number | null
-  customer_gstin: number | null
+  tax_id: number | null
   invoice_date: number | null
   due_date: number | null
   currency: number | null
@@ -32,7 +33,9 @@ export interface ExtractedInvoice {
   document_type: 'INVOICE' | 'DEBIT_NOTE'
   invoice_number: string | null
   customer_name: string | null
-  customer_gstin: string | null
+  tax_id_type: TaxIdType | null
+  tax_id_value: string | null
+  tax_id_raw_label: string | null
   invoice_date: string | null
   due_date: string | null
   currency: string | null
@@ -70,7 +73,8 @@ export type InvoiceEdits = Partial<
     | 'document_type'
     | 'invoice_number'
     | 'customer_name'
-    | 'customer_gstin'
+    | 'tax_id_type'
+    | 'tax_id_value'
     | 'invoice_date'
     | 'due_date'
     | 'currency'

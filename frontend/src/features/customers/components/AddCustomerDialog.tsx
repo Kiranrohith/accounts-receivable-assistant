@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -7,24 +7,27 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 import { useCreateCustomer } from '../queries/customerQueries'
-import type { NewCustomer } from '../types/customer'
-import { EMPTY_CUSTOMER, toPayload, validateNewCustomer } from '../utils/newCustomer'
+import { TAX_ID_TYPES, type NewCustomer, type TaxIdType } from '../types/customer'
+import { EMPTY_CUSTOMER, TAX_ID_TYPE_LABEL, toPayload, validateNewCustomer } from '../utils/newCustomer'
+
+const SELECT_CLASS =
+  'h-8 w-full rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
 
 interface AddCustomerDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-const FIELDS: { key: Exclude<keyof NewCustomer, 'deducts_tds'>; label: string; autoComplete?: string }[] = [
+const FIELDS: { key: Exclude<keyof NewCustomer, 'deducts_tds' | 'tax_id_type'>; label: string; autoComplete?: string }[] = [
   { key: 'customer_name', label: 'Customer name' },
   { key: 'contact', label: 'Contact person' },
   { key: 'email', label: 'E-mail', autoComplete: 'off' },
-  { key: 'gstin', label: 'GSTIN' },
+  { key: 'tax_id', label: 'Tax ID' },
   { key: 'billing_currency', label: 'Billing currency' },
   { key: 'country', label: 'Country' },
 ]
 
-/** The add-customer form. Everything is required; a customer with the same GSTIN, name or e-mail is refused by the server. */
+/** The add-customer form. Everything is required; a customer with the same tax ID, name or e-mail is refused by the server. */
 export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps) {
   const create = useCreateCustomer()
   const [values, setValues] = useState<NewCustomer>(EMPTY_CUSTOMER)
@@ -55,7 +58,7 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
       <DialogContent className="sm:max-w-[720px]">
         <DialogHeader>
           <DialogTitle>Add a customer</DialogTitle>
-          <DialogDescription>All fields are required. The GSTIN, name and e-mail must not belong to another customer.</DialogDescription>
+          <DialogDescription>All fields are required. The tax ID (a GSTIN, a VAT number, a TRN...), name and e-mail must not belong to another customer.</DialogDescription>
         </DialogHeader>
         <form
           className="grid grid-cols-1 gap-4 sm:grid-cols-2"
@@ -66,7 +69,25 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
           }}
         >
           {FIELDS.map((field) => (
-            <div key={field.key} className="space-y-1">
+            <Fragment key={field.key}>
+              {field.key === 'tax_id' && (
+                <div className="space-y-1">
+                  <Label htmlFor="nc-tax_id_type">Tax ID type</Label>
+                  <select
+                    id="nc-tax_id_type"
+                    className={SELECT_CLASS}
+                    value={values.tax_id_type}
+                    onChange={(e) => setValues((current) => ({ ...current, tax_id_type: e.target.value as TaxIdType }))}
+                  >
+                    {TAX_ID_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {TAX_ID_TYPE_LABEL[type]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            <div className="space-y-1">
               <Label htmlFor={`nc-${field.key}`}>{field.label}</Label>
               <Input
                 id={`nc-${field.key}`}
@@ -82,6 +103,7 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
                 </p>
               )}
             </div>
+            </Fragment>
           ))}
           <label className="flex items-start gap-2 text-sm sm:col-span-2">
             <input

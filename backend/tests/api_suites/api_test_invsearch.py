@@ -34,7 +34,7 @@ def check(name, cond, extra=""):
 async def customer(label):
     _n[0] += 1
     async with SessionLocal() as db:
-        c = Customer(customer_name=label, contact="Anita", email=f"ap{_n[0]}@{RUN}.example.com", gstin=f"29ABCDE{_n[0]:04d}F1Z5",
+        c = Customer(customer_name=label, contact="Anita", email=f"ap{_n[0]}@{RUN}.example.com", tax_id_type="GSTIN", tax_id=f"29ABCDE{_n[0]:04d}F1Z5",
                      billing_currency="INR", country="India", deducts_tds=False)
         db.add(c)
         await db.commit()

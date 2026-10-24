@@ -2,10 +2,10 @@ import type { ExtractedInvoice, InvoiceDecision } from '../services/invoiceRevie
 import { describeApproval, diffEdits, toForm } from './invoiceEdits'
 
 const extraction: ExtractedInvoice = {
-  document_type: 'INVOICE', invoice_number: 'INV-8', customer_name: 'Acme Corp', customer_gstin: '29ABCDE1234F1Z5',
+  document_type: 'INVOICE', invoice_number: 'INV-8', customer_name: 'Acme Corp', tax_id_type: 'GSTIN', tax_id_value: '29ABCDE1234F1Z5', tax_id_raw_label: 'GSTIN',
   invoice_date: '2026-03-01', due_date: null, currency: 'INR', subtotal: '1000.00', tax_total: '180.00', tax_breakdown: [],
   total_amount: '1180.00', line_items: [], po_number: null,
-  confidence: { invoice_number: 99, customer_name: 90, customer_gstin: 90, invoice_date: 95, due_date: null, currency: 99, subtotal: 90, tax: 90, total_amount: 99, line_items: 80, po_number: null },
+  confidence: { invoice_number: 99, customer_name: 90, tax_id: 90, invoice_date: 95, due_date: null, currency: 99, subtotal: 90, tax: 90, total_amount: 99, line_items: 80, po_number: null },
 }
 
 describe('diffEdits', () => {
@@ -24,8 +24,8 @@ describe('diffEdits', () => {
   })
 
   it('sends null for a field the person emptied, and a value for one they filled in', () => {
-    const form = { ...toForm(extraction), customer_gstin: '  ', due_date: '2026-04-01', po_number: 'PO-7' }
-    expect(diffEdits(extraction, form)).toEqual({ customer_gstin: null, due_date: '2026-04-01', po_number: 'PO-7' })
+    const form = { ...toForm(extraction), tax_id_value: '  ', due_date: '2026-04-01', po_number: 'PO-7' }
+    expect(diffEdits(extraction, form)).toEqual({ tax_id_value: null, due_date: '2026-04-01', po_number: 'PO-7' })
   })
 
   it('carries a changed document type', () => {

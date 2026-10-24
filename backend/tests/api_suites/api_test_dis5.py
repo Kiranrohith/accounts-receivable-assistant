@@ -66,9 +66,9 @@ async def main():
     clear_mail()
     smtp.retry_delays_seconds = (0.05, 0.05, 0.05)
     async with SessionLocal() as db:
-        c1 = Customer(customer_name="D5 Check Ltd", contact="Priya", email="ap@d5check.test", gstin="27ABCDE1234F1Z5",
+        c1 = Customer(customer_name="D5 Check Ltd", contact="Priya", email="ap@d5check.test", tax_id_type="GSTIN", tax_id="27ABCDE1234F1Z5",
                       deducts_tds=False, billing_currency="INR", country="India")
-        c2 = Customer(customer_name="D5 Nomail Ltd", contact="Nobody", email="no-address", gstin="29ABCDE1234F1Z5",
+        c2 = Customer(customer_name="D5 Nomail Ltd", contact="Nobody", email="no-address", tax_id_type="GSTIN", tax_id="29ABCDE1234F1Z5",
                       deducts_tds=False, billing_currency="INR", country="India")
         db.add_all([c1, c2])
         await db.flush()

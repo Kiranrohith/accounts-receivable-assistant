@@ -1,9 +1,15 @@
+/** What kind of registration number a customer's tax ID is. */
+export const TAX_ID_TYPES = ['GSTIN', 'VAT', 'TRN', 'EIN', 'OTHER'] as const
+export type TaxIdType = (typeof TAX_ID_TYPES)[number]
+
 export interface Customer {
   id: string
   customer_name: string
   contact: string | null
   email: string | null
-  gstin: string | null
+  /** Stored without spaces, dots, hyphens or slashes. */
+  tax_id: string | null
+  tax_id_type: TaxIdType | null
   deducts_tds: boolean
   billing_currency: string | null
   country: string | null
@@ -36,7 +42,7 @@ export interface CustomerDetail extends Customer {
 }
 
 /** The fields a person can change; whatever is left out stays. */
-export type CustomerEdits = Partial<Pick<NewCustomer, 'customer_name' | 'contact' | 'email' | 'gstin' | 'billing_currency' | 'country' | 'deducts_tds'>>
+export type CustomerEdits = Partial<Pick<NewCustomer, 'customer_name' | 'contact' | 'email' | 'tax_id' | 'tax_id_type' | 'billing_currency' | 'country' | 'deducts_tds'>>
 
 export interface TdsRecomputeResult {
   applied: number
@@ -51,7 +57,8 @@ export interface NewCustomer {
   customer_name: string
   contact: string
   email: string
-  gstin: string
+  tax_id: string
+  tax_id_type: TaxIdType
   deducts_tds: boolean
   billing_currency: string
   country: string

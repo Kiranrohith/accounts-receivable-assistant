@@ -1,3 +1,5 @@
+from prompts.tax_id import tax_id_rules
+
 SYSTEM_PROMPT = """\
 You read a single PURCHASE ORDER for an accounts-receivable system: a document in which a \
 customer orders goods or services from us. Extract structured data from it. The document was \
@@ -13,29 +15,17 @@ Return exactly the fields in the requested schema. Rules:
 GENERAL
 - Never guess or invent. If a field is not clearly present, return null (or an empty \
 list). A missing value is correct; a wrong value is harmful.
-- Copy identifiers exactly as printed (PO number, GSTIN), including prefixes, slashes \
+- Copy identifiers exactly as printed (PO number, tax identifier), including prefixes, slashes \
 and hyphens. OCR sometimes joins words ("AcmeTradersPvtLtd"); restore normal spacing in \
 names, but do not alter identifiers.
 - Extract only from this document. Do not use outside knowledge.
 
 PARTIES
 - A purchase order is issued BY the customer (the buyer, who orders) TO us (the seller, \
-who supplies). customer_name and customer_gstin are the BUYER's: the party that issued \
-the order. Never return the supplier's / vendor's name or GSTIN as the customer's.
-- A purchase order prints (at least) TWO GSTINs: the buyer's (who issued the order) and the \
-supplier's (ours). They may be labelled "GSTIN", "GSTIN/UIN", "GST No", "GST Reg No" or "Tax \
-ID", and they can sit anywhere: the letterhead, the vendor / ship-to blocks, the footer, or \
-an [embedded image] section. Search the WHOLE document, not only one block.
-- Work by elimination. List every GSTIN you can see. The supplier's / vendor's is the one in \
-the vendor / "To" / supplier block (and the one that equals OUR GSTIN when that is given \
-below). customer_gstin is the OTHER one: the buyer's, from the letterhead of the party that \
-issued the order or its buyer / bill-to block. When the document shows exactly two different \
-GSTINs and one is the supplier's, the other is the buyer's: return it, even if its label is \
-missing or unusual. Never return the supplier's GSTIN as the customer's.
-- Return null for customer_gstin only when the document shows no GSTIN other than the \
-supplier's.
-- A GSTIN is 15 characters (for example 29ABCDE1234F1Z5). Return it uppercase with no \
-spaces; if what you read is not 15 characters, return null.
+who supplies). customer_name and the tax identifier (tax_id_type, tax_id_value, \
+tax_id_raw_label) are the BUYER's: the party that issued the order. Never return the \
+supplier's / vendor's name or identifier as the customer's.
+<<TAX_ID_RULES>>
 
 PO NUMBER
 - po_number is the number the customer gave this order ("PO No", "PO Number", "Purchase \
@@ -66,8 +56,15 @@ and read from the document. 90-100: printed clearly and unambiguous. 60-89: read
 but with some doubt. Below 60: mostly a guess. Use null for a field you returned as \
 null, EXCEPT po_number: if you looked for a PO number and are SURE the document has \
 none, return po_number null with confidence 90-100; if it may be there but you could \
-not read it, return null with confidence below 60.
+not read it, return null with confidence below 60. Use the "tax_id" confidence for the \
+customer's tax identifier (its three fields together).
 """
+SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+    "<<TAX_ID_RULES>>\n",
+    tax_id_rules(
+        "A purchase order", "supplier", "buyer", "the letterhead of the party that issued the order or its buyer / bill-to block"
+    ),
+)
 
 USER_PROMPT_TEMPLATE = """\
 Extract the purchase-order fields from the document below.
@@ -96,6 +93,6 @@ def build_system_prompt(our_company_name: str | None, our_gstin: str | None) -> 
         + f"- We are the SUPPLIER on the purchase orders you read: {details}.\n"
         + "- Our name and our GSTIN are NEVER the customer's. The customer is the buyer "
         + "who issued the order. If the document shows our GSTIN, it is the supplier's: "
-        + "ignore it and return the OTHER GSTIN printed in the document as customer_gstin "
-        + "(null only if there is none).\n"
+        + "ignore it and return the OTHER tax identifier printed in the document as the "
+        + "customer's (null only if there is none).\n"
     )

@@ -31,9 +31,9 @@ s = get_settings()
 assert "ar_vr" in s.database_url, "refusing to run against a non-test database"
 results = []
 D = Decimal
-ZEN = dict(customer_name="Zenith Softlabs Pvt Ltd", customer_gstin="33AABCZ1234F1Z5")
-MER = dict(customer_name="Meridian Tech Solutions Pvt Ltd", customer_gstin="29AABCM5678K1Z3")
-UNK = dict(customer_name="Unknown Widgets Ltd", customer_gstin=None)
+ZEN = dict(customer_name="Zenith Softlabs Pvt Ltd", tax_id_value="33AABCZ1234F1Z5")
+MER = dict(customer_name="Meridian Tech Solutions Pvt Ltd", tax_id_value="29AABCM5678K1Z3")
+UNK = dict(customer_name="Unknown Widgets Ltd", tax_id_value=None)
 
 
 def check(name, cond, extra=""):
@@ -131,8 +131,8 @@ async def main():
         await c.post("/admin/users", headers=ADM, json={"name": "Fa Two", "email": "fa.two@example.com", "password": "pass12345", "role": "FA"})
         FA = {"Authorization": f"Bearer {(await login('fa.two@example.com', 'pass12345')).json()['access_token']}"}
         cust = lambda **kw: {"contact": "Contact", "country": "India", "billing_currency": "INR", **kw}
-        for body in (cust(customer_name=ZEN["customer_name"], email="ap@zenith.com", gstin=ZEN["customer_gstin"], deducts_tds=True),
-                     cust(customer_name=MER["customer_name"], email="ap@meridian.com", gstin=MER["customer_gstin"], deducts_tds=False)):
+        for body in (cust(customer_name=ZEN["customer_name"], email="ap@zenith.com", tax_id=ZEN["tax_id_value"], deducts_tds=True),
+                     cust(customer_name=MER["customer_name"], email="ap@meridian.com", tax_id=MER["tax_id_value"], deducts_tds=False)):
             assert (await c.post("/customers", headers=ADM, json=body)).status_code == 201
         zen_id = next(x["id"] for x in (await c.get("/customers", headers=ADM)).json() if x["customer_name"] == ZEN["customer_name"])
         mer_id = next(x["id"] for x in (await c.get("/customers", headers=ADM)).json() if x["customer_name"] == MER["customer_name"])

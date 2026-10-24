@@ -18,9 +18,9 @@ const poReview = (over: Record<string, unknown> = {}) => ({
   reasons: ['The customer could not be matched'], po_number: 'PO-77', customer_name: 'Acme', total_amount: '5000.00',
   matched_customer_id: null, matched_customer_name: null,
   extraction: {
-    po_number: 'PO-77', po_date: '2026-02-01', customer_name: 'Acme', customer_gstin: null, currency: 'INR', total_amount: '5000.00',
+    po_number: 'PO-77', po_date: '2026-02-01', customer_name: 'Acme', tax_id_type: null, tax_id_value: null, tax_id_raw_label: null, currency: 'INR', total_amount: '5000.00',
     line_items: [{ description: 'Licence', quantity: '10', unit_price: '500.00', line_total: '5000.00' }],
-    confidence: { po_number: 99, po_date: 90, customer_name: 60, customer_gstin: null, currency: 99, total_amount: 95, line_items: 90 },
+    confidence: { po_number: 99, po_date: 90, customer_name: 60, tax_id: null, currency: 99, total_amount: 95, line_items: 90 },
   },
   decision_reason: null, decided_at: null, purchase_order_id: null, ...over,
 })
@@ -44,7 +44,7 @@ function serve(opts: { po?: Record<string, unknown>; mm?: Record<string, unknown
     http.get(endpoint('/queues/items'), () => HttpResponse.json({ items: [], total: 0 })),
     http.get(endpoint('/notifications'), () => HttpResponse.json({ items: [], total: 0 })),
     http.get(endpoint('/notifications/unread-count'), () => HttpResponse.json({ unread: 0 })),
-    http.get(endpoint('/customers'), () => HttpResponse.json([{ id: ACME, customer_name: 'Acme Corporation Pvt Ltd', gstin: null, is_active: true }])),
+    http.get(endpoint('/customers'), () => HttpResponse.json([{ id: ACME, customer_name: 'Acme Corporation Pvt Ltd', tax_id: null, is_active: true }])),
     http.get(endpoint(`/documents/uploads/${DOC_ID}/file`), () => new HttpResponse(new Uint8Array([137, 80, 78, 71]), { headers: { 'content-type': 'image/png' } })),
     http.get(endpoint(`/purchase-orders/reviews/${PO_REVIEW}`), () => HttpResponse.json(poReview(opts.po))),
     http.post(endpoint(`/purchase-orders/reviews/${PO_REVIEW}/approve`), async ({ request }) => {
@@ -98,6 +98,17 @@ describe('Purchase order check panel', () => {
     await userEvent.click(confirm)
     await waitFor(() => expect(seen.poApproved).toEqual([{ reason: 'Matches the PDF', edits: {} }]))
     expect(await screen.findByText(/1 waiting invoice was linked and checked/)).toBeInTheDocument()
+  })
+
+  it('the customer tax ID has a type; correcting both sends both', async () => {
+    const seen = serve()
+    open()
+    await userEvent.selectOptions(await screen.findByLabelText('Tax ID type'), 'TRN')
+    await userEvent.type(screen.getByLabelText('Customer tax ID'), '100123456700003')
+    await userEvent.click(screen.getByRole('button', { name: 'Approve purchase order' }))
+    await userEvent.type(await screen.findByLabelText(/reason/i), 'Read it off the PDF')
+    await userEvent.click(await screen.findByRole('button', { name: 'Confirm approval' }))
+    await waitFor(() => expect(seen.poApproved).toEqual([{ reason: 'Read it off the PDF', edits: { tax_id_type: 'TRN', tax_id_value: '100123456700003' } }]))
   })
 
   it('a corrected line sends the whole list, and a hand-picked customer goes along', async () => {

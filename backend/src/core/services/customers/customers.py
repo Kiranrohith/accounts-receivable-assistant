@@ -6,11 +6,13 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from constants.constants import BUSINESS_TIMEZONE
-from core.exceptions.errors import ConflictError, NotFoundError
+from core.exceptions.errors import ConflictError, NotFoundError, ValidationFailure
+from core.services.customers.tax_id import SHAPE_HELP, has_shape
 from data.models.postgres import Customer, User
-from data.models.postgres.enums import AliasType
+from data.models.postgres.enums import AliasType, TaxIdType
 from data.repositories import unit_of_work
 from data.repositories.customers import customers_repo
+from data.repositories.customers.tax_ids import normalize_tax_id
 from data.repositories.unit_of_work import DuplicateRecordError
 from schemas.customers.customers import (
     AliasCreate,
@@ -23,12 +25,23 @@ from schemas.customers.customers import (
 )
 
 
+def _checked_tax_id(value: str, kind: str) -> str:
+    """The tax ID in its stored (normalized) form, after checking it has the shape of its type (OTHER has none)."""
+    normalized = normalize_tax_id(value)
+    if not normalized:
+        raise ValidationFailure("The tax ID is empty")
+    if not has_shape(kind, normalized):
+        raise ValidationFailure(f"A {kind} must be {SHAPE_HELP[kind]}")
+    return normalized
+
+
 async def create_customer(db: AsyncSession, actor: User, data: CustomerCreate) -> Customer:
     email = data.email.lower()
+    tax_id = _checked_tax_id(data.tax_id, data.tax_id_type.value)
 
     taken = []
-    if await customers_repo.gstin_exists(db, data.gstin):
-        taken.append("GSTIN")
+    if await customers_repo.tax_id_exists(db, tax_id):
+        taken.append("tax ID")
     if await customers_repo.name_exists(db, data.customer_name):
         taken.append("name")
     if await customers_repo.email_exists(db, email):
@@ -40,7 +53,8 @@ async def create_customer(db: AsyncSession, actor: User, data: CustomerCreate) -
         "customer_name": data.customer_name,
         "contact": data.contact,
         "email": email,
-        "gstin": data.gstin,
+        "tax_id": tax_id,
+        "tax_id_type": data.tax_id_type.value,
         "deducts_tds": data.deducts_tds,
         "billing_currency": data.billing_currency,
         "country": data.country,
@@ -49,7 +63,7 @@ async def create_customer(db: AsyncSession, actor: User, data: CustomerCreate) -
         customer = await customers_repo.insert_customer(db, fields=fields, actor_id=actor.id)
         await unit_of_work.commit(db)
     except DuplicateRecordError as exc:  # lost a race; the unique indexes are the backstop
-        raise ConflictError("A customer with the same GSTIN, name or email already exists") from exc
+        raise ConflictError("A customer with the same tax ID, name or email already exists") from exc
     return customer
 
 
@@ -103,10 +117,14 @@ async def update_customer(db: AsyncSession, actor: User, customer_id: uuid.UUID,
     changes = data.model_dump(exclude_unset=True, exclude_none=True)
     if "email" in changes:
         changes["email"] = changes["email"].lower()
+    if "tax_id" in changes or "tax_id_type" in changes:  # the id and its type are checked together, whichever one was sent
+        kind = (changes.get("tax_id_type") or customer.tax_id_type or TaxIdType.GSTIN).value
+        changes["tax_id"] = _checked_tax_id(changes.get("tax_id") or customer.tax_id, kind)
+        changes["tax_id_type"] = kind
 
     taken = []
-    if "gstin" in changes and changes["gstin"] != customer.gstin and await customers_repo.gstin_exists(db, changes["gstin"], except_id=customer.id):
-        taken.append("GSTIN")
+    if "tax_id" in changes and changes["tax_id"] != customer.tax_id and await customers_repo.tax_id_exists(db, changes["tax_id"], except_id=customer.id):
+        taken.append("tax ID")
     if "customer_name" in changes and await customers_repo.name_exists(db, changes["customer_name"], except_id=customer.id):
         taken.append("name")
     if "email" in changes and await customers_repo.email_exists(db, changes["email"], except_id=customer.id):
@@ -121,7 +139,7 @@ async def update_customer(db: AsyncSession, actor: User, customer_id: uuid.UUID,
         await unit_of_work.flush(db)
         await unit_of_work.commit(db)
     except DuplicateRecordError as exc:  # lost a race; the unique indexes are the backstop
-        raise ConflictError("Another customer already has the same GSTIN, name or email") from exc
+        raise ConflictError("Another customer already has the same tax ID, name or email") from exc
     return await get_customer_detail(db, customer_id)
 
 

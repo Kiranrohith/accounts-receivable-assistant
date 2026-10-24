@@ -120,11 +120,11 @@ async def main():
     tmp = Path(tempfile.mkdtemp())
 
     async with SessionLocal() as db:
-        zen = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="A", email="ap@zenith.com", gstin="33AABCZ1234F1Z5",
+        zen = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="A", email="ap@zenith.com", tax_id_type="GSTIN", tax_id="33AABCZ1234F1Z5",
                        deducts_tds=False, billing_currency="INR", country="India")
-        mer = Customer(customer_name="Meridian Tech Solutions Pvt Ltd", contact="B", email="ap@meridian.com", gstin="29AABCM5678K1Z3",
+        mer = Customer(customer_name="Meridian Tech Solutions Pvt Ltd", contact="B", email="ap@meridian.com", tax_id_type="GSTIN", tax_id="29AABCM5678K1Z3",
                        deducts_tds=False, billing_currency="INR", country="India")
-        old = Customer(customer_name="Dormant Traders Pvt Ltd", contact="C", email="ap@dormant.com", gstin="27AABCD1111A1Z1",
+        old = Customer(customer_name="Dormant Traders Pvt Ltd", contact="C", email="ap@dormant.com", tax_id_type="GSTIN", tax_id="27AABCD1111A1Z1",
                        deducts_tds=False, billing_currency="INR", country="India", is_active=False)
         db.add_all([zen, mer, old])
         await db.flush()

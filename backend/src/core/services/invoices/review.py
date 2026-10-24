@@ -18,7 +18,7 @@ from core.exceptions.errors import (
     PermissionDeniedError,
     ValidationFailure,
 )
-from core.services.customers.gstin import with_customer_gstin
+from core.services.customers.tax_id import with_customer_tax_id
 from core.services.customers.resolution import resolve_customer
 from core.services.invoices.fx import is_foreign, manual_rate, rate_for_invoice
 from core.services.invoices import versioning
@@ -158,7 +158,8 @@ async def approve_review(
         settings = get_settings()
         match = await resolve_customer(
             db,
-            gstin=edited.customer_gstin,
+            tax_id=edited.tax_id_value,
+            tax_id_type=edited.tax_id_type,
             name=edited.customer_name,
             our_gstin=settings.our_gstin,
             our_company_name=settings.our_company_name,
@@ -166,15 +167,15 @@ async def approve_review(
         if not match.matched:
             raise ValidationFailure(
                 "Cannot approve yet: " + "; ".join(match.issues)
-                + ". Choose the customer (customer_id) or correct the customer name or GSTIN."
+                + ". Choose the customer (customer_id) or correct the customer name or tax ID."
             )
         customer = match.customer
 
-    # the document showed no customer GSTIN: the customer's own is kept in its extraction (a printed one is never replaced)
-    filled = with_customer_gstin(edited, customer.gstin)
+    # the document showed no customer tax ID: the customer's own is kept in its extraction (a printed one is never replaced)
+    filled = with_customer_tax_id(edited, customer.tax_id, customer.tax_id_type)
     if filled is not edited:
         edited = filled
-        documents_repo.fill_customer_gstin(document, customer.gstin)
+        documents_repo.fill_customer_tax_id(document, customer.tax_id, customer.tax_id_type)
 
     currency = (edited.currency or "").strip().upper()
     if not currency:

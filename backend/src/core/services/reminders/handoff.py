@@ -46,7 +46,8 @@ async def bundle(db: AsyncSession, invoice: Invoice, customer: Customer, today: 
             "name": customer.customer_name,
             "contact": customer.contact,
             "email": customer.email,
-            "gstin": customer.gstin,
+            "tax_id": customer.tax_id,
+            "tax_id_type": customer.tax_id_type.value if customer.tax_id_type else None,
         },
         "payments": [
             {

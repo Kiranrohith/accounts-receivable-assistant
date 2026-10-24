@@ -1,3 +1,4 @@
+import type { TaxIdType } from '@/features/customers'
 import { api } from '@/lib/axios'
 
 export interface PoLine {
@@ -11,7 +12,7 @@ export interface PoConfidences {
   po_number: number | null
   po_date: number | null
   customer_name: number | null
-  customer_gstin: number | null
+  tax_id: number | null
   currency: number | null
   total_amount: number | null
   line_items: number | null
@@ -21,7 +22,9 @@ export interface ExtractedPo {
   po_number: string | null
   po_date: string | null
   customer_name: string | null
-  customer_gstin: string | null
+  tax_id_type: TaxIdType | null
+  tax_id_value: string | null
+  tax_id_raw_label: string | null
   currency: string | null
   total_amount: string | null
   line_items: PoLine[]
@@ -51,7 +54,8 @@ export interface PoEdits {
   po_number?: string | null
   po_date?: string | null
   customer_name?: string | null
-  customer_gstin?: string | null
+  tax_id_type?: string | null
+  tax_id_value?: string | null
   currency?: string | null
   total_amount?: string | null
   line_items?: { description: string; quantity: string | null; unit_price: string | null; line_total: string | null }[]

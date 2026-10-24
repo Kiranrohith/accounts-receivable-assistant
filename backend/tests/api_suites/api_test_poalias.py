@@ -37,7 +37,7 @@ async def q(sql, **p):
 async def customer(name):
     _n[0] += 1
     async with SessionLocal() as db:
-        c = Customer(customer_name=name, contact="C", email=f"ap{_n[0]}@poalias.test", gstin=f"29ABCDE{_n[0]:04d}F1Z5",
+        c = Customer(customer_name=name, contact="C", email=f"ap{_n[0]}@poalias.test", tax_id_type="GSTIN", tax_id=f"29ABCDE{_n[0]:04d}F1Z5",
                      deducts_tds=False, billing_currency="INR", country="India")
         db.add(c)
         await db.commit()
@@ -117,7 +117,7 @@ async def main():
         # 6. the alias works: the next PO under that name needs no review
         async with SessionLocal() as db:
             from core.services.customers.resolution import resolve_customer
-            m = await resolve_customer(db, gstin=None, name="ACME Industries", our_gstin=s.our_gstin, our_company_name=s.our_company_name)
+            m = await resolve_customer(db, tax_id=None, name="ACME Industries", our_gstin=s.our_gstin, our_company_name=s.our_company_name)
         check("the next PO under that name matches the customer by alias", m.matched and m.customer.id == acme and m.method == "alias", f"{m.method} {m.issues}")
 
         # 7. permission: a Finance Associate does not hold customers.alias.confirm, so cannot ask for it (approving alone is fine)

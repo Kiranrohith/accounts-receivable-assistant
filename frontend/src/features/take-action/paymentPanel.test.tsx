@@ -37,7 +37,7 @@ function serve(detail: Record<string, unknown> = payment()): Seen {
     http.get(endpoint('/queues/items'), () => HttpResponse.json({ items: [], total: 0 })),
     http.get(endpoint('/notifications'), () => HttpResponse.json({ items: [], total: 0 })),
     http.get(endpoint('/notifications/unread-count'), () => HttpResponse.json({ unread: 0 })),
-    http.get(endpoint('/customers'), () => HttpResponse.json([{ id: ACME, customer_name: 'Acme Corporation', gstin: null, is_active: true }])),
+    http.get(endpoint('/customers'), () => HttpResponse.json([{ id: ACME, customer_name: 'Acme Corporation', tax_id: null, is_active: true }])),
     http.get(endpoint('/invoices'), ({ request }) => {
       expect(new URL(request.url).searchParams.get('customer_id')).toBe(ACME)
       return HttpResponse.json([{ ...open(INV1), customer_id: ACME, customer_name: 'Acme Corporation' }, { ...open(INV2, { status: 'Paid' }), customer_id: ACME, customer_name: 'Acme Corporation' }])
