@@ -147,6 +147,7 @@ async def classify(db: AsyncSession, user: User, email_id: uuid.UUID, body: Clas
         100,
         f"routed by {user.username}{note}",
     )
+    old_labels = tuple(x for x in (email.label_applied or "").split(", ") if x)  # AR/Triage or AR/Ignored, if it had one
     label = apply_decision(db, email, decision, by=f"Person ({user.username})")
     email.updated_by = user.id
     labels = (label,) if label else ()
@@ -155,6 +156,8 @@ async def classify(db: AsyncSession, user: User, email_id: uuid.UUID, body: Clas
         handed = await handoff.hand_off(db, email, chosen, created_by=user.id)
         labels = handed.labels
     await unit_of_work.commit(db)
+    # the mail leaves the queue or the ignored list: its old Gmail label comes off before the new one goes on
+    await handoff.unlabel_all(email, tuple(x for x in old_labels if x not in labels))
     await handoff.label_all(email, labels)
     if handed is None:
         message = "Moved to the ignored list."
