@@ -57,6 +57,7 @@ Every other suite scripts the model (a fake returning a fixed answer), so it is 
 | failed items | `faileditems` (only failed jobs with nothing after them, each kind's names, search, sorts, paging, re-run of one and several, two at once, what cannot be re-run) |
 | audit log | `auditlog` (admin only, a record's timeline in order, names of records and people, kind/record/trigger/result/step/job filters, search with % and _ literal, the IST day window, sorts, paging, one step in full, facets) |
 | live mail | `maillive` (a mail from waiting to ended: place in line, being read, retrying, each attachment's step from the current attempt only, how it ended incl. review/ignored/failed, the time an ended mail stays, a re-run shows only its newest attempt, uploads are not listed, permission) |
+| PO review alias | `poalias` (the name read from a purchase order saved as the customer's alias when asked: not when not asked, not twice, not the customer's own name; another customer's name refused with nothing saved; needs customers.alias.confirm; the next PO under it matches by alias) |
 | own password | `selfpw` (the current password is required, 422 not 401, the new one must differ, the old one stops working) |
 | unclassified mail | `unclassified` (mails the reader never classified reach a person after a wait; routing one; the automatic job then leaves it alone; stubs Gmail and the model) |
 | credit-note e-mail | `cnote` |

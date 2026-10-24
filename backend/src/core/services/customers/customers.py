@@ -125,6 +125,22 @@ async def update_customer(db: AsyncSession, actor: User, customer_id: uuid.UUID,
     return await get_customer_detail(db, customer_id)
 
 
+async def remember_name(db: AsyncSession, actor: User, customer: Customer, raw_name: str | None) -> str | None:
+    """Save a name read from a document as an alias of the customer a person matched it to. Nothing is saved (None)
+    when the name is empty, is the customer's own name, or is already one of its aliases; a name that is another
+    customer's own name is refused. Flushes only: the caller commits with its own work."""
+    value = " ".join((raw_name or "").split())
+    if not value or value.lower() == " ".join(customer.customer_name.split()).lower():
+        return None
+    owner = await customers_repo.alias_in_use_elsewhere(db, customer.id, AliasType.NAME, value)
+    if owner is not None:
+        raise ConflictError(f"'{value}' is the name of {owner.customer_name}, so it cannot be saved as an alias here")
+    if await customers_repo.get_alias(db, customer.id, AliasType.NAME, value) is not None:
+        return None
+    await customers_repo.insert_alias(db, customer_id=customer.id, alias_type=AliasType.NAME, value=value, actor_id=actor.id)
+    return value
+
+
 async def add_alias(db: AsyncSession, actor: User, customer_id: uuid.UUID, data: AliasCreate) -> CustomerDetail:
     customer = await customers_repo.get_for_update(db, customer_id)
     if customer is None:

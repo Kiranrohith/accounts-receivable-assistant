@@ -45,6 +45,8 @@ class POReviewEdits(BaseModel):
 class POReviewApprove(BaseModel):
     reason: Reason
     customer_id: uuid.UUID | None = None
+    # remember the customer name read from the PO as an alias of the customer (needs customers.alias.confirm)
+    save_alias: bool = False
     edits: POReviewEdits = POReviewEdits()
 
 
@@ -78,6 +80,7 @@ class POReviewDecision(BaseModel):
     status: Literal["Approved", "Rejected"]
     purchase_order_id: uuid.UUID | None = None
     linked_invoices: list[dict] = []  # invoices linked and checked when the PO was created
+    alias_saved: str | None = None  # the name now remembered as the customer's alias, when one was saved
 
 
 # ---------------------------------------------------------------- po_mismatch review
