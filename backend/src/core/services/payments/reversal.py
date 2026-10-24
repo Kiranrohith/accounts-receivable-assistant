@@ -131,7 +131,15 @@ async def reverse_payment(
         before = invoice.status
         new_paid = invoice.amount_paid - back
         if new_paid < 0:
-            raise AssertionError(f"invoice {invoice.invoice_number}: reversing {back} would go below zero")
+            # the invoice's paid total no longer covers this payment's allocations (it was changed some other way):
+            # refuse with a clear message instead of failing with a server error; nothing is saved
+            message = (
+                f"Invoice {invoice.invoice_number} shows {invoice.amount_paid} paid, which is less than the {back} "
+                "this payment put on it, so the payment cannot be reversed automatically. Nothing was changed; "
+                "check the invoice first"
+            )  # written before the rollback: afterwards the invoice's fields can no longer be read
+            await db.rollback()
+            raise ConflictError(message)
         invoice.amount_paid = new_paid
         invoice.status = invoice_status_after(new_paid, invoice.collectible_total)
         invoice.updated_by = user.id

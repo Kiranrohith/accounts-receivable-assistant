@@ -88,6 +88,12 @@ async def q(sql, **p):
         return (await db.execute(text(sql), p)).all()
 
 
+async def setpaid(number, amount):
+    async with SessionLocal() as db:
+        await db.execute(text("update invoices set amount_paid=:a where invoice_number=:n"), {"a": amount, "n": number})
+        await db.commit()
+
+
 async def inv(number):
     return (await q("select status::text, amount_paid, collectible_balance from invoices where invoice_number=:n", n=number))[0]
 
@@ -288,6 +294,17 @@ async def main():
         codes = sorted([r1.status_code, r2.status_code])
         check("two simultaneous reversals: one 200, one 409", codes == [200, 409], str(codes))
         check("the money was taken back exactly once (never below zero)", (await inv("N-1")) == ("Open", D("0.00"), D("900.00")), str(await inv("N-1")))
+
+        # ---- 10. an invoice whose paid total no longer covers the payment: a clear 409, nothing changed -----
+        c = await customer("Xi")
+        x1 = await invoice(c, "X-1", "900")
+        px = await payment(c, "900", [("X-1", None)], ref="R-13")
+        await run(px)
+        await setpaid("X-1", 500)  # changed some other way
+        r = await rev(px, after="review")
+        check("invoice paid total below the payment's allocation: 409 (not a server error), says why", r.status_code == 409 and "X-1" in r.text and "Nothing was changed" in r.text, f"{r.status_code} {r.text[:200]}")
+        check("... and nothing changed: the payment is still Applied with its allocation Active", (await pay(px))[0] == "Applied" and await allocs(px) == [("X-1", D("900.00"), "Active", "payment")], str(await allocs(px)))
+        await setpaid("X-1", 900)  # put it back for the money check
 
         # ---- the whole book ----------------------------------------------------------------------------
         async with SessionLocal() as db:
