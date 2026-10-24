@@ -404,6 +404,30 @@ async def main():
         check("B11: two people rerouting the same mail at once: one wins, the other gets 409", sorted([a.status_code, b.status_code]) == [200, 409], f"{a.status_code} {b.status_code}")
         check("B11: exactly one dispute job exists", len([j for j in await jobs_of("race mail") if j[0] == "dispute_extraction"]) == 1, str(await jobs_of("race mail")))
 
+        # C. routing a mail out of the person's queue or the ignored list takes the old Gmail label off
+        await arrive(fake, "g-c1", mail("unsure one", "Please see the attached, thanks"), None, "unsure one", MailClass.PAYMENT, conf=50)
+        c1 = await row("unsure one")
+        check("C1 setup: low confidence waits for a person, labelled AR/Triage", c1[1] == "HumanTriage" and c1[3] == "AR/Triage", str(c1))
+        r = await hc.post(f"/mail/triage/{c1[0]}/classify", headers=FA, json={"mail_class": "dispute"})
+        check("C1: a person routes it to the dispute pipeline", r.status_code == 200, r.text[:160])
+        check("C1: Gmail lost AR/Triage and got the dispute label",
+              ("g-c1", ("AR/Triage",)) in fake.unlabelled and ("g-c1", ("AR/Processed-Dispute",)) in fake.labelled, f"{fake.unlabelled[-3:]} {fake.labelled[-3:]}")
+
+        await arrive(fake, "g-c2", mail("chat one", "Lunch on friday?"), None, "chat one", MailClass.GENERAL, conf=93)
+        c2 = await row("chat one")
+        check("C2 setup: general mail is Processed and labelled AR/Ignored", c2[1] == "Processed" and c2[3] == "AR/Ignored", str(c2))
+        r = await hc.post(f"/mail/triage/{c2[0]}/classify", headers=FA, json={"mail_class": "dispute"})
+        check("C2: a person pulls it out of the ignored list into the dispute pipeline", r.status_code == 200, r.text[:160])
+        check("C2: Gmail lost AR/Ignored and got the dispute label",
+              ("g-c2", ("AR/Ignored",)) in fake.unlabelled and ("g-c2", ("AR/Processed-Dispute",)) in fake.labelled, f"{fake.unlabelled[-3:]} {fake.labelled[-3:]}")
+
+        await arrive(fake, "g-c3", mail("unsure two", "Please see the attached, thanks again"), None, "unsure two", MailClass.PAYMENT, conf=50)
+        c3 = await row("unsure two")
+        r = await hc.post(f"/mail/triage/{c3[0]}/classify", headers=FA, json={"mail_class": "general"})
+        check("C3: a person decides a waiting mail is general: AR/Triage goes, AR/Ignored stays on",
+              r.status_code == 200 and ("g-c3", ("AR/Triage",)) in fake.unlabelled and ("g-c3", ("AR/Ignored",)) not in fake.unlabelled and ("g-c3", ("AR/Ignored",)) in fake.labelled,
+              f"{r.text[:100]} {fake.unlabelled[-3:]} {fake.labelled[-3:]}")
+
         # the money identities still hold, and nothing is stuck
         stuck = await q("select job_type, state::text, last_error_message from jobs where state in ('Failed','DeadLettered') and coalesce(last_error_message,'') not like '%rerouted%' and coalesce(last_error_message,'') not like '%reroute%'")
         check("no job failed except the ones withdrawn by a reroute", not stuck, str(stuck)[:300])

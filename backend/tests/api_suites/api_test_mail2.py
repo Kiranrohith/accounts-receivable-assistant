@@ -74,6 +74,9 @@ class FakeGmail:
     async def add_labels(self, mid, ids):
         self.labelled.append((mid, ids))
 
+    async def remove_labels(self, mid, ids):  # a mail routed out of the queue loses its old label
+        pass
+
     async def aclose(self):
         pass
 
