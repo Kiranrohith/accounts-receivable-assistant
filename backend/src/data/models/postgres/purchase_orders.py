@@ -4,7 +4,7 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import CHAR, Date, ForeignKey, Index, Numeric, String, UniqueConstraint
+from sqlalchemy import CHAR, Computed, Date, ForeignKey, Index, Numeric, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,12 +12,15 @@ from data.models.postgres.base import AuditMixin, Base, CreatedMixin, uuid_pk
 
 MONEY = Numeric(18, 2)
 QUANTITY = Numeric(18, 4)
+# The generated purchase_orders.po_number_norm and invoices.po_number_norm; data.repositories.purchase_orders.numbers
+# holds the same rule in Python (the two must agree: ASCII letters and digits only, upper case).
+PO_NO_NORM_SQL = "upper(regexp_replace(po_number, '[^A-Za-z0-9]', '', 'g'))"
 
 
 class PurchaseOrder(Base, AuditMixin):
     __tablename__ = "purchase_orders"
     __table_args__ = (
-        UniqueConstraint("customer_id", "po_number", name="uq_purchase_orders_customer_number"),
+        UniqueConstraint("customer_id", "po_number_norm", name="uq_purchase_orders_customer_number_norm"),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -26,6 +29,12 @@ class PurchaseOrder(Base, AuditMixin):
     )
     po_number: Mapped[str] = mapped_column(
         String, nullable=False, comment="the customer's numbering: unique per customer"
+    )
+    po_number_norm: Mapped[str] = mapped_column(
+        String,
+        Computed(PO_NO_NORM_SQL, persisted=True),
+        nullable=False,
+        comment="generated: upper-case letters and digits of po_number only (PO-123 = PO 123); unique per customer",
     )
     po_date: Mapped[date | None] = mapped_column(Date)
     currency: Mapped[str | None] = mapped_column(CHAR(3))

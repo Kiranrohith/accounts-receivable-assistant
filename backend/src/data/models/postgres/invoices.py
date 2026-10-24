@@ -26,6 +26,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from data.models.postgres.base import AuditMixin, Base, CreatedMixin, uuid_pk
+from data.models.postgres.purchase_orders import PO_NO_NORM_SQL
 from data.models.postgres.enums import (
     InvoiceStatus,
     InvoiceType,
@@ -45,7 +46,10 @@ def _enum(cls: type, name: str) -> Enum:
 
 class Invoice(Base, AuditMixin):
     __tablename__ = "invoices"
-    __table_args__ = (Index("ix_invoices_customer_status", "customer_id", "status"),)
+    __table_args__ = (
+        Index("ix_invoices_customer_status", "customer_id", "status"),
+        Index("ix_invoices_customer_po_norm", "customer_id", "po_number_norm"),
+    )
 
     id: Mapped[uuid.UUID] = uuid_pk()
     customer_id: Mapped[uuid.UUID] = mapped_column(
@@ -80,6 +84,11 @@ class Invoice(Base, AuditMixin):
     invoice_currency: Mapped[str] = mapped_column(CHAR(3), nullable=False)
     po_number: Mapped[str | None] = mapped_column(
         String, comment="matching key for the purchase-order link; invoices without a PO are valid"
+    )
+    po_number_norm: Mapped[str | None] = mapped_column(
+        String,
+        Computed(PO_NO_NORM_SQL, persisted=True),
+        comment="generated: upper-case letters and digits of po_number only (PO-123 = PO 123); NULL without a PO",
     )
     po_hold: Mapped[bool] = mapped_column(
         Boolean,
