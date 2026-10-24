@@ -16,10 +16,12 @@ from core.exceptions.errors import (
     PermissionDeniedError,
     ValidationFailure,
 )
+from core.services.customers.customers import remember_name
 from core.services.customers.resolution import resolve_customer
 from core.services.invoices.review import record_decision
 from core.services.purchase_orders.routing import PO_KIND, create_purchase_order
 from core.services.purchase_orders.validation import validate_purchase_order
+from core.services.users.users import permission_codes_for
 from data.models.postgres import PendingInvoiceChange, SourceDocument, User
 from data.models.postgres.enums import PendingChangeReason, PendingChangeStatus
 from data.repositories import unit_of_work
@@ -107,6 +109,8 @@ async def _lock_decidable(db: AsyncSession, user: User, review_id: uuid.UUID) ->
 async def approve_review(
     db: AsyncSession, user: User, review_id: uuid.UUID, body: POReviewApprove
 ) -> POReviewDecision:
+    if body.save_alias and "customers.alias.confirm" not in await permission_codes_for(db, user):
+        raise PermissionDeniedError("Missing permission: customers.alias.confirm (to save an alias)")
     item = await _lock_decidable(db, user, review_id)
     document = await documents_repo.get_document(db, item.source_document_id)
 
@@ -152,18 +156,23 @@ async def approve_review(
             "correct the number or reject"
         )
 
+    # the name the PO carries becomes one of the customer's aliases (saved or refused together with the PO)
+    alias_saved = await remember_name(db, user, customer, edited.customer_name) if body.save_alias else None
+
     try:
         po_id, linked = await create_purchase_order(db, document, edited, customer, user.id)
         item.diff = {
             "edits": body.edits.model_dump(mode="json", exclude_unset=True),
             "customer_id": str(customer.id),
+            **({"alias_saved": alias_saved} if alias_saved else {}),
         }
         record_decision(db, item, user, PendingChangeStatus.APPROVED, body.reason)
         await unit_of_work.commit(db)
     except DuplicateRecordError as exc:
         raise ConflictError(f"A purchase order numbered {number} already exists") from exc
     return POReviewDecision(
-        review_id=item.id, status="Approved", purchase_order_id=po_id, linked_invoices=linked
+        review_id=item.id, status="Approved", purchase_order_id=po_id, linked_invoices=linked,
+        alias_saved=alias_saved,
     )
 
 

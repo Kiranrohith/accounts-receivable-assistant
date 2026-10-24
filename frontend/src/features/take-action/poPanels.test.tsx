@@ -122,6 +122,65 @@ describe('Purchase order check panel', () => {
     }]))
   })
 
+  describe('remembering the customer name', () => {
+    const WITH_ALIAS = { ...ADMIN, permissions: [...ADMIN.permissions, 'customers.alias.confirm'] }
+    const pick = async () => {
+      await waitFor(() => expect(within(screen.getByLabelText('Customer')).getByRole('option', { name: /Acme Corporation/ })).toBeInTheDocument())
+      await userEvent.selectOptions(screen.getByLabelText('Customer'), ACME)
+    }
+    const approveWith = async (reason: string) => {
+      await userEvent.click(screen.getByRole('button', { name: 'Approve purchase order' }))
+      await userEvent.type(await screen.findByLabelText(/reason/i), reason)
+      await userEvent.click(screen.getByRole('button', { name: 'Confirm approval' }))
+    }
+
+    it('a hand-picked customer offers to remember the name on the PO, ticked, and it is sent', async () => {
+      const seen = serve()
+      renderApp(`/take-action?item=po_review:${PO_REVIEW}`, WITH_ALIAS)
+      await screen.findByLabelText('PO number')
+      expect(screen.queryByLabelText(/Remember “Acme”/)).not.toBeInTheDocument() // no customer picked yet
+      await pick()
+      expect(await screen.findByLabelText(/Remember “Acme”/)).toBeChecked()
+      await approveWith('Same company')
+      await waitFor(() => expect(seen.poApproved).toEqual([{ reason: 'Same company', customer_id: ACME, save_alias: true, edits: {} }]))
+    })
+
+    it('unticking it sends no alias', async () => {
+      const seen = serve()
+      renderApp(`/take-action?item=po_review:${PO_REVIEW}`, WITH_ALIAS)
+      await screen.findByLabelText('PO number')
+      await pick()
+      await userEvent.click(await screen.findByLabelText(/Remember “Acme”/))
+      await approveWith('Only this once')
+      await waitFor(() => expect(seen.poApproved).toEqual([{ reason: 'Only this once', customer_id: ACME, edits: {} }]))
+    })
+
+    it('the name saved is the corrected one, and the message says it was saved', async () => {
+      const seen = serve()
+      server.use(http.post(endpoint(`/purchase-orders/reviews/${PO_REVIEW}/approve`), async ({ request }) => {
+        seen.poApproved.push(await request.json())
+        return HttpResponse.json({ review_id: PO_REVIEW, status: 'Approved', purchase_order_id: 'po1', linked_invoices: [], alias_saved: 'Acme Industries' })
+      }))
+      renderApp(`/take-action?item=po_review:${PO_REVIEW}`, WITH_ALIAS)
+      const name = await screen.findByLabelText(/^Customer name/)
+      await userEvent.clear(name)
+      await userEvent.type(name, 'Acme Industries')
+      await pick()
+      expect(await screen.findByLabelText(/Remember “Acme Industries”/)).toBeChecked()
+      await approveWith('Corrected the name')
+      await waitFor(() => expect(seen.poApproved).toEqual([{ reason: 'Corrected the name', customer_id: ACME, save_alias: true, edits: { customer_name: 'Acme Industries' } }]))
+      expect(await screen.findByText(/“Acme Industries” was saved as another name of the customer/)).toBeInTheDocument()
+    })
+
+    it('someone without the alias permission is not offered it', async () => {
+      serve()
+      open()
+      await screen.findByLabelText('PO number')
+      await pick()
+      expect(screen.queryByLabelText(/Remember “Acme”/)).not.toBeInTheDocument()
+    })
+  })
+
   it('a removed line is removed from what is sent', async () => {
     const seen = serve()
     open()

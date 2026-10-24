@@ -8,6 +8,8 @@ import { ReasonDialog } from '@/components/common/ReasonDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PERMISSIONS } from '@/config/constants'
+import { hasPermission, useCurrentUser } from '@/features/auth'
 
 import { poReviewQuery, useApprovePo, useRejectPo } from '../queries/poReviewQueries'
 import type { PoReview } from '../services/poReviewService'
@@ -35,7 +37,9 @@ function PoReviewForm({ review, itemId, onDone }: { review: PoReview; itemId: st
   const extraction = review.extraction
   const [form, setForm] = useState<PoFormValues>(() => toPoForm(extraction))
   const [lines, setLines] = useState<LineForm[]>(() => poLinesOf(extraction))
+  const user = useCurrentUser()
   const [customerId, setCustomerId] = useState('')
+  const [saveAlias, setSaveAlias] = useState(true)
   const [asking, setAsking] = useState<'approve' | 'reject' | null>(null)
 
   const edits = diffPoEdits(extraction, form, lines)
@@ -43,6 +47,9 @@ function PoReviewForm({ review, itemId, onDone }: { review: PoReview; itemId: st
   const decided = review.status !== 'Pending'
   const busy = approve.isPending || reject.isPending
   const name = review.file_name ?? 'The document'
+  // offered when a person picked the customer by hand: the name on this PO is then one more name of that customer
+  const pickedName = form.customer_name.trim()
+  const canAlias = hasPermission(user, PERMISSIONS.customersAliasConfirm) && customerId !== '' && pickedName !== ''
 
   return (
     <>
@@ -62,6 +69,13 @@ function PoReviewForm({ review, itemId, onDone }: { review: PoReview; itemId: st
             ) : (
               <>
                 <CustomerPicker matchedName={review.matched_customer_name} value={customerId} onChange={setCustomerId} />
+
+                {canAlias && (
+                  <label className="flex items-start gap-2 text-sm">
+                    <input type="checkbox" className="mt-1" checked={saveAlias} onChange={(e) => setSaveAlias(e.target.checked)} />
+                    <span>Remember “{pickedName}” as another name of this customer, so the next purchase order under it is matched by itself.</span>
+                  </label>
+                )}
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {PO_FIELDS.map((field) => {
@@ -120,7 +134,7 @@ function PoReviewForm({ review, itemId, onDone }: { review: PoReview; itemId: st
         pending={approve.isPending}
         onConfirm={(reason) =>
           approve.mutate(
-            { reason, customerId: customerId || undefined, edits },
+            { reason, customerId: customerId || undefined, saveAlias: canAlias && saveAlias ? true : undefined, edits },
             {
               onSuccess: (decision) => {
                 setAsking(null)

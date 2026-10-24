@@ -62,11 +62,15 @@ export interface PoDecision {
   status: 'Approved' | 'Rejected'
   purchase_order_id: string | null
   linked_invoices: Record<string, unknown>[]
+  /** The customer name now remembered as one of the customer's names, when one was saved. */
+  alias_saved: string | null
 }
 
 export interface PoApproveInput {
   reason: string
   customerId?: string
+  /** Remember the name read from the PO as another name of the customer (needs customers.alias.confirm). */
+  saveAlias?: boolean
   edits: PoEdits
 }
 
@@ -80,6 +84,7 @@ export const poReviewService = {
     const { data } = await api.post<PoDecision>(`/purchase-orders/reviews/${reviewId}/approve`, {
       reason: input.reason,
       customer_id: input.customerId || undefined,
+      save_alias: input.saveAlias || undefined,
       edits: input.edits,
     })
     return data
