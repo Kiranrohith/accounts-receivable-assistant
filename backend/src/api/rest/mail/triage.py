@@ -3,7 +3,8 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.rest.dependencies import get_db, require_permission
+from api.rest.dependencies import get_db, require_any_permission, require_permission
+from core.services.users.users import permission_codes_for
 from core.services.mail import reroute, triage_queue
 from data.models.postgres import User
 from schemas.mail.triage import ClassifyMail, ClassifyResult, RerouteMail, RerouteResult, TriageDetail, TriageItem
@@ -38,11 +39,11 @@ async def list_triage(
     "/{email_id}",
     response_model=TriageDetail,
     summary="One mail with its text, attachments and history",
-    description="Requires mail.triage.classify. The text is the newest message as received; each attachment shows what our system did with it and why.",
+    description="Requires mail.triage.classify or mail.log.view. The text is the newest message as received; each attachment shows what our system did with it and why.",
 )
 async def triage_detail(
     email_id: uuid.UUID,
-    _: User = Depends(require_permission("mail.triage.classify")),
+    _: User = Depends(require_any_permission("mail.triage.classify", "mail.log.view")),
     db: AsyncSession = Depends(get_db),
 ) -> TriageDetail:
     return await triage_queue.get_detail(db, email_id)
@@ -53,7 +54,8 @@ async def triage_detail(
     response_model=ClassifyResult,
     summary="Route a mail",
     description=(
-        "Requires mail.triage.classify. Works on a mail in the queue (including one never classified) or in the ignored list (409 otherwise). "
+        "Requires mail.triage.classify, or mail.ignored.route (FTM), which allows ONLY a mail in the ignored list (403 for any other). "
+        "Works on a mail in the queue (including one never classified) or in the ignored list (409 otherwise). "
         "`general` moves it to the ignored list; payment, dispute, both or purchase_order records your decision "
         "and queues it for its pipeline. Two people routing the same mail at once: one wins, the other gets 409."
     ),
@@ -61,10 +63,12 @@ async def triage_detail(
 async def classify_mail(
     email_id: uuid.UUID,
     body: ClassifyMail,
-    user: User = Depends(require_permission("mail.triage.classify")),
+    user: User = Depends(require_any_permission("mail.triage.classify", "mail.ignored.route")),
     db: AsyncSession = Depends(get_db),
 ) -> ClassifyResult:
-    return await triage_queue.classify(db, user, email_id, body)
+    # a role with only mail.ignored.route may take a mail out of the ignored list and nothing else
+    ignored_only = "mail.triage.classify" not in await permission_codes_for(db, user)
+    return await triage_queue.classify(db, user, email_id, body, ignored_only=ignored_only)
 
 
 @router.post(

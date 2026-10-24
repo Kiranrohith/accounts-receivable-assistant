@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
@@ -91,6 +92,9 @@ class TaskItem(BaseModel):
     created_at: datetime
     closed_reason: str | None
     closed_at: datetime | None
+    due_date: date | None = None  # the invoice's due date
+    days_overdue: int | None = None  # today (IST) minus the due date; set while the task is open
+    balance: Decimal | None = None  # what is still owed on the invoice now
 
 
 class TaskDetail(TaskItem):

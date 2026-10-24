@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppAuditLogRouteImport } from './routes/_app/audit-log'
+import { Route as AppCollectionTasksRouteImport } from './routes/_app/collection-tasks'
 import { Route as AppCustomersRouteImport } from './routes/_app/customers'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppFailedItemsRouteImport } from './routes/_app/failed-items'
@@ -55,6 +56,11 @@ const LoginRoute = LoginRouteImport.update({
 const AppAuditLogRoute = AppAuditLogRouteImport.update({
   id: '/audit-log',
   path: '/audit-log',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCollectionTasksRoute = AppCollectionTasksRouteImport.update({
+  id: '/collection-tasks',
+  path: '/collection-tasks',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCustomersRoute = AppCustomersRouteImport.update({
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/audit-log': typeof AppAuditLogRoute
+  '/collection-tasks': typeof AppCollectionTasksRoute
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
   '/failed-items': typeof AppFailedItemsRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/audit-log': typeof AppAuditLogRoute
+  '/collection-tasks': typeof AppCollectionTasksRoute
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
   '/failed-items': typeof AppFailedItemsRoute
@@ -243,6 +251,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/audit-log': typeof AppAuditLogRoute
+  '/_app/collection-tasks': typeof AppCollectionTasksRoute
   '/_app/customers': typeof AppCustomersRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/failed-items': typeof AppFailedItemsRoute
@@ -274,6 +283,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/audit-log'
+    | '/collection-tasks'
     | '/customers'
     | '/dashboard'
     | '/failed-items'
@@ -303,6 +313,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/audit-log'
+    | '/collection-tasks'
     | '/customers'
     | '/dashboard'
     | '/failed-items'
@@ -333,6 +344,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/_app/audit-log'
+    | '/_app/collection-tasks'
     | '/_app/customers'
     | '/_app/dashboard'
     | '/_app/failed-items'
@@ -393,6 +405,13 @@ declare module '@tanstack/react-router' {
       path: '/audit-log'
       fullPath: '/audit-log'
       preLoaderRoute: typeof AppAuditLogRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/collection-tasks': {
+      id: '/_app/collection-tasks'
+      path: '/collection-tasks'
+      fullPath: '/collection-tasks'
+      preLoaderRoute: typeof AppCollectionTasksRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/customers': {
@@ -568,6 +587,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAuditLogRoute: typeof AppAuditLogRoute
+  AppCollectionTasksRoute: typeof AppCollectionTasksRoute
   AppCustomersRoute: typeof AppCustomersRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppFailedItemsRoute: typeof AppFailedItemsRoute
@@ -596,6 +616,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAuditLogRoute: AppAuditLogRoute,
+  AppCollectionTasksRoute: AppCollectionTasksRoute,
   AppCustomersRoute: AppCustomersRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppFailedItemsRoute: AppFailedItemsRoute,

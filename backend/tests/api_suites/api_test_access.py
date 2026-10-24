@@ -24,7 +24,7 @@ async def main():
         check("/me without token -> 401", (await c.get("/auth/me")).status_code == 401)
         check("/me tampered token -> 401", (await c.get("/auth/me", headers={"Authorization": "Bearer abc.def.ghi"})).status_code == 401)
         me = (await c.get("/auth/me", headers=H)).json()
-        check("/me admin role + 27 permissions", me["role"] == "ADM" and len(me["permissions"]) == 27, f"{me['email']}")
+        check("/me admin role + 29 permissions", me["role"] == "ADM" and len(me["permissions"]) == 29, f"{me['email']}")
 
         new = lambda n, e, p, role: c.post("/admin/users", headers=H, json={"name": n, "email": e, "password": p, "role": role})
         r = await new("Fa One", "fa.one@example.com", "fapass123", "fa");  check("create FA (role case-insensitive) -> 201", r.status_code == 201 and r.json()["role"] == "FA" and "password" not in str(r.json()))
@@ -42,7 +42,7 @@ async def main():
         FA = {"Authorization": f"Bearer {(await L('fa.one@example.com', 'fapass123')).json()['access_token']}"}
         FT = {"Authorization": f"Bearer {(await L('ftm.one@example.com', 'ftmpass123')).json()['access_token']}"}
         me = (await c.get("/auth/me", headers=FA)).json(); check("FA /me -> 15 permissions", me["role"] == "FA" and len(me["permissions"]) == 15)
-        me = (await c.get("/auth/me", headers=FT)).json(); check("FTM /me -> 19 permissions", me["role"] == "FTM" and len(me["permissions"]) == 19)
+        me = (await c.get("/auth/me", headers=FT)).json(); check("FTM /me -> 21 permissions", me["role"] == "FTM" and len(me["permissions"]) == 21)
         check("FA cannot create users -> 403", (await c.post("/admin/users", headers=FA, json={"name": "Z", "email": "z@example.com", "password": "zzzzzzzz1", "role": "FA"})).status_code == 403)
         check("FA cannot list users -> 403", (await c.get("/admin/users", headers=FA)).status_code == 403)
 

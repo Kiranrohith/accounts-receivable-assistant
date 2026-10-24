@@ -140,7 +140,7 @@ async def main():
         FA = {"Authorization": f"Bearer {(await login('fa.ml2@example.com', 'pass12345')).json()['access_token']}"}
         FTM = {"Authorization": f"Bearer {(await login('ftm.ml2@example.com', 'pass12345')).json()['access_token']}"}
         check("no token -> 401", (await c.get("/mail/live")).status_code == 401)
-        check("an FTM may not look -> 403", (await c.get("/mail/live", headers=FTM)).status_code == 403)
+        check("an FTM may look (mail.log.view) -> 200", (await c.get("/mail/live", headers=FTM)).status_code == 200)
         check("an empty feed answers", (await c.get("/mail/live", headers=FA)).json()["items"] == [])
         ids = await seed()
 

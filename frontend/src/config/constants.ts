@@ -24,6 +24,8 @@ export const PERMISSIONS = {
   paymentsPoOverride: 'payments.po_override',
   notesCreate: 'notes.create',
   mailTriageClassify: 'mail.triage.classify',
+  mailLogView: 'mail.log.view',
+  mailIgnoredRoute: 'mail.ignored.route',
   remindersManage: 'reminders.manage',
   remindersViewSent: 'reminders.view_sent',
   tasksCollectionWork: 'tasks.collection.work',

@@ -1,5 +1,5 @@
 import {
-  Activity, AlertTriangle, BarChart3, BellRing, Building2, FileMinus, FileSpreadsheet, FileText, Inbox, LayoutDashboard, ListChecks, Mail, Scale, ScrollText,
+  Activity, AlertTriangle, BarChart3, BellRing, Building2, HandCoins, FileMinus, FileSpreadsheet, FileText, Inbox, LayoutDashboard, ListChecks, Mail, Scale, ScrollText,
   Settings, Upload, UserCog, Wallet, type LucideIcon,
 } from 'lucide-react'
 
@@ -8,7 +8,7 @@ import type { AccessKey } from '@/features/auth'
 export interface NavItem {
   to:
     | '/dashboard' | '/my-work' | '/take-action' | '/upload' | '/invoices' | '/purchase-orders' | '/payments' | '/credit-notes'
-    | '/disputes' | '/reminders' | '/customers' | '/reports' | '/mail' | '/mail-live' | '/failed-items' | '/audit-log' | '/users' | '/settings'
+    | '/disputes' | '/reminders' | '/collection-tasks' | '/customers' | '/reports' | '/mail' | '/mail-live' | '/failed-items' | '/audit-log' | '/users' | '/settings'
   label: string
   icon: LucideIcon
   access: AccessKey
@@ -26,6 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/credit-notes', label: 'Credit Notes', icon: FileMinus, access: 'creditNotes' },
   { to: '/disputes', label: 'Disputes', icon: Scale, access: 'disputes' },
   { to: '/reminders', label: 'Reminders', icon: BellRing, access: 'reminders' },
+  { to: '/collection-tasks', label: 'Collection Tasks', icon: HandCoins, access: 'collectionTasks' },
   { to: '/customers', label: 'Customers', icon: Building2, access: 'customers' },
   { to: '/reports', label: 'Reports', icon: BarChart3, access: 'reports' },
   { to: '/mail', label: 'Mail Log', icon: Mail, access: 'mail' },

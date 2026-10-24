@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import String, cast, func, select
@@ -174,10 +175,11 @@ async def list_tasks(
     type_: TaskType | None,
     limit: int,
     offset: int,
-) -> list[tuple[Task, str | None, str | None, str | None]]:
+) -> list[tuple[Task, str | None, str | None, str | None, date | None, Decimal | None]]:
+    """(task, invoice number, customer name, owner's username, the invoice's due date and what is still owed on it)."""
     owner = aliased(User)
     query = (
-        select(Task, Invoice.invoice_number, Customer.customer_name, owner.username)
+        select(Task, Invoice.invoice_number, Customer.customer_name, owner.username, Invoice.due_date, Invoice.collectible_balance)
         .outerjoin(Invoice, Invoice.id == Task.invoice_id)
         .outerjoin(Customer, Customer.id == Task.customer_id)
         .outerjoin(owner, owner.id == Task.assigned_to)
@@ -189,21 +191,23 @@ async def list_tasks(
     if type_ is not None:
         query = query.where(Task.type == type_)
     rows = await db.execute(query.order_by(Task.created_at.desc(), Task.id).limit(limit).offset(offset))
-    return [(t, number, customer, name) for t, number, customer, name in rows]
+    return [(t, number, customer, name, due, balance) for t, number, customer, name, due, balance in rows]
 
 
-async def task_with_names(db: AsyncSession, task_id: uuid.UUID) -> tuple[Task, str | None, str | None, str | None] | None:
+async def task_with_names(
+    db: AsyncSession, task_id: uuid.UUID
+) -> tuple[Task, str | None, str | None, str | None, date | None, Decimal | None] | None:
     owner = aliased(User)
     row = (
         await db.execute(
-            select(Task, Invoice.invoice_number, Customer.customer_name, owner.username)
+            select(Task, Invoice.invoice_number, Customer.customer_name, owner.username, Invoice.due_date, Invoice.collectible_balance)
             .outerjoin(Invoice, Invoice.id == Task.invoice_id)
             .outerjoin(Customer, Customer.id == Task.customer_id)
             .outerjoin(owner, owner.id == Task.assigned_to)
             .where(Task.id == task_id)
         )
     ).first()
-    return (row[0], row[1], row[2], row[3]) if row else None
+    return (row[0], row[1], row[2], row[3], row[4], row[5]) if row else None
 
 
 async def least_loaded_collector(db: AsyncSession, role_code: str) -> User | None:

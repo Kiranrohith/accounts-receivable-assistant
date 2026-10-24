@@ -3,8 +3,13 @@ team and admins) can list them, read the bundle, and close one by hand. A task a
 is paid (lifecycle.close_tasks_for / the scan)."""
 
 import uuid
+from datetime import UTC, date, datetime
+from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from constants.constants import BUSINESS_TIMEZONE
 
 from core.exceptions.errors import ConflictError, NotFoundError
 from core.services.reminders import lifecycle
@@ -17,7 +22,10 @@ from data.repositories.reminders import reminders_repo
 from schemas.reminders.reminders import CloseTask, HistoryEntry, TaskDetail, TaskItem
 
 
-def _item(task: Task, number: str | None, customer: str | None, owner: str | None) -> TaskItem:
+def _item(
+    task: Task, number: str | None, customer: str | None, owner: str | None, due: date | None, balance: Decimal | None
+) -> TaskItem:
+    today = datetime.now(UTC).astimezone(ZoneInfo(BUSINESS_TIMEZONE)).date()  # business days are IST
     return TaskItem(
         task_id=task.id,
         type=task.type.value,
@@ -31,6 +39,9 @@ def _item(task: Task, number: str | None, customer: str | None, owner: str | Non
         created_at=task.created_at,
         closed_reason=task.closed_reason.value if task.closed_reason else None,
         closed_at=task.closed_at,
+        due_date=due,
+        days_overdue=(today - due).days if due is not None and task.status is TaskStatus.OPEN else None,
+        balance=balance,
     )
 
 
@@ -40,19 +51,19 @@ async def list_tasks(
     rows = await reminders_repo.list_tasks(
         db, status=status, assigned_to=assigned_to, type_=TaskType.COLLECTION_60D, limit=limit, offset=offset
     )
-    return [_item(t, number, customer, owner) for t, number, customer, owner in rows]
+    return [_item(t, number, customer, owner, due, balance) for t, number, customer, owner, due, balance in rows]
 
 
 async def get_task(db: AsyncSession, task_id: uuid.UUID) -> TaskDetail:
     found = await reminders_repo.task_with_names(db, task_id)
     if found is None:
         raise NotFoundError("Task not found")
-    task, number, customer, owner = found
+    task, number, customer, owner, due, balance = found
     history = [
         HistoryEntry(at=e.occurred_at, from_state=e.from_state, to_state=e.to_state, reason=e.reason)
         for e in await logs_repo.list_state_log(db, "task", task.id)
     ]
-    return TaskDetail(**_item(task, number, customer, owner).model_dump(), payload=task.payload, closed_note=task.closed_note, history=history)
+    return TaskDetail(**_item(task, number, customer, owner, due, balance).model_dump(), payload=task.payload, closed_note=task.closed_note, history=history)
 
 
 async def close(db: AsyncSession, user: User, task_id: uuid.UUID, body: CloseTask) -> TaskDetail:

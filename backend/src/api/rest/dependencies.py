@@ -40,3 +40,17 @@ def require_permission(code: str) -> Callable[..., Awaitable[User]]:
         return user
 
     return dependency
+
+
+def require_any_permission(*codes: str) -> Callable[..., Awaitable[User]]:
+    """Dependency factory: the current user's role must hold at least one of the permissions `codes`."""
+
+    async def dependency(
+        user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db),
+    ) -> User:
+        if not set(codes) & set(await permission_codes_for(db, user)):
+            raise PermissionDeniedError("Missing permission: " + " or ".join(codes))
+        return user
+
+    return dependency
