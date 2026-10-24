@@ -94,6 +94,8 @@ export interface InvoiceDecision {
 export interface ApproveInput {
   reason: string
   customerId?: string
+  /** INR per 1 unit of the invoice's currency, typed in when the ECB has no rate for it; empty keeps the ECB's. */
+  fxRate?: string
   edits: InvoiceEdits
 }
 
@@ -107,6 +109,7 @@ export const invoiceReviewService = {
     const { data } = await api.post<InvoiceDecision>(`/invoices/reviews/${reviewId}/approve`, {
       reason: input.reason,
       customer_id: input.customerId || undefined,
+      fx_rate: input.fxRate || undefined,
       edits: input.edits,
     })
     return data
