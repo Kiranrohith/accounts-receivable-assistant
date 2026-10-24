@@ -20,7 +20,6 @@ _SECTIONS: tuple[tuple[str, str, tuple[tuple[str, str, str], ...]], ...] = (
         ("TIE_MARGIN", "Tie margin", "Two matches closer than this are a tie and go to a person."),
         ("TRIAGE_HUMAN_THRESHOLD", "Mail triage: person below", "A mail the reader is less sure of than this waits for a person to route it."),
         ("EXTRACTION_CONFIDENCE_MIN", "Extraction: person below", "A document read with less confidence than this is sent for review."),
-        ("CLARIFICATION_AUTO_SEND", "Clarification: auto-send from", "A first clarification e-mail may go out by itself at this confidence or above."),
         ("LAYER_BASE_SCORE", "Base score per matching layer", "L1 invoice number, L2 sender e-mail, L3 payer name."),
         ("AMOUNT_FIT_SCORE", "Score for how well the amount fits", "T1 rounding, T2 exchange-rate band, otherwise over or short."),
         ("DUE_DATE_MODIFIER_WINDOW_DAYS", "Due-soon window", "An invoice due within this many days scores slightly higher."),

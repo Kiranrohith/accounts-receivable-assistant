@@ -13,7 +13,6 @@ CONFIDENCE_AUTO_APPLY: Final = 85  # inclusive; >= 85 applies automatically
 CONFIDENCE_MAX: Final = 100  # stored/displayed clamp only
 TIE_MARGIN: Final = 10  # inclusive; compared on UNCLAMPED raw scores
 TRIAGE_HUMAN_THRESHOLD: Final = 75  # triage / classify: below -> human
-CLARIFICATION_AUTO_SEND: Final = 85  # DB-grounding capped
 
 # Assumed, not in the supplement: the design sends low-confidence extractions to review
 # but gives no number, so this reuses the 75 human threshold.
@@ -97,11 +96,10 @@ assert WATCHDOG_INTERVAL_SECONDS < STALE_HEARTBEAT_SECONDS
 
 # --- Schedules ---
 POLL_INTERVAL_MINUTES: Final = (2, 5)  # gmail_poll
-REMINDER_SCAN_TIME_IST: Final = time(9, 0)
+REMINDER_SCAN_TIME_IST: Final = time(9, 0)  # stagger only, NO data dependency
 DEADLINE_SCAN_TIME_IST: Final = time(9, 15)  # stagger only, NO data dependency
 
 # --- Reminders and the 60-day handoff ---
-REMINDER_SCAN_TIME_IST: Final = time(9, 0)  # stagger only, NO data dependency
 REMINDER_TIERS: Final = (1, 15, 30)  # days past due: gentle, firm, final
 REMINDER_TEMPLATES: Final = {1: "reminder_gentle", 15: "reminder_firm", 30: "reminder_final"}
 COLLECTION_HANDOFF_DAYS: Final = 60  # reminders stop, a person takes the invoice over
@@ -126,9 +124,7 @@ SMTP_RETRY_DELAYS_SECONDS: Final = (3, 9, 15)  # transport retries: the first tr
 SMTP_TIMEOUT_SECONDS: Final = 15
 CLARIFICATION_AUTO_SEND_CONFIDENCE: Final = 85  # first clarification only; also needs a grounded draft
 
-# --- Reminders and disputes ---
-REMINDER_TIERS_DAYS: Final = (1, 15, 30)
-COLLECTION_HANDOFF_DAYS: Final = 60
+# --- Disputes: deadlines ---
 DISPUTE_FIRST_RESPONSE_WORKING_DAYS: Final = 2  # Indian working days, date columns
 DISPUTE_RESOLUTION_WORKING_DAYS: Final = 10
 
