@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: INV-1087 - paid in September
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+INV-1087 was settled by wire on 24 September. Could you confirm receipt?
+
+Regards,
+Dana Whitfield
+Halcyon Systems Inc

@@ -1,0 +1,13 @@
+FROM:    gamerkiran246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment advice - INV-1001
+ATTACH:  Remittance_Advice_BCBN2026101500000001.pdf
+WAVE:    1
+
+Dear Team,
+
+Please find attached the remittance advice for INV-1001. Amount Rs. 1,16,820.00 has been credited via NEFT (UTR BCBN2026101500000001).
+
+Regards,
+Accounts Payable
+Zenith Softlabs

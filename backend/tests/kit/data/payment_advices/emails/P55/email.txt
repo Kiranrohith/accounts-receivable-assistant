@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1091
+ATTACH:  Remittance_Advice_BCBN2026101500000045.pdf
+WAVE:    1
+
+Payment advice for INV-1091.
+
+Regards,
+Accounts Payable
+Vasudha Retail

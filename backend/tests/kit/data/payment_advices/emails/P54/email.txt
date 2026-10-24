@@ -1,0 +1,9 @@
+FROM:    pquill5000@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: NEFT advice
+ATTACH:  NEFT_Advice_BCBN2026101500000043.pdf
+WAVE:    1
+
+NEFT advice attached.
+
+BlueOak Analytics - AP

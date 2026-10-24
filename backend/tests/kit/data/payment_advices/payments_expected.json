@@ -1,0 +1,4748 @@
+{
+  "_meta": {
+    "as_of": "2026-10-16",
+    "emails": 110,
+    "assumptions": [
+      "T2 (+-1.5%, inclusive) applies ONLY when payment currency = invoice currency != INR; INR uses T1 (+-Rs.1, inclusive) only",
+      "foreign customers pay the full invoice amount (no TDS); only FX variance within 1.5% is normal - P18/P21 are anomaly tests",
+      "INVOICE_NO_NORMALIZE: uppercase + drop non-alphanumerics on both sides; a bare number without prefix never matches",
+      "MIN_ATTACHMENT_KB = 5 applies to images only; 0-byte or magic-byte-mismatch files are rejected attachments at triage",
+      "scores given only where the constants page documents them",
+      "waves: 0 prerequisite disputes -> 1 independent -> 2 dependent -> 3 manual",
+      "2026-10-21 ruling: identity resolved but the amount fits no invoice exactly -> Unapplied (kept as unapplied cash)",
+      "triage_confidence '>=75' = routed automatically; disputes carry classification_confidence the same way"
+    ],
+    "intake_cases": [
+      {
+        "case": "logo-only attachment + details in body",
+        "emails": [
+          "P36"
+        ],
+        "expected": "image < 5 KB skipped (logged) -> body extraction -> L1 Applied"
+      },
+      {
+        "case": "empty 0-byte attachment",
+        "emails": [
+          "P61",
+          "P62"
+        ],
+        "expected": "rejected attachment at triage; P61 paid from body, P62 NeedsReview amount_missing"
+      },
+      {
+        "case": "corrupt PDF",
+        "emails": [
+          "P09"
+        ],
+        "expected": "payment job Failed at parse, plain message, re-runnable"
+      },
+      {
+        "case": "thread reply (payment)",
+        "emails": [
+          "P42"
+        ],
+        "expected": "newest message only, quoted reminder ignored -> L1 Applied"
+      },
+      {
+        "case": "thread reply (dispute follow-up)",
+        "emails": [
+          "D29"
+        ],
+        "expected": "appended to D11's open dispute (E2), not a new dispute"
+      },
+      {
+        "case": "forwarded advice",
+        "emails": [
+          "P37",
+          "P32"
+        ],
+        "expected": "P37 L1 Applied (forwarder is not a customer); P32 same bytes as P02 -> duplicate rejection"
+      },
+      {
+        "case": "small valid PDF under 5 KB",
+        "emails": [
+          "P63"
+        ],
+        "expected": "qualifies (size rule is images-only) -> Applied"
+      },
+      {
+        "case": "bare attachment, no subject/body",
+        "emails": [
+          "P38",
+          "P39"
+        ],
+        "expected": "P38 known customer -> processed; P39 unknown -> general"
+      }
+    ]
+  },
+  "emails": [
+    {
+      "id": "D01",
+      "kind": "dispute",
+      "wave": 0,
+      "sender_role": "CUST-017",
+      "from": "finance@konkanmobility.example",
+      "synthetic_from": "finance@konkanmobility.example",
+      "sendable": false,
+      "subject": "Payment on hold - INV-1051",
+      "attachments": [],
+      "scenario": [
+        "prereq_dispute"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "dispute_category": "Pricing",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1051",
+        "customer_code": "CUST-017",
+        "effects": [
+          "payment_related: the P44 payment is HELD"
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D02",
+      "kind": "dispute",
+      "wave": 0,
+      "sender_role": "CUST-014",
+      "from": "ap@aravallimfg.example",
+      "synthetic_from": "ap@aravallimfg.example",
+      "sendable": false,
+      "subject": "Dispute INV-1053 - withholding",
+      "attachments": [],
+      "scenario": [
+        "prereq_dispute"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "dispute_category": "Pricing",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1053",
+        "customer_code": "CUST-014",
+        "effects": [
+          "payment_related: the P45 payment is HELD"
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D03",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "Rate query on INV-1159",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Pricing"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Pricing",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1159",
+        "customer_code": "CUST-002",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D04",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "INV-1175 - payment on hold",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Pricing"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Pricing",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1175",
+        "customer_code": "CUST-001",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged",
+          "payment_related: any payment to this invoice is HELD; with no payment the hold is dormant (E6)"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D05",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-017",
+      "from": "finance@konkanmobility.example",
+      "synthetic_from": "finance@konkanmobility.example",
+      "sendable": false,
+      "subject": "Goods arrived damaged - INV-1007",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Quality"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Quality",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1007",
+        "customer_code": "CUST-017",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged",
+          "payment_related: any payment to this invoice is HELD; with no payment the hold is dormant (E6)"
+        ],
+        "required_case": 7,
+        "expected_routing": "assigned to least-loaded FA with invoice and payment history",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D06",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-003",
+      "from": "pquill5000@gmail.com",
+      "synthetic_from": "pquill5000@gmail.com",
+      "sendable": true,
+      "subject": "Defects in deliverable - INV-1056",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Quality"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Quality",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1056",
+        "customer_code": "CUST-003",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D07",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-015",
+      "from": "accounts@gangacloud.example",
+      "synthetic_from": "accounts@gangacloud.example",
+      "sendable": false,
+      "subject": "Migration issues - INV-1049",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Quality"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Quality",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1049",
+        "customer_code": "CUST-015",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "links_to": "seed r_60_disputed: 65 days overdue -> NO 60-day task until this dispute is resolved (D6)",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D08",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-014",
+      "from": "ap@aravallimfg.example",
+      "synthetic_from": "ap@aravallimfg.example",
+      "sendable": false,
+      "subject": "Deliverables pending - INV-1030",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Delivery"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Delivery",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1030",
+        "customer_code": "CUST-014",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged",
+          "payment_related: any payment to this invoice is HELD; with no payment the hold is dormant (E6)"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D09",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-013",
+      "from": "accounts@deccanedutech.example",
+      "synthetic_from": "accounts@deccanedutech.example",
+      "sendable": false,
+      "subject": "Training not conducted - INV-1008",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Delivery"
+      ],
+      "send_note": "required case 8: after ingestion, backdate disputes.received_at by >= 15 calendar days (or run the deadline scan with a clock override) so the 10-working-day deadline is breached",
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Delivery",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1008",
+        "customer_code": "CUST-013",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "required_case": 8,
+        "expected_after_backdate": "Escalated to least-loaded FTM, pinned, admin notified, customer status update",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D10",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-004",
+      "from": "brazilacc246@gmail.com",
+      "synthetic_from": "brazilacc246@gmail.com",
+      "sendable": true,
+      "subject": "Service start date - INV-1152",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Delivery"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Delivery",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1152",
+        "customer_code": "CUST-004",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D11",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-003",
+      "from": "pquill5000@gmail.com",
+      "synthetic_from": "pquill5000@gmail.com",
+      "sendable": true,
+      "subject": "INV-1031 already paid",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "AlreadyPaid"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "AlreadyPaid",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1031",
+        "customer_code": "CUST-003",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D12",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-008",
+      "from": "accounts@kaveriinfotech.example",
+      "synthetic_from": "accounts@kaveriinfotech.example",
+      "sendable": false,
+      "subject": "Payment already made - INV-1042",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "AlreadyPaid"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "AlreadyPaid",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1042",
+        "customer_code": "CUST-008",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D13",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-005",
+      "from": "ap@halcyonsystems.example",
+      "synthetic_from": "ap@halcyonsystems.example",
+      "sendable": false,
+      "subject": "INV-1087 - paid in September",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "AlreadyPaid"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "AlreadyPaid",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1087",
+        "customer_code": "CUST-005",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D14",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-009",
+      "from": "ap@indusfintech.example",
+      "synthetic_from": "ap@indusfintech.example",
+      "sendable": false,
+      "subject": "Duplicate billing - INV-1033",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "WrongDuplicateInvoice"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "WrongDuplicateInvoice",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1033",
+        "customer_code": "CUST-009",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "duplicate_of_claimed": "INV-1032",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D15",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "INV-1189 received twice",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "WrongDuplicateInvoice"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "WrongDuplicateInvoice",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1189",
+        "customer_code": "CUST-001",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged",
+          "payment_related: any payment to this invoice is HELD; with no payment the hold is dormant (E6)"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D16",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-010",
+      "from": "retail.accounts@vasudhagroup.example",
+      "synthetic_from": "retail.accounts@vasudhagroup.example",
+      "sendable": false,
+      "subject": "Wrong entity on INV-1092",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "WrongDuplicateInvoice"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "WrongDuplicateInvoice",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1092",
+        "customer_code": "CUST-010",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D17",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-008",
+      "from": "accounts@kaveriinfotech.example",
+      "synthetic_from": "accounts@kaveriinfotech.example",
+      "sendable": false,
+      "subject": "Wrong GST type - INV-1034",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "TaxDiscrepancy"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "TaxDiscrepancy",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1034",
+        "customer_code": "CUST-008",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged",
+          "payment_related: any payment to this invoice is HELD; with no payment the hold is dormant (E6)"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D18",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-013",
+      "from": "accounts@deccanedutech.example",
+      "synthetic_from": "accounts@deccanedutech.example",
+      "sendable": false,
+      "subject": "Place of supply on INV-1153",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "TaxDiscrepancy"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "TaxDiscrepancy",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1153",
+        "customer_code": "CUST-013",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D19",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-006",
+      "from": "ap@sterlingsys-pune.example",
+      "synthetic_from": "ap@sterlingsys-pune.example",
+      "sendable": false,
+      "subject": "SAC code missing - INV-1148",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "TaxDiscrepancy"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "TaxDiscrepancy",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1148",
+        "customer_code": "CUST-006",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged",
+          "payment_related: any payment to this invoice is HELD; with no payment the hold is dormant (E6)"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D20",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-007",
+      "from": "finance@sterlingsystems-hyd.example",
+      "synthetic_from": "finance@sterlingsystems-hyd.example",
+      "sendable": false,
+      "subject": "Rate differs from PO - INV-1035",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "POMismatch"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "POMismatch",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1035",
+        "customer_code": "CUST-007",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "links_to": "PO check PASSES (price is not checked) - this dispute is how the price gap surfaces",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D21",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-013",
+      "from": "accounts@deccanedutech.example",
+      "synthetic_from": "accounts@deccanedutech.example",
+      "sendable": false,
+      "subject": "Wrong PO on INV-1077",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "POMismatch"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "POMismatch",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1077",
+        "customer_code": "CUST-013",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D22",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-014",
+      "from": "ap@aravallimfg.example",
+      "synthetic_from": "ap@aravallimfg.example",
+      "sendable": false,
+      "subject": "Quantity over PO - INV-1164",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "POMismatch"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "POMismatch",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1164",
+        "customer_code": "CUST-014",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged",
+          "payment_related: any payment to this invoice is HELD; with no payment the hold is dormant (E6)"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D23",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "Credit note pending - INV-1036",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "CreditNotePending"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "CreditNotePending",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1036",
+        "customer_code": "CUST-001",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged",
+          "payment_related: any payment to this invoice is HELD; with no payment the hold is dormant (E6)"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D24",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-006",
+      "from": "ap@sterlingsys-pune.example",
+      "synthetic_from": "ap@sterlingsys-pune.example",
+      "sendable": false,
+      "subject": "Awaiting credit note - INV-1155",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "CreditNotePending"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "CreditNotePending",
+        "classification_confidence": ">=75",
+        "payment_related": true,
+        "invoice": "INV-1155",
+        "customer_code": "CUST-006",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged",
+          "payment_related: any payment to this invoice is HELD; with no payment the hold is dormant (E6)"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D25",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-005",
+      "from": "ap@halcyonsystems.example",
+      "synthetic_from": "ap@halcyonsystems.example",
+      "sendable": false,
+      "subject": "Credit for returned licences - INV-1191",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "CreditNotePending"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "CreditNotePending",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1191",
+        "customer_code": "CUST-005",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D26",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-015",
+      "from": "accounts@gangacloud.example",
+      "synthetic_from": "accounts@gangacloud.example",
+      "sendable": false,
+      "subject": "Regarding INV-1037",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Other"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Other",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1037",
+        "customer_code": "CUST-015",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "note": "category Other never auto-sends a clarification",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D27",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-004",
+      "from": "brazilacc246@gmail.com",
+      "synthetic_from": "brazilacc246@gmail.com",
+      "sendable": true,
+      "subject": "Concerns about our account",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "Other"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "Other",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": null,
+        "customer_code": "CUST-004",
+        "effects": [
+          "customer-level dispute (E1), no invoice inferred"
+        ],
+        "edge": "E1",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "D28",
+      "kind": "dispute",
+      "wave": 1,
+      "sender_role": "CUST-022",
+      "from": "ap@southerncrossdata.example",
+      "synthetic_from": "ap@southerncrossdata.example",
+      "sendable": false,
+      "subject": "Query on INV-1120",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "uncategorised"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": null,
+        "classification_confidence": "<75",
+        "payment_related": false,
+        "invoice": "INV-1120",
+        "customer_code": "CUST-022",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "acceptable_categories": [
+          "Other",
+          "Pricing"
+        ],
+        "expected_routing": "low confidence -> FA classifies manually (uncategorised)",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "G01",
+      "kind": "general",
+      "wave": 1,
+      "sender_role": "CUST-026",
+      "from": "crediteuren@helixbio.example",
+      "synthetic_from": "crediteuren@helixbio.example",
+      "sendable": false,
+      "subject": "Invoice received - thank you",
+      "attachments": [],
+      "scenario": [
+        "general_mail"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "general",
+        "triage_confidence": ">=75",
+        "label": "AR/Ignored",
+        "why": "acknowledgement, no payment or dispute",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "G02",
+      "kind": "general",
+      "wave": 1,
+      "sender_role": "CUST-003",
+      "from": "pquill5000@gmail.com",
+      "synthetic_from": "pquill5000@gmail.com",
+      "sendable": true,
+      "subject": "Request: statement of account",
+      "attachments": [],
+      "scenario": [
+        "general_mail"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "general",
+        "triage_confidence": ">=75",
+        "label": "AR/Ignored",
+        "why": "information request",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "G03",
+      "kind": "general",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "calendar-notification@calendar.example",
+      "synthetic_from": "calendar-notification@calendar.example",
+      "sendable": false,
+      "subject": "Invitation: Quarterly business review",
+      "attachments": [],
+      "scenario": [
+        "general_mail"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "general",
+        "triage_confidence": ">=75",
+        "label": "AR/Ignored",
+        "why": "calendar invite",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "G04",
+      "kind": "general",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "mailer-daemon@mail.example",
+      "synthetic_from": "mailer-daemon@mail.example",
+      "sendable": false,
+      "subject": "Undeliverable: Payment reminder",
+      "attachments": [],
+      "scenario": [
+        "general_mail"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "general",
+        "triage_confidence": ">=75",
+        "label": "AR/Ignored",
+        "why": "bounce",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "G05",
+      "kind": "general",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "events@webinar-hub.example",
+      "synthetic_from": "events@webinar-hub.example",
+      "sendable": false,
+      "subject": "Webinar: AI for finance teams",
+      "attachments": [],
+      "scenario": [
+        "general_mail"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "general",
+        "triage_confidence": ">=75",
+        "label": "AR/Ignored",
+        "why": "marketing",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "M01",
+      "kind": "purchase_order",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "Purchase order PO-ZEN-9001",
+      "attachments": [
+        "emails/M01/PO_PO-ZEN-9001.pdf"
+      ],
+      "scenario": [
+        "purchase_order_mail",
+        "G10"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "purchase_order",
+        "triage_confidence": ">=75",
+        "label": "AR/Processed-PO",
+        "outcome": "PO created via combined intake (uploaded_via=email_attachment), no invoices linked",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "M02",
+      "kind": "purchase_order",
+      "wave": 1,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "New PO - Meridian",
+      "attachments": [
+        "emails/M02/PO_PO-MER-9002.jpg"
+      ],
+      "scenario": [
+        "purchase_order_mail",
+        "image"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "purchase_order",
+        "triage_confidence": ">=75",
+        "label": "AR/Processed-PO",
+        "outcome": "PO created (OCR path), no invoices linked",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "M03",
+      "kind": "purchase_order",
+      "wave": 1,
+      "sender_role": "CUST-003",
+      "from": "pquill5000@gmail.com",
+      "synthetic_from": "pquill5000@gmail.com",
+      "sendable": true,
+      "subject": "PO-BLU-9003 for analytics support",
+      "attachments": [],
+      "scenario": [
+        "purchase_order_mail",
+        "no_attachment"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "purchase_order",
+        "triage_confidence": ">=75",
+        "outcome": "no usable attachment -> FA triage queue (body-only POs out of scope)",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "M04",
+      "kind": "purchase_order",
+      "wave": 1,
+      "sender_role": "CUST-020",
+      "from": "finance@kestrelcloud.example",
+      "synthetic_from": "finance@kestrelcloud.example",
+      "sendable": false,
+      "subject": "PO KC-PO-9004 and payment INV-1110",
+      "attachments": [
+        "emails/M04/PO_KC-PO-9004.pdf",
+        "emails/M04/MT103_FT261016198073.pdf"
+      ],
+      "scenario": [
+        "purchase_order_mail",
+        "mixed_po_and_advice"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "purchase_order or payment",
+        "triage_confidence": "any",
+        "outcome": "mixed PO + advice -> FA triage queue; nothing is created or applied until the FA routes it",
+        "invoices": [
+          {
+            "invoice": "INV-1110",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 1311303.6,
+            "after_fa_routes_payment": "Paid (exact, L1)"
+          }
+        ],
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "M05",
+      "kind": "purchase_order",
+      "wave": 1,
+      "sender_role": "CUST-017",
+      "from": "finance@konkanmobility.example",
+      "synthetic_from": "finance@konkanmobility.example",
+      "sendable": false,
+      "subject": "PO and invoice copy",
+      "attachments": [
+        "emails/M05/INV-1202.pdf"
+      ],
+      "scenario": [
+        "purchase_order_mail",
+        "invoice_attached"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "purchase_order",
+        "triage_confidence": "any",
+        "outcome": "intake classifier says INVOICE -> doc-type review (emailed invoices are out of scope; a human decides)",
+        "note": "INV-1202 exists nowhere else in the kit",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "M06",
+      "kind": "purchase_order",
+      "wave": 1,
+      "sender_role": "CUST-004",
+      "from": "brazilacc246@gmail.com",
+      "synthetic_from": "brazilacc246@gmail.com",
+      "sendable": true,
+      "subject": "Agreement for PO processing",
+      "attachments": [
+        "emails/M06/Mutual_NDA_Nexora.pdf"
+      ],
+      "scenario": [
+        "purchase_order_mail",
+        "other_doc"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "purchase_order or general",
+        "triage_confidence": "any",
+        "outcome": "if routed to intake: classifier 'other' >= 75 -> rejected-uploads list, file kept, no extraction; if triaged general -> AR/Ignored",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "P01",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "Payment advice - INV-1001",
+      "attachments": [
+        "emails/P01/Remittance_Advice_BCBN2026101500000001.pdf"
+      ],
+      "scenario": [
+        "required_case_1",
+        "L1",
+        "T1"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "score": 100,
+        "score_note": "documented: L1 60 + T1 35 + date 5",
+        "tolerance": "T1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1001",
+            "status_after": "Paid",
+            "applied_inr": 116820.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "extraction_trap": "advice shows gross, TDS and net - amount must be the NET paid",
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 11,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1001"
+          ],
+          "balance_inr": 116820.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P02",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "Remittance - INV-1002, INV-1003",
+      "attachments": [
+        "emails/P02/Remittance_Advice_BCBR2026101500000002.pdf"
+      ],
+      "scenario": [
+        "required_case_2",
+        "split_as_stated"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "score": 100,
+        "score_note": "documented: L1 60 + sum exact 35 + 5",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1002",
+            "status_after": "Paid",
+            "applied_inr": 151335.0,
+            "balance_after_inr": 0.0
+          },
+          {
+            "invoice": "INV-1003",
+            "status_after": "Paid",
+            "applied_inr": 151228.8,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 11,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1002",
+            "INV-1003"
+          ],
+          "balance_inr": 302563.8,
+          "is_set": true
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P03",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-004",
+      "from": "brazilacc246@gmail.com",
+      "synthetic_from": "brazilacc246@gmail.com",
+      "sendable": true,
+      "subject": "Payment for INV-1004",
+      "attachments": [
+        "emails/P03/Remittance_Advice_BCBN2026101500000003.pdf"
+      ],
+      "scenario": [
+        "required_case_3",
+        "T4",
+        "bypass_L1"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T4 short",
+        "rule": "short-with-certain-identity bypass -> auto Partly paid + flag",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1004",
+            "status_after": "PartlyPaid",
+            "applied_inr": 40000.0,
+            "balance_after_inr": 10000.0,
+            "flag": "short_payment"
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 7,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1004"
+          ],
+          "balance_inr": 50000.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P04",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "PINNACLE",
+      "from": "finance@pinnaclehealth.example",
+      "synthetic_from": "finance@pinnaclehealth.example",
+      "sendable": false,
+      "subject": "Payment made",
+      "attachments": [
+        "emails/P04/NEFT_Advice_BCBN2026101500000004.pdf"
+      ],
+      "scenario": [
+        "required_case_4",
+        "L2",
+        "no_invoice_number"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L2 (sender = CUST-012 master email)",
+        "score": 90,
+        "score_note": "documented: L2 45 + 35 + 5 + 5",
+        "payment_state": "Applied",
+        "reason_shown": true,
+        "invoices": [
+          {
+            "invoice": "INV-1005",
+            "status_after": "Paid",
+            "applied_inr": 136998.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "sender_dependent": true,
+        "triage_confidence": ">=75",
+        "raw_score": 90,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 45,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 2,
+          "single_open_invoice": 5,
+          "reference_pattern": 0
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1005"
+          ],
+          "balance_inr": 136998.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P05a",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "alerts@bharatcommercebank.example",
+      "synthetic_from": "alerts@bharatcommercebank.example",
+      "sendable": false,
+      "subject": "Funds transfer - Deccan Edutech",
+      "attachments": [
+        "emails/P05a/NEFT_Advice_BCBN2026101500000005.pdf"
+      ],
+      "scenario": [
+        "required_case_5",
+        "unapplied",
+        "L3_identity",
+        "suppression_trigger"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L3 (payer name) - identity only",
+        "payment_state": "Unapplied",
+        "unapplied_inr": 123456.78,
+        "alerts": true,
+        "invoices": [],
+        "side_effect": "CUST-013 now holds unapplied cash -> reminders for its invoices (e.g. INV-1050) are SUPPRESSED",
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "identity resolved, no invoice or subset fits -> Unapplied (no candidate)"
+      }
+    },
+    {
+      "id": "P05b",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "rk.enterprises.cbe@mail.example",
+      "synthetic_from": "rk.enterprises.cbe@mail.example",
+      "sendable": false,
+      "subject": "payment done",
+      "attachments": [
+        "emails/P05b/NEFT_Advice_BCBN2026101500000006.pdf"
+      ],
+      "scenario": [
+        "required_case_5",
+        "unidentified"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment (or human triage if <75)",
+        "layer": "L4",
+        "score": null,
+        "payment_state": "NeedsReview",
+        "rule": "Unidentified: no score -> review; a human can apply or reject",
+        "invoices": [],
+        "triage_confidence": "any (<75 -> FA triage is acceptable)",
+        "sender_dependent": false,
+        "score_reason": "L4 unidentified -> review, no score"
+      }
+    },
+    {
+      "id": "P06",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-009",
+      "from": "ap@indusfintech.example",
+      "synthetic_from": "ap@indusfintech.example",
+      "sendable": false,
+      "subject": "Payment INV-1009",
+      "attachments": [
+        "emails/P06/Remittance_Advice_BCBN2026101500000007.pdf"
+      ],
+      "scenario": [
+        "C10_tds_gross",
+        "T3"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T3 over",
+        "payment_state": "Applied",
+        "credit_note_created_inr": 22420.0,
+        "invoices": [
+          {
+            "invoice": "INV-1009",
+            "status_after": "Paid",
+            "applied_inr": 201780.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "rule": "excess = TDS amount -> auto credit note (credited_amount)",
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T3",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 5,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1009"
+          ],
+          "balance_inr": 201780.0,
+          "is_set": false
+        },
+        "score_decision": "below 85 -> review",
+        "CONFLICT": "score 83 (T3) gives 'below 85 -> review', but the answer key expects 'Applied' - needs a ruling"
+      }
+    },
+    {
+      "id": "P07",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "KAVERI",
+      "from": "accounts@kaveriinfotech.example",
+      "synthetic_from": "accounts@kaveriinfotech.example",
+      "sendable": false,
+      "subject": "Payment released",
+      "attachments": [
+        "emails/P07/NEFT_Advice_BCBN2026101500000008.pdf"
+      ],
+      "scenario": [
+        "C6_tie",
+        "L2"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L2 (sender = CUST-008 master email)",
+        "payment_state": "NeedsReview",
+        "rule": "INV-1010 and INV-1011 have identical collectibles -> raw scores within TIE_MARGIN 10 -> review",
+        "invoices": [
+          {
+            "invoice": "INV-1010",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 179478.0
+          },
+          {
+            "invoice": "INV-1011",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 179478.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": true,
+        "candidate_scores": {
+          "INV-1010": {
+            "raw": 85,
+            "score": 85,
+            "band": "T1",
+            "parts": {
+              "layer": 45,
+              "amount_fit": 35,
+              "date": 5,
+              "date_gap_days": 21,
+              "single_open_invoice": 0,
+              "reference_pattern": 0
+            }
+          },
+          "INV-1011": {
+            "raw": 85,
+            "score": 85,
+            "band": "T1",
+            "parts": {
+              "layer": 45,
+              "amount_fit": 35,
+              "date": 5,
+              "date_gap_days": 8,
+              "single_open_invoice": 0,
+              "reference_pattern": 0
+            }
+          }
+        },
+        "score": 85,
+        "raw_score": 85,
+        "score_decision": "tie: top two raw scores within 10 -> review"
+      }
+    },
+    {
+      "id": "P08",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-014",
+      "from": "ap@aravallimfg.example",
+      "synthetic_from": "ap@aravallimfg.example",
+      "sendable": false,
+      "subject": "Part payment INV-1012 / INV-1013",
+      "attachments": [
+        "emails/P08/Remittance_Advice_BCBN2026101500000009.pdf"
+      ],
+      "scenario": [
+        "C5_equal_due_dates",
+        "oldest_first"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1 (both quoted, no split)",
+        "rule": "no stated split -> oldest by due date; due dates EQUAL -> created_at, then invoice number -> INV-1012 first",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1012",
+            "status_after": "Paid",
+            "applied_inr": 95580.0,
+            "balance_after_inr": 0.0
+          },
+          {
+            "invoice": "INV-1013",
+            "status_after": "PartlyPaid",
+            "applied_inr": 31860.0,
+            "balance_after_inr": 31860.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 27,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1012",
+            "INV-1013"
+          ],
+          "balance_inr": 159300.0,
+          "is_set": true
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P09",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-022",
+      "from": "ap@southerncrossdata.example",
+      "synthetic_from": "ap@southerncrossdata.example",
+      "sendable": false,
+      "subject": "Payment confirmation INV-1119",
+      "attachments": [
+        "emails/P09/MT103_Southern_Cross.pdf"
+      ],
+      "scenario": [
+        "required_case_9",
+        "corrupt_attachment"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "payment_state": "Failed",
+        "rule": "parse fails -> Failed item, plain message, re-runnable; other mails unaffected",
+        "invoices": [
+          {
+            "invoice": "INV-1119",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 662203.2
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "attachment unreadable -> Failed before matching"
+      }
+    },
+    {
+      "id": "P10",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "VASUDHA",
+      "from": "ap@vasudhagroup.example",
+      "synthetic_from": "ap@vasudhagroup.example",
+      "sendable": false,
+      "subject": "Payment intimation",
+      "attachments": [
+        "emails/P10/NEFT_Advice_BCBN2026101500000010.pdf"
+      ],
+      "scenario": [
+        "L2_shared_ap_email"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L2 -> TWO customers (CUST-010, CUST-011 share the alias)",
+        "payment_state": "NeedsReview",
+        "rule": "L2 several -> review; amount fits INV-1014 AND INV-1015",
+        "invoices": [
+          {
+            "invoice": "INV-1014",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 254880.0
+          },
+          {
+            "invoice": "INV-1015",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 254880.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": true,
+        "candidate_scores": {
+          "INV-1014": {
+            "raw": 85,
+            "score": 85,
+            "band": "T1",
+            "parts": {
+              "layer": 45,
+              "amount_fit": 35,
+              "date": 5,
+              "date_gap_days": 15,
+              "single_open_invoice": 0,
+              "reference_pattern": 0
+            }
+          },
+          "INV-1015": {
+            "raw": 85,
+            "score": 85,
+            "band": "T1",
+            "parts": {
+              "layer": 45,
+              "amount_fit": 35,
+              "date": 5,
+              "date_gap_days": 15,
+              "single_open_invoice": 0,
+              "reference_pattern": 0
+            }
+          }
+        },
+        "score": 85,
+        "raw_score": 85,
+        "score_decision": "tie: top two raw scores within 10 -> review; also L2 resolves TWO customers (shared AP alias) -> conflict -> review"
+      }
+    },
+    {
+      "id": "P11",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-015",
+      "from": "accounts@gangacloud.example",
+      "synthetic_from": "accounts@gangacloud.example",
+      "sendable": false,
+      "subject": "Payment INV-1016",
+      "attachments": [
+        "emails/P11/Remittance_Advice_BCBN2026101500000011.pdf"
+      ],
+      "scenario": [
+        "T3_overpayment"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T3 over",
+        "payment_state": "Applied",
+        "credit_note_created_inr": 15000.0,
+        "invoices": [
+          {
+            "invoice": "INV-1016",
+            "status_after": "Paid",
+            "applied_inr": 171619.2,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T3",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 3,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1016"
+          ],
+          "balance_inr": 171619.2,
+          "is_set": false
+        },
+        "score_decision": "below 85 -> review",
+        "CONFLICT": "score 83 (T3) gives 'below 85 -> review', but the answer key expects 'Applied' - needs a ruling"
+      }
+    },
+    {
+      "id": "P12",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "sbtraders.personal@mail.example",
+      "synthetic_from": "sbtraders.personal@mail.example",
+      "sendable": false,
+      "subject": "payment",
+      "attachments": [
+        "emails/P12/IMPS_Advice_626101500012.pdf"
+      ],
+      "scenario": [
+        "L3_alias",
+        "short",
+        "no_bypass",
+        "ruling_2026_10_21"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L3 (alias 'Sri Balaji Traders')",
+        "payment_state": "Unapplied",
+        "unapplied_inr": 114224.0,
+        "rule": "fits no invoice exactly, kept as unapplied cash (2026-10-21 ruling)",
+        "side_effect": "CUST-016 holds unapplied cash -> its reminders are suppressed",
+        "invoices": [
+          {
+            "invoice": "INV-1017",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 142780.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "fits no invoice exactly -> Unapplied (2026-10-21 ruling), no candidate"
+      }
+    },
+    {
+      "id": "P13a",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "Payment advice INV-1018",
+      "attachments": [
+        "emails/P13a/Remittance_Advice_BCBN2026101500000013.pdf"
+      ],
+      "scenario": [
+        "C3_setup"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1018",
+            "status_after": "Paid",
+            "applied_inr": 100890.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 24,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1018"
+          ],
+          "balance_inr": 100890.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P14a",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "Part payment INV-1019 (a)",
+      "attachments": [
+        "emails/P14a/Remittance_Advice_BCBN2026101500000015.pdf"
+      ],
+      "scenario": [
+        "C8_concurrency"
+      ],
+      "send_note": "send P14a and P14b in the SAME minute; run >= 2 workers",
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "rule": "FOR UPDATE row lock: both apply; a lost update would leave amount_paid at only one part",
+        "invoices_after_both": [
+          {
+            "invoice": "INV-1019",
+            "status_after": "Paid",
+            "applied_inr": 74340.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 13,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1019"
+          ],
+          "balance_inr": 74340.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P14b",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "Part payment INV-1019 (b)",
+      "attachments": [
+        "emails/P14b/Remittance_Advice_BCBN2026101500000016.pdf"
+      ],
+      "scenario": [
+        "C8_concurrency"
+      ],
+      "send_note": "send P14a and P14b in the SAME minute; run >= 2 workers",
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "rule": "FOR UPDATE row lock: both apply; a lost update would leave amount_paid at only one part",
+        "invoices_after_both": [
+          {
+            "invoice": "INV-1019",
+            "status_after": "Paid",
+            "applied_inr": 74340.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 13,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1019"
+          ],
+          "balance_inr": 74340.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P15",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-006",
+      "from": "ap@sterlingsys-pune.example",
+      "synthetic_from": "ap@sterlingsys-pune.example",
+      "sendable": false,
+      "subject": "Consolidated payment - Sterling Systems Pune",
+      "attachments": [
+        "emails/P15/Remittance_Advice_BCBN2026101500000017.pdf"
+      ],
+      "scenario": [
+        "multi_invoice",
+        "oldest_first",
+        "C16"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1 (3 quoted, no split)",
+        "rule": "amount fit vs SUM of set (short) -> L1 bypass; allocate oldest-first",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1020",
+            "status_after": "Paid",
+            "applied_inr": 201780.0,
+            "balance_after_inr": 0.0
+          },
+          {
+            "invoice": "INV-1021",
+            "status_after": "Paid",
+            "applied_inr": 201780.0,
+            "balance_after_inr": 0.0
+          },
+          {
+            "invoice": "INV-1022",
+            "status_after": "PartlyPaid",
+            "applied_inr": 100890.0,
+            "balance_after_inr": 100890.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 39,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1020",
+            "INV-1021",
+            "INV-1022"
+          ],
+          "balance_inr": 605340.0,
+          "is_set": true
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P17",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-005",
+      "from": "ap@halcyonsystems.example",
+      "synthetic_from": "ap@halcyonsystems.example",
+      "sendable": false,
+      "subject": "Wire transfer - INV-1024",
+      "attachments": [
+        "emails/P17/MT103_FT261016619279.pdf"
+      ],
+      "scenario": [
+        "fx",
+        "T2_short_in_band"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T2 (0.9% short, foreign payment)",
+        "amount_received_inr": 579061.12,
+        "difference_pct": -0.9,
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1024",
+            "status_after": "Paid",
+            "applied_inr": 584320.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "tolerance_residual_inr": -5258.88,
+        "credit_note_created_inr": 0.0,
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 98,
+        "raw_score": 98,
+        "amount_band": "T2",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 30,
+          "date": 5,
+          "date_gap_days": 16,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1024"
+          ],
+          "balance_inr": 584320.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P17b",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-005",
+      "from": "ap@halcyonsystems.example",
+      "synthetic_from": "ap@halcyonsystems.example",
+      "sendable": false,
+      "subject": "Wire transfer - INV-1163",
+      "attachments": [
+        "emails/P17b/MT103_FT261016923155.pdf"
+      ],
+      "scenario": [
+        "fx",
+        "T2_over_in_band"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T2 (1.2% over: absorbed as +residual, NO credit note)",
+        "amount_received_inr": 1522007.52,
+        "difference_pct": 1.2,
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1163",
+            "status_after": "Paid",
+            "applied_inr": 1503960.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "tolerance_residual_inr": 18047.52,
+        "credit_note_created_inr": 0.0,
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 98,
+        "raw_score": 98,
+        "amount_band": "T2",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 30,
+          "date": 5,
+          "date_gap_days": 18,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1163"
+          ],
+          "balance_inr": 1503960.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P17c",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-005",
+      "from": "ap@halcyonsystems.example",
+      "synthetic_from": "ap@halcyonsystems.example",
+      "sendable": false,
+      "subject": "Wire transfer - INV-1144",
+      "attachments": [
+        "emails/P17c/MT103_FT261016766100.pdf"
+      ],
+      "scenario": [
+        "fx",
+        "T2_boundary_inclusive"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T2 (exactly 1.5% short - band is inclusive)",
+        "amount_received_inr": 269791.5,
+        "difference_pct": -1.5,
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1144",
+            "status_after": "Paid",
+            "applied_inr": 273900.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "tolerance_residual_inr": -4108.5,
+        "credit_note_created_inr": 0.0,
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 98,
+        "raw_score": 98,
+        "amount_band": "T2",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 30,
+          "date": 5,
+          "date_gap_days": 13,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1144"
+          ],
+          "balance_inr": 273900.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P17d",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-005",
+      "from": "ap@halcyonsystems.example",
+      "synthetic_from": "ap@halcyonsystems.example",
+      "sendable": false,
+      "subject": "Wire transfer - INV-1173",
+      "attachments": [
+        "emails/P17d/MT103_FT261016102787.pdf"
+      ],
+      "scenario": [
+        "fx",
+        "T2_boundary_exceeded"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T4 (1.6% short - just outside the band)",
+        "amount_received_inr": 849388.8,
+        "difference_pct": -1.6,
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1173",
+            "status_after": "PartlyPaid",
+            "applied_inr": 849388.8,
+            "balance_after_inr": 13811.2,
+            "flag": "short_payment"
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 29,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1173"
+          ],
+          "balance_inr": 863200.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P18",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-018",
+      "from": "accounts.payable@brightwave.example",
+      "synthetic_from": "accounts.payable@brightwave.example",
+      "sendable": false,
+      "subject": "Payment INV-1025",
+      "attachments": [
+        "emails/P18/MT103_FT261016762637.pdf"
+      ],
+      "scenario": [
+        "fx_beyond_band",
+        "T4",
+        "anomaly_outside_business_norm"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T4 (4% short)",
+        "payment_state": "Applied",
+        "amount_received_inr": 414365.04,
+        "invoices": [
+          {
+            "invoice": "INV-1025",
+            "status_after": "PartlyPaid",
+            "applied_inr": 414365.04,
+            "balance_after_inr": 17265.21,
+            "flag": "short_payment"
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 7,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1025"
+          ],
+          "balance_inr": 431630.25,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P19",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-019",
+      "from": "kreditoren@nordlicht-software.example",
+      "synthetic_from": "kreditoren@nordlicht-software.example",
+      "sendable": false,
+      "subject": "Zahlung / payment INV-1026",
+      "attachments": [
+        "emails/P19/MT103_FT261016608958.pdf"
+      ],
+      "scenario": [
+        "C12_third_currency"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "NeedsReview",
+        "rule": "USD payment vs EUR invoice -> review with indicative conversion (~411956.39 INR)",
+        "invoices": [
+          {
+            "invoice": "INV-1026",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 411956.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "currency mismatch (C12): amount fit undefined"
+      }
+    },
+    {
+      "id": "P20",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-020",
+      "from": "finance@kestrelcloud.example",
+      "synthetic_from": "finance@kestrelcloud.example",
+      "sendable": false,
+      "subject": "Remittance INV-1027",
+      "attachments": [
+        "emails/P20/MT103_FT261016858086.pdf"
+      ],
+      "scenario": [
+        "foreign_exact"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1027",
+            "status_after": "Paid",
+            "applied_inr": 431595.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 0,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1027"
+          ],
+          "balance_inr": 431595.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P21",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-021",
+      "from": "accounts@alnoortech.example",
+      "synthetic_from": "accounts@alnoortech.example",
+      "sendable": false,
+      "subject": "Payment transfer INV-1114",
+      "attachments": [
+        "emails/P21/MT103_FT261016392257.pdf"
+      ],
+      "scenario": [
+        "T3_foreign_over",
+        "anomaly_outside_business_norm"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T3 (5% over)",
+        "payment_state": "Applied",
+        "credit_note_created_inr": 48887.19,
+        "note": "credit notes are INR (currency CHECK 'INR')",
+        "invoices": [
+          {
+            "invoice": "INV-1114",
+            "status_after": "Paid",
+            "applied_inr": 977743.8,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T3",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 21,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1114"
+          ],
+          "balance_inr": 977743.8,
+          "is_set": false
+        },
+        "score_decision": "below 85 -> review",
+        "CONFLICT": "score 83 (T3) gives 'below 85 -> review', but the answer key expects 'Applied' - needs a ruling"
+      }
+    },
+    {
+      "id": "P22",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-005",
+      "from": "ap@halcyonsystems.example",
+      "synthetic_from": "ap@halcyonsystems.example",
+      "sendable": false,
+      "subject": "Payment INV-1085 & INV-1086",
+      "attachments": [
+        "emails/P22/Remittance_Advice_BCBN2026101500000019.pdf"
+      ],
+      "scenario": [
+        "foreign_multi_split"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1085",
+            "status_after": "Paid",
+            "applied_inr": 1151210.0,
+            "balance_after_inr": 0.0
+          },
+          {
+            "invoice": "INV-1086",
+            "status_after": "Paid",
+            "applied_inr": 1142080.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 17,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1085",
+            "INV-1086"
+          ],
+          "balance_inr": 2293290.0,
+          "is_set": true
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P23",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-023",
+      "from": "payables@mapleridge.example",
+      "synthetic_from": "payables@mapleridge.example",
+      "sendable": false,
+      "subject": "Payment INV-1124",
+      "attachments": [
+        "emails/P23/MT103_FT261016466083.pdf"
+      ],
+      "scenario": [
+        "foreign_exact"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1124",
+            "status_after": "Paid",
+            "applied_inr": 1960980.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 54,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1124"
+          ],
+          "balance_inr": 1960980.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P24",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-024",
+      "from": "comptabilite@lumiere-solutions.example",
+      "synthetic_from": "comptabilite@lumiere-solutions.example",
+      "sendable": false,
+      "subject": "Payment INV-1129",
+      "attachments": [
+        "emails/P24/MT103_FT261016697740.pdf"
+      ],
+      "scenario": [
+        "foreign_exact"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1129",
+            "status_after": "Paid",
+            "applied_inr": 547796.5,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 15,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1129"
+          ],
+          "balance_inr": 547796.5,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P25",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-013",
+      "from": "accounts@deccanedutech.example",
+      "synthetic_from": "accounts@deccanedutech.example",
+      "sendable": false,
+      "subject": "Payment released - INV-1028",
+      "attachments": [],
+      "scenario": [
+        "G7_amount_missing",
+        "B4b_body_only"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "source": "body-only (.eml source document)",
+        "payment_state": "NeedsReview",
+        "reason": "amount_missing",
+        "invoices": [
+          {
+            "invoice": "INV-1028",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 127440.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "amount missing -> NeedsReview before the matcher (D3b)"
+      }
+    },
+    {
+      "id": "P26",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "Payment advice INV-1029",
+      "attachments": [
+        "emails/P26/Remittance_Advice_BCBN2026101500000021.pdf"
+      ],
+      "scenario": [
+        "C1_owner_mismatch"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1 resolves CUST-002 but sender (Zenith's own mailbox) is CUST-001",
+        "payment_state": "NeedsReview",
+        "rule": "quoted invoice owner != sender customer -> review",
+        "invoices": [
+          {
+            "invoice": "INV-1029",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 110448.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": true,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 9,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1029"
+          ],
+          "balance_inr": 110448.0,
+          "is_set": false
+        },
+        "score_decision": "rule: C1: quoted invoice owner != sender's customer -> review"
+      }
+    },
+    {
+      "id": "P27",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-014",
+      "from": "ap@aravallimfg.example",
+      "synthetic_from": "ap@aravallimfg.example",
+      "sendable": false,
+      "subject": "Payment INV-1145, INV-1999",
+      "attachments": [
+        "emails/P27/Remittance_Advice_BCBN2026101500000022.pdf"
+      ],
+      "scenario": [
+        "C2_mixed_refs"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1 for the known part",
+        "payment_state": "PartiallyApplied",
+        "unapplied_inr": 30000.0,
+        "rule": "INV-1999 does not exist -> remainder sub-matched; nothing fits -> stays unapplied",
+        "invoices": [
+          {
+            "invoice": "INV-1145",
+            "status_after": "Paid",
+            "applied_inr": 311803.2,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 5,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1145"
+          ],
+          "balance_inr": 311803.2,
+          "is_set": false
+        },
+        "score_decision": "rule: C2: unknown number INV-1999 -> known part applied, remainder unapplied"
+      }
+    },
+    {
+      "id": "P28",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "Payment INV-1151/INV-1156",
+      "attachments": [
+        "emails/P28/Remittance_Advice_BCBN2026101500000023.pdf"
+      ],
+      "scenario": [
+        "C4_split_neq_total"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "NeedsReview",
+        "rule": "stated split sums 5,000 more than the payment (> +-1) -> review",
+        "invoices": [
+          {
+            "invoice": "INV-1151",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 63720.0
+          },
+          {
+            "invoice": "INV-1156",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 308511.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 78,
+        "raw_score": 78,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 0,
+          "date_gap_days": 67,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1151",
+            "INV-1156"
+          ],
+          "balance_inr": 372231.0,
+          "is_set": true
+        },
+        "score_decision": "rule: C4: stated split differs from total by more than Rs.1 -> review"
+      }
+    },
+    {
+      "id": "P29",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-017",
+      "from": "finance@konkanmobility.example",
+      "synthetic_from": "finance@konkanmobility.example",
+      "sendable": false,
+      "subject": "Payment INV-1180",
+      "attachments": [
+        "emails/P29/Remittance_Advice_BCBN2026101500000024.pdf"
+      ],
+      "scenario": [
+        "C9_zero_amount"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "NeedsReview",
+        "rule": "zero amount -> review",
+        "invoices": [
+          {
+            "invoice": "INV-1180",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 205178.4
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 1,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1180"
+          ],
+          "balance_inr": 205178.4,
+          "is_set": false
+        },
+        "score_decision": "rule: C9: zero amount -> review"
+      }
+    },
+    {
+      "id": "P30a",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-011",
+      "from": "foods.accounts@vasudhagroup.example",
+      "synthetic_from": "foods.accounts@vasudhagroup.example",
+      "sendable": false,
+      "subject": "Payment INV-1096",
+      "attachments": [
+        "emails/P30a/Remittance_Advice_NEFT.pdf"
+      ],
+      "scenario": [
+        "C13_junk_reference"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "rule": "reference 'NEFT' is in JUNK_REFERENCES -> never deduped; both P30a and P30b apply",
+        "invoices": [
+          {
+            "invoice": "INV-1096",
+            "status_after": "Paid",
+            "applied_inr": 579852.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 11,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1096"
+          ],
+          "balance_inr": 579852.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P30b",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-011",
+      "from": "foods.accounts@vasudhagroup.example",
+      "synthetic_from": "foods.accounts@vasudhagroup.example",
+      "sendable": false,
+      "subject": "Payment INV-1097",
+      "attachments": [
+        "emails/P30b/Remittance_Advice_NEFT.pdf"
+      ],
+      "scenario": [
+        "C13_junk_reference"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "rule": "reference 'NEFT' is in JUNK_REFERENCES -> never deduped; both P30a and P30b apply",
+        "invoices": [
+          {
+            "invoice": "INV-1097",
+            "status_after": "Paid",
+            "applied_inr": 356832.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 46,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1097"
+          ],
+          "balance_inr": 356832.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P33",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "treasury@vantage-holdings.example",
+      "synthetic_from": "treasury@vantage-holdings.example",
+      "sendable": false,
+      "subject": "Payment batch 1104",
+      "attachments": [
+        "emails/P33/MT103_FT261016960499.pdf"
+      ],
+      "scenario": [
+        "F1_adversarial_number"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L3 (payer name)",
+        "trap": "'1104' is a batch number; INV-1104 is a REAL invoice of CUST-018 Brightwave",
+        "payment_state": "NeedsReview",
+        "normalization_guard": "bare '1104' (no INV prefix) normalizes to '1104' != 'INV1104' -> must NOT match",
+        "rule": "correct read -> L3 (payer name) -> below 85 -> review; a hallucinated INV-1104 -> owner conflict -> review. NEVER auto-applied to INV-1104",
+        "invoices": [
+          {
+            "invoice": "INV-1134",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 647400.0
+          },
+          {
+            "invoice": "INV-1104",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 1847874.25
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 70,
+        "raw_score": 70,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 35,
+          "amount_fit": 35,
+          "date": 0,
+          "date_gap_days": 81,
+          "single_open_invoice": 0,
+          "reference_pattern": 0
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1134"
+          ],
+          "balance_inr": 647400.0,
+          "is_set": false
+        },
+        "score_decision": "below 85 -> review"
+      }
+    },
+    {
+      "id": "P34",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-009",
+      "from": "ap@indusfintech.example",
+      "synthetic_from": "ap@indusfintech.example",
+      "sendable": false,
+      "subject": "Payments INV-1143 and INV-1165",
+      "attachments": [
+        "emails/P34/Remittance_Advice_BCBN2026101500000025.pdf",
+        "emails/P34/Remittance_Advice_BCBN2026101500000026.pdf"
+      ],
+      "scenario": [
+        "B4_multi_attachment"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "jobs": 2,
+        "payment_state": "Applied (each)",
+        "invoices": [
+          {
+            "invoice": "INV-1143",
+            "status_after": "Paid",
+            "applied_inr": 627854.4,
+            "balance_after_inr": 0.0
+          },
+          {
+            "invoice": "INV-1165",
+            "status_after": "Paid",
+            "applied_inr": 416835.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "attachment_scores": {
+          "emails/P34/Remittance_Advice_BCBN2026101500000025.pdf": {
+            "invoice": "INV-1143",
+            "raw": 103,
+            "score": 100,
+            "band": "T1",
+            "parts": {
+              "layer": 60,
+              "amount_fit": 35,
+              "date": 5,
+              "date_gap_days": 6,
+              "single_open_invoice": 0,
+              "reference_pattern": 3
+            },
+            "decision": "auto (>= 85)"
+          },
+          "emails/P34/Remittance_Advice_BCBN2026101500000026.pdf": {
+            "invoice": "INV-1165",
+            "raw": 98,
+            "score": 98,
+            "band": "T1",
+            "parts": {
+              "layer": 60,
+              "amount_fit": 35,
+              "date": 0,
+              "date_gap_days": 177,
+              "single_open_invoice": 0,
+              "reference_pattern": 3
+            },
+            "decision": "auto (>= 85)"
+          }
+        },
+        "score": 98,
+        "score_decision": "scored per attachment (one payment job each)"
+      }
+    },
+    {
+      "id": "P35",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-003",
+      "from": "pquill5000@gmail.com",
+      "synthetic_from": "pquill5000@gmail.com",
+      "sendable": true,
+      "subject": "Payment for INV-1006",
+      "attachments": [],
+      "scenario": [
+        "B4b_body_only",
+        "required_case_6_invoice"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "source": "body-only .eml",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1006",
+            "status_after": "Paid",
+            "applied_inr": 127440.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 98,
+        "raw_score": 98,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 0,
+          "date_gap_days": null,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1006"
+          ],
+          "balance_inr": 127440.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P36",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "Payment confirmation INV-1188",
+      "attachments": [
+        "emails/P36/zenith_logo.png"
+      ],
+      "scenario": [
+        "B5_tiny_attachment",
+        "B4b_body_only"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "rule": "logo is 422 bytes < 5 KB -> skipped; no qualifying attachment -> body extraction",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1188",
+            "status_after": "Paid",
+            "applied_inr": 300758.4,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 98,
+        "raw_score": 98,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 0,
+          "date_gap_days": null,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1188"
+          ],
+          "balance_inr": 300758.4,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P37",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "office.assistant@mail.example",
+      "synthetic_from": "office.assistant@mail.example",
+      "sendable": false,
+      "subject": "Fwd: Payment remittance",
+      "attachments": [
+        "emails/P37/Remittance_Advice_BCBN2026101500000029.pdf"
+      ],
+      "scenario": [
+        "B8_forwarded"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "rule": "sender (GENERIC) is not a customer -> L2 nothing; L1 works",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1136",
+            "status_after": "Paid",
+            "applied_inr": 1326340.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 16,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1136"
+          ],
+          "balance_inr": 1326340.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P38",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-026",
+      "from": "crediteuren@helixbio.example",
+      "synthetic_from": "crediteuren@helixbio.example",
+      "sendable": false,
+      "subject": "",
+      "attachments": [
+        "emails/P38/MT103_FT261016791516.pdf"
+      ],
+      "scenario": [
+        "B11_bare_attachment_known"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "rule": "no subject/body, attachment identifies a known customer -> process",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1138",
+            "status_after": "Paid",
+            "applied_inr": 875406.5,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 31,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1138"
+          ],
+          "balance_inr": 875406.5,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P39",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "unknown.sender@mail.example",
+      "synthetic_from": "unknown.sender@mail.example",
+      "sendable": false,
+      "subject": "",
+      "attachments": [
+        "emails/P39/IMPS_Advice_626101500030.pdf"
+      ],
+      "scenario": [
+        "B11_bare_attachment_unknown"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "general",
+        "label": "AR/Ignored",
+        "rule": "unknown sender + no context -> ignored (kept, visible)",
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "triaged general - never reaches matching"
+      }
+    },
+    {
+      "id": "P40",
+      "kind": "general",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "newsletter@finance-weekly.example",
+      "synthetic_from": "newsletter@finance-weekly.example",
+      "sendable": false,
+      "subject": "Monthly newsletter - October edition",
+      "attachments": [],
+      "scenario": [
+        "triage_noise"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "general",
+        "label": "AR/Ignored",
+        "triage_confidence": ">=75",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "P41",
+      "kind": "general",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "auto-reply@mail.example",
+      "synthetic_from": "auto-reply@mail.example",
+      "sendable": false,
+      "subject": "Out of office: Payment query",
+      "attachments": [],
+      "scenario": [
+        "triage_noise"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "general",
+        "label": "AR/Ignored",
+        "triage_confidence": ">=75",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "P43",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-004",
+      "from": "brazilacc246@gmail.com",
+      "synthetic_from": "brazilacc246@gmail.com",
+      "sendable": true,
+      "subject": "Part payment and issue - INV-1038",
+      "attachments": [
+        "emails/P43/Remittance_Advice_BCBN2026101500000032.pdf"
+      ],
+      "scenario": [
+        "triage_both",
+        "B6"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "both",
+        "layer": "L1",
+        "jobs": "1 payment + 1 dispute, cross-linked",
+        "dispute_category": "Quality (payment_related wording)",
+        "payment_note": "if the dispute is created first and is payment_related, the payment portion is HELD",
+        "invoices": [
+          {
+            "invoice": "INV-1038",
+            "status_after": "PartlyPaid or Held",
+            "applied_inr": 89208.0,
+            "balance_after_inr": 38232.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 14,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1038"
+          ],
+          "balance_inr": 127440.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P44",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-017",
+      "from": "finance@konkanmobility.example",
+      "synthetic_from": "finance@konkanmobility.example",
+      "sendable": false,
+      "subject": "Payment INV-1051",
+      "attachments": [
+        "emails/P44/Remittance_Advice_BCBN2026101500000033.pdf"
+      ],
+      "scenario": [
+        "D5_hold_entire"
+      ],
+      "send_note": "send AFTER D01 is classified",
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Held",
+        "held_inr": 242136.0,
+        "rule": "open payment_related dispute on the only target -> entire payment held (held_for_dispute_id = D01 dispute)",
+        "invoices": [
+          {
+            "invoice": "INV-1051",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 242136.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 23,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1051"
+          ],
+          "balance_inr": 242136.0,
+          "is_set": false
+        },
+        "score_decision": "rule: D5: open payment_related dispute -> whole payment held"
+      }
+    },
+    {
+      "id": "P45",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-014",
+      "from": "ap@aravallimfg.example",
+      "synthetic_from": "ap@aravallimfg.example",
+      "sendable": false,
+      "subject": "Payment INV-1052 and INV-1053",
+      "attachments": [
+        "emails/P45/Remittance_Advice_BCBN2026101500000034.pdf"
+      ],
+      "scenario": [
+        "D5_hold_split"
+      ],
+      "send_note": "send AFTER D02 is classified",
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "PartiallyApplied",
+        "held_inr": 82836.0,
+        "rule": "hold is PER PORTION: INV-1052 applies; INV-1053 slice in held_amount (not unapplied)",
+        "invoices": [
+          {
+            "invoice": "INV-1052",
+            "status_after": "Paid",
+            "applied_inr": 138060.0,
+            "balance_after_inr": 0.0
+          },
+          {
+            "invoice": "INV-1053",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 82836.0,
+            "held": true
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 29,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1052",
+            "INV-1053"
+          ],
+          "balance_inr": 220896.0,
+          "is_set": true
+        },
+        "score_decision": "rule: D5: disputed invoice's slice held; clean invoice applies"
+      }
+    },
+    {
+      "id": "P46",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "Part payment INV-1048",
+      "attachments": [
+        "emails/P46/Remittance_Advice_BCBN2026101500000035.pdf"
+      ],
+      "scenario": [
+        "partial_reminder_cycle"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1048",
+            "status_after": "PartlyPaid",
+            "applied_inr": 178416.0,
+            "balance_after_inr": 178416.0,
+            "reminders": "cycle continues on the balance"
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 19,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1048"
+          ],
+          "balance_inr": 356832.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P47",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "Payment against debit note DN-2001",
+      "attachments": [
+        "emails/P47/Remittance_Advice_BCBN2026101500000036.pdf"
+      ],
+      "scenario": [
+        "debit_note_payment"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "DN-2001",
+            "status_after": "Paid",
+            "applied_inr": 67260.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 10,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "DN-2001"
+          ],
+          "balance_inr": 67260.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P49",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-008",
+      "from": "accounts@kaveriinfotech.example",
+      "synthetic_from": "accounts@kaveriinfotech.example",
+      "sendable": false,
+      "subject": "Payment INV-1194 (scanned copy)",
+      "attachments": [
+        "emails/P49/Remittance_Advice_BCBN2026101500000038.jpg"
+      ],
+      "scenario": [
+        "image_jpg_scan"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1194",
+            "status_after": "Paid",
+            "applied_inr": 288864.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 4,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1194"
+          ],
+          "balance_inr": 288864.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P50",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-007",
+      "from": "finance@sterlingsystems-hyd.example",
+      "synthetic_from": "finance@sterlingsystems-hyd.example",
+      "sendable": false,
+      "subject": "Paid INV-1181",
+      "attachments": [
+        "emails/P50/NetBanking_626101500039.png"
+      ],
+      "scenario": [
+        "image_png_screenshot"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1181",
+            "status_after": "Paid",
+            "applied_inr": 269748.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 21,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1181"
+          ],
+          "balance_inr": 269748.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P51",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "NEUTRAL",
+      "from": "sbtraders.personal@mail.example",
+      "synthetic_from": "sbtraders.personal@mail.example",
+      "sendable": false,
+      "subject": "Payment",
+      "attachments": [
+        "emails/P51/IMPS_Advice_626101500040.pdf"
+      ],
+      "scenario": [
+        "L3_exact_below_gate"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L3 (alias 'Shri Balaji Traders')",
+        "payment_state": "NeedsReview",
+        "rule": "L3 35 + exact 35 (+ modifiers) stays below 85 -> review; L3 alone can never auto-apply",
+        "invoices": [
+          {
+            "invoice": "INV-1100",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 269040.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 70,
+        "raw_score": 70,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 35,
+          "amount_fit": 35,
+          "date": 0,
+          "date_gap_days": 71,
+          "single_open_invoice": 0,
+          "reference_pattern": 0
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1100"
+          ],
+          "balance_inr": 269040.0,
+          "is_set": false
+        },
+        "score_decision": "below 85 -> review"
+      }
+    },
+    {
+      "id": "P52",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-008",
+      "from": "accounts@kaveriinfotech.example",
+      "synthetic_from": "accounts@kaveriinfotech.example",
+      "sendable": false,
+      "subject": "Payment INV-1075",
+      "attachments": [
+        "emails/P52/Remittance_Advice_BCBN2026101500000041.pdf"
+      ],
+      "scenario": [
+        "G4_po_hold"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "parked (invoice has po_hold)",
+        "rule": "INV-1075 is in po_mismatch review -> payment parks; auto-releases when the PO mismatch is resolved",
+        "invoices": [
+          {
+            "invoice": "INV-1075",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 151335.0,
+            "po_hold": true
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 7,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1075"
+          ],
+          "balance_inr": 151335.0,
+          "is_set": false
+        },
+        "score_decision": "rule: G4: invoice on po_hold -> payment parks"
+      }
+    },
+    {
+      "id": "P53",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "Payment INV-1054",
+      "attachments": [
+        "emails/P53/Remittance_Advice_BCBN2026101500000042.pdf"
+      ],
+      "scenario": [
+        "pays_rejected_invoice"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "rule": "INV-1054 was REJECTED at import (due < invoice date) so L1 finds nothing; sender email -> L2 identifies CUST-001; amount fits no open invoice -> Unapplied + alert",
+        "payment_state": "Unapplied",
+        "unapplied_inr": 69030.0,
+        "invoices": [],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "quoted invoice was rejected at import; no open invoice fits -> Unapplied"
+      }
+    },
+    {
+      "id": "P54",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-003",
+      "from": "pquill5000@gmail.com",
+      "synthetic_from": "pquill5000@gmail.com",
+      "sendable": true,
+      "subject": "NEFT advice",
+      "attachments": [
+        "emails/P54/NEFT_Advice_BCBN2026101500000043.pdf"
+      ],
+      "scenario": [
+        "invoice_no_normalization"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "variant": "'INV1176' (no hyphen)",
+        "rule": "INVOICE_NO_NORMALIZE: uppercase, drop non-alphanumerics -> INV1176 == INV-1176",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1176",
+            "status_after": "Paid",
+            "applied_inr": 389754.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 98,
+        "raw_score": 98,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 0,
+          "date_gap_days": 177,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1176"
+          ],
+          "balance_inr": 389754.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P55",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-010",
+      "from": "retail.accounts@vasudhagroup.example",
+      "synthetic_from": "retail.accounts@vasudhagroup.example",
+      "sendable": false,
+      "subject": "Payment INV-1091",
+      "attachments": [
+        "emails/P55/Remittance_Advice_BCBN2026101500000045.pdf"
+      ],
+      "scenario": [
+        "L1_from_unknown_sender"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1091",
+            "status_after": "Paid",
+            "applied_inr": 163548.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 98,
+        "raw_score": 98,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 0,
+          "date_gap_days": 170,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1091"
+          ],
+          "balance_inr": 163548.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P56",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-011",
+      "from": "foods.accounts@vasudhagroup.example",
+      "synthetic_from": "foods.accounts@vasudhagroup.example",
+      "sendable": false,
+      "subject": "Payment INV-1098",
+      "attachments": [
+        "emails/P56/Remittance_Advice_BCBN2026101500000046.pdf"
+      ],
+      "scenario": [
+        "inr_tolerance",
+        "no_T2_for_INR"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T1 (Rs.1.00 short, inclusive)",
+        "payment_state": "Applied",
+        "tolerance_residual_inr": -1.0,
+        "invoices": [
+          {
+            "invoice": "INV-1098",
+            "status_after": "Paid",
+            "applied_inr": 704955.6,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 32,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1098"
+          ],
+          "balance_inr": 704955.6,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P57",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-004",
+      "from": "brazilacc246@gmail.com",
+      "synthetic_from": "brazilacc246@gmail.com",
+      "sendable": true,
+      "subject": "Payment INV-1184",
+      "attachments": [
+        "emails/P57/Remittance_Advice_BCBN2026101500000047.pdf"
+      ],
+      "scenario": [
+        "inr_tolerance",
+        "no_T2_for_INR"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T4 (Rs.1.50 short - beyond T1)",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1184",
+            "status_after": "PartlyPaid",
+            "applied_inr": 237768.5,
+            "balance_after_inr": 1.5,
+            "flag": "short_payment"
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 78,
+        "raw_score": 78,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 0,
+          "date_gap_days": 135,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1184"
+          ],
+          "balance_inr": 237770.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P58",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-011",
+      "from": "foods.accounts@vasudhagroup.example",
+      "synthetic_from": "foods.accounts@vasudhagroup.example",
+      "sendable": false,
+      "subject": "Payment INV-1146",
+      "attachments": [
+        "emails/P58/Remittance_Advice_BCBN2026101500000048.pdf"
+      ],
+      "scenario": [
+        "inr_tolerance",
+        "no_T2_for_INR"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T4 (0.8% short - NO T2 for INR)",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1146",
+            "status_after": "PartlyPaid",
+            "applied_inr": 26337.6,
+            "balance_after_inr": 212.4,
+            "flag": "short_payment"
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 53,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1146"
+          ],
+          "balance_inr": 26550.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P59",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-004",
+      "from": "brazilacc246@gmail.com",
+      "synthetic_from": "brazilacc246@gmail.com",
+      "sendable": true,
+      "subject": "Payment INV-1193",
+      "attachments": [
+        "emails/P59/Remittance_Advice_BCBN2026101500000049.pdf"
+      ],
+      "scenario": [
+        "inr_tolerance",
+        "no_T2_for_INR"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "tolerance": "T1 (Rs.0.75 over, inclusive)",
+        "payment_state": "Applied",
+        "tolerance_residual_inr": 0.75,
+        "invoices": [
+          {
+            "invoice": "INV-1193",
+            "status_after": "Paid",
+            "applied_inr": 732190.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 4,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1193"
+          ],
+          "balance_inr": 732190.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P60",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "payment intimation",
+      "attachments": [
+        "emails/P60/NEFT_Advice_BCBN2026101500000044.pdf"
+      ],
+      "scenario": [
+        "invoice_no_normalization"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "variant": "'inv 1157' (lowercase, space)",
+        "rule": "normalizes to INV1157 == INV-1157",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1157",
+            "status_after": "Paid",
+            "applied_inr": 318600.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 9,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1157"
+          ],
+          "balance_inr": 318600.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P61",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-011",
+      "from": "foods.accounts@vasudhagroup.example",
+      "synthetic_from": "foods.accounts@vasudhagroup.example",
+      "sendable": false,
+      "subject": "Payment advice INV-1168",
+      "attachments": [
+        "emails/P61/Remittance_Advice.pdf"
+      ],
+      "scenario": [
+        "empty_pdf_with_body"
+      ],
+      "send_note": "Gmail may refuse a 0-byte attachment; if so, attach any 0-byte .pdf via another client or the SMTP script",
+      "expected": {
+        "triage": "payment",
+        "attachment_check": "0 bytes -> rejected attachment ('attachment is empty'), not a payment job",
+        "source": "no qualifying attachment left -> body extraction",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1168",
+            "status_after": "Paid",
+            "applied_inr": 418852.8,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 98,
+        "raw_score": 98,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 0,
+          "date_gap_days": null,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1168"
+          ],
+          "balance_inr": 418852.8,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "P62",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-016",
+      "from": "accounts@shreebalajitraders.example",
+      "synthetic_from": "accounts@shreebalajitraders.example",
+      "sendable": false,
+      "subject": "Payment advice INV-1101",
+      "attachments": [
+        "emails/P62/Advice.pdf"
+      ],
+      "scenario": [
+        "empty_pdf_no_body"
+      ],
+      "send_note": "same 0-byte caveat as P61",
+      "expected": {
+        "triage": "payment",
+        "attachment_check": "0 bytes -> rejected attachment",
+        "source": "body has the invoice number but no amount",
+        "payment_state": "NeedsReview",
+        "reason": "amount_missing",
+        "invoices": [
+          {
+            "invoice": "INV-1101",
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 583864.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "amount missing -> NeedsReview before the matcher (D3b)"
+      }
+    },
+    {
+      "id": "P63",
+      "kind": "payment_advice",
+      "wave": 1,
+      "sender_role": "CUST-016",
+      "from": "accounts@shreebalajitraders.example",
+      "synthetic_from": "accounts@shreebalajitraders.example",
+      "sendable": false,
+      "subject": "Payment INV-1102",
+      "attachments": [
+        "emails/P63/advice_small.pdf"
+      ],
+      "scenario": [
+        "small_pdf_under_5kb"
+      ],
+      "send_note": null,
+      "expected": {
+        "triage": "payment",
+        "attachment_check": "valid PDF of 2617 bytes - the 5 KB rule is images-only, so it QUALIFIES",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1102",
+            "status_after": "Paid",
+            "applied_inr": 446394.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 100,
+        "raw_score": 103,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 5,
+          "date_gap_days": 16,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1102"
+          ],
+          "balance_inr": 446394.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    },
+    {
+      "id": "D29",
+      "kind": "dispute",
+      "wave": 2,
+      "sender_role": "CUST-003",
+      "from": "pquill5000@gmail.com",
+      "synthetic_from": "pquill5000@gmail.com",
+      "sendable": true,
+      "subject": "Re: INV-1031 already paid",
+      "attachments": [],
+      "scenario": [
+        "dispute",
+        "AlreadyPaid"
+      ],
+      "send_note": "REPLY from pquill5000@gmail.com in the SAME thread as D11 (after D11 is classified)",
+      "expected": {
+        "triage": "dispute",
+        "triage_confidence": ">=75",
+        "dispute_category": "AlreadyPaid",
+        "classification_confidence": ">=75",
+        "payment_related": false,
+        "invoice": "INV-1031",
+        "customer_code": "CUST-003",
+        "effects": [
+          "invoice excluded from chasing; stays in aging, flagged"
+        ],
+        "edge": "E2",
+        "expected_routing": "appended to D11's dispute as an inbound_email message + DisputeFollowUp notification; deadlines unchanged; NOT a new dispute",
+        "sender_dependent": false
+      }
+    },
+    {
+      "id": "P13b",
+      "kind": "payment_advice",
+      "wave": 2,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "Remittance INV-1018, INV-1154",
+      "attachments": [
+        "emails/P13b/Remittance_Advice_BCBN2026101500000014.pdf"
+      ],
+      "scenario": [
+        "C3_open_plus_paid",
+        "already_paid_repayment"
+      ],
+      "send_note": "send AFTER P13a is Applied",
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "payment_state": "PartiallyApplied (then Applied after review)",
+        "rule": "Open part applies; the Paid (INV-1018) portion -> review -> credit note on confirm (payment NOT Rejected)",
+        "invoices": [
+          {
+            "invoice": "INV-1154",
+            "status_after": "Paid",
+            "applied_inr": 232365.6,
+            "balance_after_inr": 0.0
+          },
+          {
+            "invoice": "INV-1018",
+            "status_after": "Paid",
+            "applied_inr": 0.0,
+            "balance_after_inr": 0.0,
+            "review": "already-paid portion 100890.0 -> credit note on confirm"
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 78,
+        "raw_score": 78,
+        "amount_band": "T3",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 0,
+          "date_gap_days": 166,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1154",
+            "INV-1018"
+          ],
+          "balance_inr": 232365.6,
+          "is_set": true
+        },
+        "score_decision": "rule: C3: remittance includes an already-Paid invoice -> that portion to review; the open invoice applies"
+      }
+    },
+    {
+      "id": "P16",
+      "kind": "payment_advice",
+      "wave": 2,
+      "sender_role": "CUST-009",
+      "from": "ap@indusfintech.example",
+      "synthetic_from": "ap@indusfintech.example",
+      "sendable": false,
+      "subject": "Payment INV-1023 - adjust credit",
+      "attachments": [
+        "emails/P16/Remittance_Advice_BCBN2026101500000018.pdf"
+      ],
+      "scenario": [
+        "C18_generic_credit_spend"
+      ],
+      "send_note": "send AFTER P06 created its credit note",
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "rule": "credit_note_requested (generic) -> best-fit note: the P06 note (22420.0) exactly covers the balance -> note-funded allocation, note Closed",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1023",
+            "status_after": "Paid",
+            "applied_inr": 111510.0,
+            "balance_after_inr": 0.0,
+            "funded_by_note_inr": 22420.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 2,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1023"
+          ],
+          "balance_inr": 111510.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P31",
+      "kind": "payment_advice",
+      "wave": 2,
+      "sender_role": "CUST-001",
+      "from": "gamerkiran246@gmail.com",
+      "synthetic_from": "gamerkiran246@gmail.com",
+      "sendable": true,
+      "subject": "RE: Payment advice - INV-1001 (copy)",
+      "attachments": [
+        "emails/P31/Remittance_Advice_copy.pdf"
+      ],
+      "scenario": [
+        "D4_duplicate_reference"
+      ],
+      "send_note": "send AFTER P01 is Applied",
+      "expected": {
+        "triage": "payment",
+        "payment_state": "Rejected",
+        "rule": "(reference, customer) duplicate of P01 -> Rejected, zero buckets, no credit note",
+        "invoices": [],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "duplicate (reference, customer) -> Rejected before matching"
+      }
+    },
+    {
+      "id": "P32",
+      "kind": "payment_advice",
+      "wave": 2,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "Fwd: Remittance - INV-1002, INV-1003",
+      "attachments": [
+        "emails/P32/Remittance_Advice_BCBR2026101500000002.pdf"
+      ],
+      "scenario": [
+        "attachment_hash_collision"
+      ],
+      "send_note": "send AFTER P02 is Applied",
+      "expected": {
+        "triage": "payment",
+        "payment_state": "Rejected",
+        "rule": "same PDF bytes as P02 -> worker hash pre-check -> duplicate-payment rejection with duplicate_of (never a raw constraint error)",
+        "invoices": [],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": null,
+        "score_reason": "attachment hash duplicate -> Rejected before matching"
+      }
+    },
+    {
+      "id": "P48",
+      "kind": "payment_advice",
+      "wave": 2,
+      "sender_role": "CUST-015",
+      "from": "accounts@gangacloud.example",
+      "synthetic_from": "accounts@gangacloud.example",
+      "sendable": false,
+      "subject": "Payment INV-1192",
+      "attachments": [
+        "emails/P48/Remittance_Advice_BCBN2026101500000037.pdf"
+      ],
+      "scenario": [
+        "C7_no_instruction_no_spend"
+      ],
+      "send_note": "send AFTER P11 created Ganga's 15,000 credit note",
+      "expected": {
+        "triage": "payment",
+        "layer": "L1",
+        "rule": "short by exactly the open credit note, but NO instruction -> NO spend; Partly paid + informational credit hint",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1192",
+            "status_after": "PartlyPaid",
+            "applied_inr": 228198.0,
+            "balance_after_inr": 15000.0,
+            "credit_hint": true
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 83,
+        "raw_score": 83,
+        "amount_band": "T4",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 15,
+          "date": 5,
+          "date_gap_days": 40,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1192"
+          ],
+          "balance_inr": 243198.0,
+          "is_set": false
+        },
+        "score_decision": "short-with-certain-identity bypass -> auto Partly paid + flag"
+      }
+    },
+    {
+      "id": "P42",
+      "kind": "payment_advice",
+      "wave": 3,
+      "sender_role": "CUST-002",
+      "from": "gamervimanthan246@gmail.com",
+      "synthetic_from": "gamervimanthan246@gmail.com",
+      "sendable": true,
+      "subject": "Re: Payment reminder: INV-1040",
+      "attachments": [],
+      "scenario": [
+        "B4b_body_only",
+        "B7_thread_reply"
+      ],
+      "send_note": "REPLY in the actual reminder thread (needs outbound reminders sent through Gmail, not Mailpit). Otherwise send as a new mail - B7 untested.",
+      "expected": {
+        "triage": "payment",
+        "source": "body-only .eml, newest message only",
+        "layer": "L1",
+        "payment_state": "Applied",
+        "invoices": [
+          {
+            "invoice": "INV-1040",
+            "status_after": "Paid",
+            "applied_inr": 115758.0,
+            "balance_after_inr": 0.0
+          }
+        ],
+        "triage_confidence": ">=75",
+        "sender_dependent": false,
+        "score": 98,
+        "raw_score": 98,
+        "amount_band": "T1",
+        "score_parts": {
+          "layer": 60,
+          "amount_fit": 35,
+          "date": 0,
+          "date_gap_days": null,
+          "single_open_invoice": 0,
+          "reference_pattern": 3
+        },
+        "scored_against": {
+          "invoices": [
+            "INV-1040"
+          ],
+          "balance_inr": 115758.0,
+          "is_set": false
+        },
+        "score_decision": "auto (>= 85)"
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: PO and invoice copy
+ATTACH:  INV-1202.pdf
+WAVE:    1
+
+Hi,
+
+Please find the document for our records.
+
+Elton
+Konkan Mobility

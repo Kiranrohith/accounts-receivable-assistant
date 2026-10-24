@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: New PO - Meridian
+ATTACH:  PO_PO-MER-9002.jpg
+WAVE:    1
+
+Hello,
+
+Scanned copy of PO-MER-9002 attached.
+
+Arjun Nair
+Meridian Tech Solutions

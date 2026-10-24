@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Zahlung / payment INV-1026
+ATTACH:  MT103_FT261016608958.pdf
+WAVE:    1
+
+Dear Sir or Madam,
+
+Payment for INV-1026 has been made in USD.
+
+Mit freundlichen Gruessen
+Lena Hoffmann

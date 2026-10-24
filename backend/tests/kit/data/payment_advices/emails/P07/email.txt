@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+kaveri@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment released
+ATTACH:  NEFT_Advice_BCBN2026101500000008.pdf
+WAVE:    1
+
+Hi,
+
+Payment of Rs. 1,79,478.00 released today.
+
+Regards,
+Accounts Payable
+Kaveri Infotech

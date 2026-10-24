@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Regarding INV-1037
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+Not happy with how INV-1037 was handled. Please call me.
+
+Regards,
+Ritu Agarwal
+Ganga Cloud Services LLP

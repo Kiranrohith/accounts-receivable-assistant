@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1097
+ATTACH:  Remittance_Advice_NEFT.pdf
+WAVE:    1
+
+Dear Team,
+
+Payment for INV-1097 attached (ref NEFT).
+
+Regards,
+Accounts Payable
+Vasudha Foods

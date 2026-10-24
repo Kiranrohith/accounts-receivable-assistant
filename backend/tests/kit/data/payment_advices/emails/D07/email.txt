@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Migration issues - INV-1049
+ATTACH:  (none)
+WAVE:    1
+
+Hello,
+
+The migration billed in INV-1049 is still failing in production every night. We need this fixed and a root-cause note.
+
+Regards,
+Ritu Agarwal
+Ganga Cloud Services LLP

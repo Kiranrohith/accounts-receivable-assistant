@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Concerns about our account
+ATTACH:  (none)
+WAVE:    1
+
+Hello,
+
+Support from your team has been slow for weeks now. We would like a call with your account manager to discuss the relationship.
+
+Regards,
+Vikram Shetty
+Nexora Retail LLP

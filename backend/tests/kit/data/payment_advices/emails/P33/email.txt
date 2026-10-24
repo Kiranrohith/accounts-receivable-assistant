@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment batch 1104
+ATTACH:  MT103_FT261016960499.pdf
+WAVE:    1
+
+Hi,
+
+Payment batch 1104 processed - details attached.
+
+Marcus Reed
+Vantage Point Systems

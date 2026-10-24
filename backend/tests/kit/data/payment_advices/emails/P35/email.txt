@@ -1,0 +1,17 @@
+FROM:    pquill5000@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment for INV-1006
+ATTACH:  (none)
+WAVE:    1
+
+Dear Genworx Accounts,
+
+We have paid INV-1006 today.
+Amount: Rs. 1,27,440.00 (net of TDS Rs. 14,160.00)
+Mode: NEFT
+UTR: BCBN2026101500000027
+
+
+Regards,
+Accounts Payable
+BlueOak Analytics

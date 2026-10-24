@@ -36,6 +36,8 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = ["kit: runs the seed kit through the real matcher on a throwaway database (pytest -m kit)"]
+addopts = "-m 'not kit'"
 
 # The Linux image has no GPU: take PyTorch from its CPU-only index there (the default PyPI build drags in ~2 GB of CUDA
 # libraries). Windows and macOS builds from PyPI are already CPU-only, so development is unchanged.

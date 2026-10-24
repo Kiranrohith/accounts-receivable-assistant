@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1085 & INV-1086
+ATTACH:  Remittance_Advice_BCBN2026101500000019.pdf
+WAVE:    1
+
+Hi,
+
+We paid INV-1085 and INV-1086 together (USD 27,630.00). Remittance attached.
+
+Dana
+Halcyon Systems

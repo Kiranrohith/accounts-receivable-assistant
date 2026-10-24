@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Paid INV-1181
+ATTACH:  NetBanking_626101500039.png
+WAVE:    1
+
+Screenshot of payment for INV-1181.
+
+Regards,
+Accounts Payable
+Sterling Systems Hyderabad

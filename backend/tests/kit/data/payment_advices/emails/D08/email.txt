@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Deliverables pending - INV-1030
+ATTACH:  (none)
+WAVE:    1
+
+Dear Genworx,
+
+The sprint deliverables billed in INV-1030 have not been handed over yet. We cannot release payment until we receive them.
+
+Regards,
+Suresh Rathore
+Aravalli Manufacturing Ltd

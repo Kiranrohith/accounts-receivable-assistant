@@ -1,0 +1,7 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Webinar: AI for finance teams
+ATTACH:  (none)
+WAVE:    1
+
+Join our free webinar on automating accounts payable. Register now - seats are limited!

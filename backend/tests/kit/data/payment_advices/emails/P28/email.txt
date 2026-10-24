@@ -1,0 +1,13 @@
+FROM:    gamervimanthan246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1151/INV-1156
+ATTACH:  Remittance_Advice_BCBN2026101500000023.pdf
+WAVE:    1
+
+Hi,
+
+Paid INV-1151 and INV-1156; split in the attachment.
+
+Regards,
+Accounts Payable
+Meridian Tech Solutions

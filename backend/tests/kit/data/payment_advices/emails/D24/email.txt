@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Awaiting credit note - INV-1155
+ATTACH:  (none)
+WAVE:    1
+
+Hello,
+
+As discussed on our call, please issue the credit note for the downtime. We will settle INV-1155 net of that credit once we receive it.
+
+Regards,
+Rohan Deshpande
+Sterling Systems Pvt Ltd

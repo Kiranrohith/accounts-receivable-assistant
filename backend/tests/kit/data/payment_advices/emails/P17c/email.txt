@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Wire transfer - INV-1144
+ATTACH:  MT103_FT261016766100.pdf
+WAVE:    1
+
+Hello,
+
+Wire for INV-1144 sent (USD 3,250.50). The amount was converted from our operating account, so it may differ slightly from the invoice due to exchange.
+
+Thanks,
+Halcyon Systems Inc

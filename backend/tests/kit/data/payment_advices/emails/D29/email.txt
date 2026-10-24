@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Re: INV-1031 already paid
+ATTACH:  (none)
+WAVE:    2
+NOTE:    REPLY from pquill5000@gmail.com in the SAME thread as D11 (after D11 is classified)
+
+Following up - we still received a reminder for INV-1031. The UTR is BCBN2026100299887766. Please confirm.
+
+Regards,
+Sneha Kulkarni
+BlueOak Analytics Pvt Ltd

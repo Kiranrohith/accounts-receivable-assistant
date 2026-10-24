@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment on hold - INV-1051
+ATTACH:  (none)
+WAVE:    0
+
+Dear Genworx,
+
+We are holding payment for INV-1051 until the billing for the device setup charge is clarified - it was supposed to be included in the contract price.
+
+Regards,
+Accounts Payable
+Konkan Mobility

@@ -1,0 +1,7 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Out of office: Payment query
+ATTACH:  (none)
+WAVE:    1
+
+I am out of office until Monday with limited access to email.

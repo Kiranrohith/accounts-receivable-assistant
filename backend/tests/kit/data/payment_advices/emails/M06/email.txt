@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Agreement for PO processing
+ATTACH:  Mutual_NDA_Nexora.pdf
+WAVE:    1
+
+Hello,
+
+Attaching the signed NDA before we raise the PO.
+
+Vikram
+Nexora Retail

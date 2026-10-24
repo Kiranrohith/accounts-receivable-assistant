@@ -1,0 +1,14 @@
+FROM:    gamerkiran246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Remittance INV-1018, INV-1154
+ATTACH:  Remittance_Advice_BCBN2026101500000014.pdf
+WAVE:    2
+NOTE:    send AFTER P13a is Applied
+
+Hello,
+
+Remittance for INV-1018 and INV-1154 attached.
+
+Regards,
+Accounts Payable
+Zenith Softlabs

@@ -1,0 +1,1521 @@
+{
+  "_meta": {
+    "what": "what an EXACT reader extracts from each payment source (one entry per attachment or body)",
+    "conventions": [
+      "invoice_number is AS WRITTEN on the document (e.g. 'INV1176', 'inv 1157'); normalisation is the matcher's job",
+      "invoices[].amount is null when the document states no per-invoice split",
+      "amount is the NET paid (after TDS), in 'currency'",
+      "kind empty_file / image_decoration / unreadable_pdf are intake-only and must not produce a payment",
+      "payment_date null when the source only says 'today' (see payment_date_text)"
+    ]
+  },
+  "inputs": [
+    {
+      "email_id": "M04",
+      "source": "emails/M04/MT103_FT261016198073.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Kestrel Cloud Pte Ltd",
+      "currency": "SGD",
+      "amount": 21116.0,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016198073",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1110",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "/INV/INV-1110",
+      "instructed_amount": 21116.0
+    },
+    {
+      "email_id": "P01",
+      "source": "emails/P01/Remittance_Advice_BCBN2026101500000001.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Zenith Softlabs Pvt Ltd",
+      "currency": "INR",
+      "amount": 116820.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000001",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1001",
+          "amount": 116820.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P02",
+      "source": "emails/P02/Remittance_Advice_BCBR2026101500000002.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Meridian Tech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 302563.8,
+      "payment_date": "2026-10-15",
+      "reference": "BCBR2026101500000002",
+      "mode": "RTGS",
+      "invoices": [
+        {
+          "invoice_number": "INV-1002",
+          "amount": 151335.0
+        },
+        {
+          "invoice_number": "INV-1003",
+          "amount": 151228.8
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P03",
+      "source": "emails/P03/Remittance_Advice_BCBN2026101500000003.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Nexora Retail LLP",
+      "currency": "INR",
+      "amount": 40000.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000003",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1004",
+          "amount": 40000.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P04",
+      "source": "emails/P04/NEFT_Advice_BCBN2026101500000004.pdf",
+      "kind": "bank_advice",
+      "payer_name": "Pinnacle HealthTech Pvt Ltd",
+      "currency": "INR",
+      "amount": 136998.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000004",
+      "mode": "NEFT",
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "VENDOR PAYMENT GENWORX OCT"
+    },
+    {
+      "email_id": "P05a",
+      "source": "emails/P05a/NEFT_Advice_BCBN2026101500000005.pdf",
+      "kind": "bank_advice",
+      "payer_name": "Deccan Edutech Pvt Ltd",
+      "currency": "INR",
+      "amount": 123456.78,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000005",
+      "mode": "NEFT",
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "ADVANCE / ON ACCOUNT"
+    },
+    {
+      "email_id": "P05b",
+      "source": "emails/P05b/NEFT_Advice_BCBN2026101500000006.pdf",
+      "kind": "bank_advice",
+      "payer_name": "M/s R.K. Enterprises",
+      "currency": "INR",
+      "amount": 77777.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000006",
+      "mode": "NEFT",
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "PAYMENT"
+    },
+    {
+      "email_id": "P06",
+      "source": "emails/P06/Remittance_Advice_BCBN2026101500000007.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Indus Fintech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 224200.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000007",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1009",
+          "amount": 224200.0
+        }
+      ],
+      "notes": [
+        "TDS: Nil (deduction not applied this cycle)"
+      ],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P07",
+      "source": "emails/P07/NEFT_Advice_BCBN2026101500000008.pdf",
+      "kind": "bank_advice",
+      "payer_name": "Kaveri Infotech Pvt Ltd",
+      "currency": "INR",
+      "amount": 179478.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000008",
+      "mode": "NEFT",
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "GENWORX PAYMENT"
+    },
+    {
+      "email_id": "P08",
+      "source": "emails/P08/Remittance_Advice_BCBN2026101500000009.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Aravalli Manufacturing Ltd",
+      "currency": "INR",
+      "amount": 127440.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000009",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1012",
+          "amount": null
+        },
+        {
+          "invoice_number": "INV-1013",
+          "amount": null
+        }
+      ],
+      "notes": [
+        "Part payment - allocation to be done by vendor."
+      ],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P09",
+      "source": "emails/P09/MT103_Southern_Cross.pdf",
+      "kind": "unreadable_pdf",
+      "payer_name": null,
+      "currency": null,
+      "amount": null,
+      "payment_date": null,
+      "reference": null,
+      "mode": null,
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "/INV/INV-1119",
+      "instructed_amount": 12084.0,
+      "readable": false,
+      "note": "truncated PDF - an exact reader extracts nothing; the intended content is kept under 'intended'",
+      "intended": {
+        "payer_name": "Southern Cross Data Pty Ltd",
+        "currency": "AUD",
+        "amount": 12084.0,
+        "reference": "FT261016764924"
+      }
+    },
+    {
+      "email_id": "P10",
+      "source": "emails/P10/NEFT_Advice_BCBN2026101500000010.pdf",
+      "kind": "bank_advice",
+      "payer_name": "Vasudha Group",
+      "currency": "INR",
+      "amount": 254880.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000010",
+      "mode": "NEFT",
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "VENDOR PMT"
+    },
+    {
+      "email_id": "P11",
+      "source": "emails/P11/Remittance_Advice_BCBN2026101500000011.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Ganga Cloud Services LLP",
+      "currency": "INR",
+      "amount": 186619.2,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000011",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1016",
+          "amount": 186619.2
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P12",
+      "source": "emails/P12/IMPS_Advice_626101500012.pdf",
+      "kind": "bank_advice",
+      "payer_name": "Sri Balaji Traders",
+      "currency": "INR",
+      "amount": 114224.0,
+      "payment_date": "2026-10-15",
+      "reference": "626101500012",
+      "mode": "IMPS",
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "SRI BALAJI TRADERS CBE"
+    },
+    {
+      "email_id": "P13a",
+      "source": "emails/P13a/Remittance_Advice_BCBN2026101500000013.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Zenith Softlabs Pvt Ltd",
+      "currency": "INR",
+      "amount": 100890.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000013",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1018",
+          "amount": 100890.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P14a",
+      "source": "emails/P14a/Remittance_Advice_BCBN2026101500000015.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Meridian Tech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 44604.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000015",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1019",
+          "amount": 44604.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P14b",
+      "source": "emails/P14b/Remittance_Advice_BCBN2026101500000016.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Meridian Tech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 29736.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000016",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1019",
+          "amount": 29736.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P15",
+      "source": "emails/P15/Remittance_Advice_BCBN2026101500000017.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Sterling Systems Pvt Ltd",
+      "currency": "INR",
+      "amount": 504450.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000017",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1020",
+          "amount": null
+        },
+        {
+          "invoice_number": "INV-1021",
+          "amount": null
+        },
+        {
+          "invoice_number": "INV-1022",
+          "amount": null
+        }
+      ],
+      "notes": [
+        "Consolidated payment - please adjust against oldest dues."
+      ],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P17",
+      "source": "emails/P17/MT103_FT261016619279.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Halcyon Systems Inc",
+      "currency": "USD",
+      "amount": 6976.64,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016619279",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1024",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "/INV/INV-1024",
+      "instructed_amount": 6976.64
+    },
+    {
+      "email_id": "P17b",
+      "source": "emails/P17b/MT103_FT261016923155.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Halcyon Systems Inc",
+      "currency": "USD",
+      "amount": 18337.44,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016923155",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1163",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "/INV/INV-1163",
+      "instructed_amount": 18337.44
+    },
+    {
+      "email_id": "P17c",
+      "source": "emails/P17c/MT103_FT261016766100.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Halcyon Systems Inc",
+      "currency": "USD",
+      "amount": 3250.5,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016766100",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1144",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "/INV/INV-1144",
+      "instructed_amount": 3250.5
+    },
+    {
+      "email_id": "P17d",
+      "source": "emails/P17d/MT103_FT261016102787.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Halcyon Systems Inc",
+      "currency": "USD",
+      "amount": 10233.6,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016102787",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1173",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "/INV/INV-1173",
+      "instructed_amount": 10233.6
+    },
+    {
+      "email_id": "P18",
+      "source": "emails/P18/MT103_FT261016762637.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Brightwave Digital Ltd",
+      "currency": "GBP",
+      "amount": 3936.96,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016762637",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1025",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "INVOICE INV-1025",
+      "instructed_amount": 3936.96
+    },
+    {
+      "email_id": "P19",
+      "source": "emails/P19/MT103_FT261016608958.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Nordlicht Software GmbH",
+      "currency": "USD",
+      "amount": 4963.33,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016608958",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1026",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "RE INV-1026",
+      "instructed_amount": 4963.33
+    },
+    {
+      "email_id": "P20",
+      "source": "emails/P20/MT103_FT261016858086.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Kestrel Cloud Pte Ltd",
+      "currency": "SGD",
+      "amount": 6950.0,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016858086",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1027",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "/INV/INV-1027",
+      "instructed_amount": 6950.0
+    },
+    {
+      "email_id": "P21",
+      "source": "emails/P21/MT103_FT261016392257.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Al Noor Trading Technologies LLC",
+      "currency": "AED",
+      "amount": 45426.15,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016392257",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1114",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "INV INV-1114",
+      "instructed_amount": 45426.15
+    },
+    {
+      "email_id": "P22",
+      "source": "emails/P22/Remittance_Advice_BCBN2026101500000019.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Halcyon Systems Inc",
+      "currency": "USD",
+      "amount": 27630.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000019",
+      "mode": "WIRE",
+      "invoices": [
+        {
+          "invoice_number": "INV-1085",
+          "amount": 13870.0
+        },
+        {
+          "invoice_number": "INV-1086",
+          "amount": 13760.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P23",
+      "source": "emails/P23/MT103_FT261016466083.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Maple Ridge Analytics Inc",
+      "currency": "CAD",
+      "amount": 32200.0,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016466083",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1124",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "/INV/INV-1124",
+      "instructed_amount": 32200.0
+    },
+    {
+      "email_id": "P24",
+      "source": "emails/P24/MT103_FT261016697740.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Lumière Solutions SAS",
+      "currency": "EUR",
+      "amount": 6053.0,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016697740",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1129",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "FACTURE INV-1129",
+      "instructed_amount": 6053.0
+    },
+    {
+      "email_id": "P25",
+      "source": "emails/P25/body",
+      "kind": "email_body",
+      "payer_name": "Deccan Edutech",
+      "currency": null,
+      "amount": null,
+      "payment_date": null,
+      "reference": "BCBN2026101500000020",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1028",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P26",
+      "source": "emails/P26/Remittance_Advice_BCBN2026101500000021.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Zenith Softlabs Pvt Ltd",
+      "currency": "INR",
+      "amount": 110448.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000021",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1029",
+          "amount": 110448.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P27",
+      "source": "emails/P27/Remittance_Advice_BCBN2026101500000022.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Aravalli Manufacturing Ltd",
+      "currency": "INR",
+      "amount": 341803.2,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000022",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1145",
+          "amount": 311803.2
+        },
+        {
+          "invoice_number": "INV-1999",
+          "amount": 30000.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P28",
+      "source": "emails/P28/Remittance_Advice_BCBN2026101500000023.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Meridian Tech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 367231.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000023",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1151",
+          "amount": 63720.0
+        },
+        {
+          "invoice_number": "INV-1156",
+          "amount": 308511.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P29",
+      "source": "emails/P29/Remittance_Advice_BCBN2026101500000024.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Konkan Mobility Pvt Ltd",
+      "currency": "INR",
+      "amount": 0.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000024",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1180",
+          "amount": 0.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P30a",
+      "source": "emails/P30a/Remittance_Advice_NEFT.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Vasudha Foods Pvt Ltd",
+      "currency": "INR",
+      "amount": 579852.0,
+      "payment_date": "2026-10-15",
+      "reference": "NEFT",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1096",
+          "amount": 579852.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P30b",
+      "source": "emails/P30b/Remittance_Advice_NEFT.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Vasudha Foods Pvt Ltd",
+      "currency": "INR",
+      "amount": 356832.0,
+      "payment_date": "2026-10-15",
+      "reference": "NEFT",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1097",
+          "amount": 356832.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P33",
+      "source": "emails/P33/MT103_FT261016960499.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Vantage Point Systems LLC",
+      "currency": "USD",
+      "amount": 7800.0,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016960499",
+      "mode": "SWIFT",
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "BATCH 1104 REF 1104 SERVICES",
+      "instructed_amount": 7800.0
+    },
+    {
+      "email_id": "P34",
+      "source": "emails/P34/Remittance_Advice_BCBN2026101500000025.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Indus Fintech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 627854.4,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000025",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1143",
+          "amount": 627854.4
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P34",
+      "source": "emails/P34/Remittance_Advice_BCBN2026101500000026.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Indus Fintech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 416835.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000026",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1165",
+          "amount": 416835.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P35",
+      "source": "emails/P35/body",
+      "kind": "email_body",
+      "payer_name": "BlueOak Analytics",
+      "currency": "INR",
+      "amount": 127440.0,
+      "payment_date": null,
+      "reference": "BCBN2026101500000027",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1006",
+          "amount": 127440.0
+        }
+      ],
+      "notes": [
+        "net of TDS Rs. 14,160.00"
+      ],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "payment_date_text": "today"
+    },
+    {
+      "email_id": "P36",
+      "source": "emails/P36/body",
+      "kind": "email_body",
+      "payer_name": "Zenith Softlabs",
+      "currency": "INR",
+      "amount": 300758.4,
+      "payment_date": null,
+      "reference": "BCBR2026101500000028",
+      "mode": "RTGS",
+      "invoices": [
+        {
+          "invoice_number": "INV-1188",
+          "amount": 300758.4
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P36",
+      "source": "emails/P36/zenith_logo.png",
+      "kind": "image_decoration",
+      "payer_name": null,
+      "currency": null,
+      "amount": null,
+      "payment_date": null,
+      "reference": null,
+      "mode": null,
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "readable": true,
+      "note": "422 B image < 5 KB -> skipped, not a payment source"
+    },
+    {
+      "email_id": "P37",
+      "source": "emails/P37/Remittance_Advice_BCBN2026101500000029.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Vantage Point Systems LLC",
+      "currency": "USD",
+      "amount": 15980.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000029",
+      "mode": "ACH",
+      "invoices": [
+        {
+          "invoice_number": "INV-1136",
+          "amount": 15980.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P38",
+      "source": "emails/P38/MT103_FT261016791516.pdf",
+      "kind": "swift_mt103",
+      "payer_name": "Helix Bio-Informatics BV",
+      "currency": "EUR",
+      "amount": 9673.0,
+      "payment_date": "2026-10-14",
+      "reference": "FT261016791516",
+      "mode": "SWIFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1138",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "/INV/INV-1138",
+      "instructed_amount": 9673.0
+    },
+    {
+      "email_id": "P39",
+      "source": "emails/P39/IMPS_Advice_626101500030.pdf",
+      "kind": "bank_advice",
+      "payer_name": "Account Holder",
+      "currency": "INR",
+      "amount": 15500.0,
+      "payment_date": "2026-10-15",
+      "reference": "626101500030",
+      "mode": "IMPS",
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "TRANSFER"
+    },
+    {
+      "email_id": "P43",
+      "source": "emails/P43/Remittance_Advice_BCBN2026101500000032.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Nexora Retail LLP",
+      "currency": "INR",
+      "amount": 89208.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000032",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1038",
+          "amount": 89208.0
+        }
+      ],
+      "notes": [
+        "Balance withheld - see email."
+      ],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P44",
+      "source": "emails/P44/Remittance_Advice_BCBN2026101500000033.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Konkan Mobility Pvt Ltd",
+      "currency": "INR",
+      "amount": 242136.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000033",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1051",
+          "amount": 242136.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P45",
+      "source": "emails/P45/Remittance_Advice_BCBN2026101500000034.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Aravalli Manufacturing Ltd",
+      "currency": "INR",
+      "amount": 220896.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000034",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1052",
+          "amount": 138060.0
+        },
+        {
+          "invoice_number": "INV-1053",
+          "amount": 82836.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P46",
+      "source": "emails/P46/Remittance_Advice_BCBN2026101500000035.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Meridian Tech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 178416.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000035",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1048",
+          "amount": 178416.0
+        }
+      ],
+      "notes": [
+        "Part payment; balance next cycle."
+      ],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P47",
+      "source": "emails/P47/Remittance_Advice_BCBN2026101500000036.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Zenith Softlabs Pvt Ltd",
+      "currency": "INR",
+      "amount": 67260.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000036",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "DN-2001",
+          "amount": 67260.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P49",
+      "source": "emails/P49/Remittance_Advice_BCBN2026101500000038.jpg",
+      "kind": "scanned_remittance_jpg",
+      "payer_name": "Kaveri Infotech Pvt Ltd",
+      "currency": "INR",
+      "amount": 288864.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000038",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1194",
+          "amount": 288864.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P50",
+      "source": "emails/P50/NetBanking_626101500039.png",
+      "kind": "netbanking_screenshot",
+      "payer_name": "Sterling Systems Private Limited",
+      "currency": "INR",
+      "amount": 269748.0,
+      "payment_date": "2026-10-15",
+      "reference": "626101500039",
+      "mode": "IMPS",
+      "invoices": [
+        {
+          "invoice_number": "INV-1181",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "INV-1181"
+    },
+    {
+      "email_id": "P51",
+      "source": "emails/P51/IMPS_Advice_626101500040.pdf",
+      "kind": "bank_advice",
+      "payer_name": "Shri Balaji Traders",
+      "currency": "INR",
+      "amount": 269040.0,
+      "payment_date": "2026-10-15",
+      "reference": "626101500040",
+      "mode": "IMPS",
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "SHRI BALAJI CBE"
+    },
+    {
+      "email_id": "P52",
+      "source": "emails/P52/Remittance_Advice_BCBN2026101500000041.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Kaveri Infotech Pvt Ltd",
+      "currency": "INR",
+      "amount": 151335.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000041",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1075",
+          "amount": 151335.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P53",
+      "source": "emails/P53/Remittance_Advice_BCBN2026101500000042.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Zenith Softlabs Pvt Ltd",
+      "currency": "INR",
+      "amount": 69030.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000042",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1054",
+          "amount": 69030.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P54",
+      "source": "emails/P54/NEFT_Advice_BCBN2026101500000043.pdf",
+      "kind": "bank_advice",
+      "payer_name": "BlueOak Analytics Pvt Ltd",
+      "currency": "INR",
+      "amount": 389754.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000043",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV1176",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "BLUEOAK INV1176 PMT"
+    },
+    {
+      "email_id": "P55",
+      "source": "emails/P55/Remittance_Advice_BCBN2026101500000045.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Vasudha Retail Pvt Ltd",
+      "currency": "INR",
+      "amount": 163548.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000045",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1091",
+          "amount": 163548.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P56",
+      "source": "emails/P56/Remittance_Advice_BCBN2026101500000046.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Vasudha Foods Pvt Ltd",
+      "currency": "INR",
+      "amount": 704954.6,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000046",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1098",
+          "amount": 704954.6
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P57",
+      "source": "emails/P57/Remittance_Advice_BCBN2026101500000047.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Nexora Retail LLP",
+      "currency": "INR",
+      "amount": 237768.5,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000047",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1184",
+          "amount": 237768.5
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P58",
+      "source": "emails/P58/Remittance_Advice_BCBN2026101500000048.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Vasudha Foods Pvt Ltd",
+      "currency": "INR",
+      "amount": 26337.6,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000048",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1146",
+          "amount": 26337.6
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P59",
+      "source": "emails/P59/Remittance_Advice_BCBN2026101500000049.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Nexora Retail LLP",
+      "currency": "INR",
+      "amount": 732190.75,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000049",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1193",
+          "amount": 732190.75
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P60",
+      "source": "emails/P60/NEFT_Advice_BCBN2026101500000044.pdf",
+      "kind": "bank_advice",
+      "payer_name": "Meridian Tech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 318600.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000044",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "inv 1157",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "narration": "meridian pmt inv 1157"
+    },
+    {
+      "email_id": "P61",
+      "source": "emails/P61/Remittance_Advice.pdf",
+      "kind": "empty_file",
+      "payer_name": null,
+      "currency": null,
+      "amount": null,
+      "payment_date": null,
+      "reference": null,
+      "mode": null,
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "readable": false,
+      "note": "0 bytes -> rejected attachment at triage"
+    },
+    {
+      "email_id": "P61",
+      "source": "emails/P61/body",
+      "kind": "email_body",
+      "payer_name": "Vasudha Foods",
+      "currency": "INR",
+      "amount": 418852.8,
+      "payment_date": null,
+      "reference": "BCBN2026101500000050",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1168",
+          "amount": 418852.8
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P62",
+      "source": "emails/P62/Advice.pdf",
+      "kind": "empty_file",
+      "payer_name": null,
+      "currency": null,
+      "amount": null,
+      "payment_date": null,
+      "reference": null,
+      "mode": null,
+      "invoices": [],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "readable": false,
+      "note": "0 bytes -> rejected attachment at triage"
+    },
+    {
+      "email_id": "P62",
+      "source": "emails/P62/body",
+      "kind": "email_body",
+      "payer_name": "Shree Balaji Traders",
+      "currency": null,
+      "amount": null,
+      "payment_date": null,
+      "reference": null,
+      "mode": null,
+      "invoices": [
+        {
+          "invoice_number": "INV-1101",
+          "amount": null
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "note": "invoice number only in the SUBJECT; no amount anywhere"
+    },
+    {
+      "email_id": "P63",
+      "source": "emails/P63/advice_small.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Shree Balaji Traders",
+      "currency": "INR",
+      "amount": 446394.0,
+      "payment_date": "2026-10-15",
+      "reference": "626101500051",
+      "mode": "IMPS",
+      "invoices": [
+        {
+          "invoice_number": "INV-1102",
+          "amount": 446394.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P13b",
+      "source": "emails/P13b/Remittance_Advice_BCBN2026101500000014.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Zenith Softlabs Pvt Ltd",
+      "currency": "INR",
+      "amount": 333255.6,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000014",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1018",
+          "amount": 100890.0
+        },
+        {
+          "invoice_number": "INV-1154",
+          "amount": 232365.6
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P16",
+      "source": "emails/P16/Remittance_Advice_BCBN2026101500000018.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Indus Fintech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 89090.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000018",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1023",
+          "amount": 89090.0
+        }
+      ],
+      "notes": [
+        "Balance to be adjusted against our available credit with you."
+      ],
+      "credit_note_reference": null,
+      "credit_note_requested": true
+    },
+    {
+      "email_id": "P31",
+      "source": "emails/P31/Remittance_Advice_copy.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Zenith Softlabs Pvt Ltd",
+      "currency": "INR",
+      "amount": 116820.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000001",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1001",
+          "amount": 116820.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P32",
+      "source": "emails/P32/Remittance_Advice_BCBR2026101500000002.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Meridian Tech Solutions Pvt Ltd",
+      "currency": "INR",
+      "amount": 302563.8,
+      "payment_date": "2026-10-15",
+      "reference": "BCBR2026101500000002",
+      "mode": "RTGS",
+      "invoices": [
+        {
+          "invoice_number": "INV-1002",
+          "amount": 151335.0
+        },
+        {
+          "invoice_number": "INV-1003",
+          "amount": 151228.8
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "note": "byte-identical to P02's attachment"
+    },
+    {
+      "email_id": "P48",
+      "source": "emails/P48/Remittance_Advice_BCBN2026101500000037.pdf",
+      "kind": "remittance_advice",
+      "payer_name": "Ganga Cloud Services LLP",
+      "currency": "INR",
+      "amount": 228198.0,
+      "payment_date": "2026-10-15",
+      "reference": "BCBN2026101500000037",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1192",
+          "amount": 228198.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false
+    },
+    {
+      "email_id": "P42",
+      "source": "emails/P42/body",
+      "kind": "email_body",
+      "payer_name": "Arjun (Meridian Tech)",
+      "currency": "INR",
+      "amount": 115758.0,
+      "payment_date": null,
+      "reference": "BCBN2026101500000031",
+      "mode": "NEFT",
+      "invoices": [
+        {
+          "invoice_number": "INV-1040",
+          "amount": 115758.0
+        }
+      ],
+      "notes": [],
+      "credit_note_reference": null,
+      "credit_note_requested": false,
+      "payment_date_text": "today",
+      "note": "newest message only - the quoted reminder below must be ignored"
+    }
+  ]
+}

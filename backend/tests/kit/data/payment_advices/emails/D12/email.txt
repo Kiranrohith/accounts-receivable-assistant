@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment already made - INV-1042
+ATTACH:  (none)
+WAVE:    1
+
+Dear Sir,
+
+We paid INV-1042 by cheque no. 004512 last month. Kindly reconcile.
+
+Regards,
+Karthik Subramanian
+Kaveri Infotech Pvt Ltd

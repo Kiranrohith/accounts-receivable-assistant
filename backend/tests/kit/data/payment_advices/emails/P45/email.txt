@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1052 and INV-1053
+ATTACH:  Remittance_Advice_BCBN2026101500000034.pdf
+WAVE:    1
+NOTE:    send AFTER D02 is classified
+
+Remittance for INV-1052 and INV-1053 attached.
+
+Regards,
+Accounts Payable
+Aravalli Manufacturing

@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: PO-BLU-9003 for analytics support
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+Please treat this mail as our PO PO-BLU-9003: 3 months of application support at Rs. 60,000 per month.
+
+Sneha Kulkarni
+BlueOak Analytics

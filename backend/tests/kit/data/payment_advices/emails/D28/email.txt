@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Query on INV-1120
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+Something does not look right with INV-1120. Can you check?
+
+Regards,
+Mia Thompson
+Southern Cross Data Pty Ltd

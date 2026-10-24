@@ -1,0 +1,7 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Invitation: Quarterly business review
+ATTACH:  (none)
+WAVE:    1
+
+You have been invited to a meeting on Thursday 3:00 PM IST. Join with the link in the calendar invite.

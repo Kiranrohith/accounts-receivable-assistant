@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Invoice received - thank you
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+We have received your October invoices and forwarded them for approval. Thanks.
+
+Accounts Team

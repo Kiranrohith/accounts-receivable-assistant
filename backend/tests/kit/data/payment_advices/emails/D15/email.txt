@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: INV-1189 received twice
+ATTACH:  (none)
+WAVE:    1
+
+Hello,
+
+We believe INV-1189 duplicates an invoice already billed for the same month. We will not process it until you confirm.
+
+Regards,
+Priya Raman
+Zenith Softlabs Pvt Ltd

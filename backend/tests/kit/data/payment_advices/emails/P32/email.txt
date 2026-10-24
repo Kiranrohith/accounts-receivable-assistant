@@ -1,0 +1,11 @@
+FROM:    gamervimanthan246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Fwd: Remittance - INV-1002, INV-1003
+ATTACH:  Remittance_Advice_BCBR2026101500000002.pdf
+WAVE:    2
+NOTE:    send AFTER P02 is Applied
+
+Forwarding again in case it was missed.
+
+---------- Forwarded message ---------
+Subject: Remittance - INV-1002, INV-1003

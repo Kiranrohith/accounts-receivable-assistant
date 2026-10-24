@@ -1,0 +1,7 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: 
+ATTACH:  MT103_FT261016791516.pdf
+WAVE:    1
+
+

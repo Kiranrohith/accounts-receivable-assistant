@@ -2,7 +2,7 @@
 real worker (Docling + the model ladder) reads the attachments and bodies, and what comes out is compared with the
 kit's answer key (payments through the runner's own comparator). Spends model calls; throwaway DB only.
 
-    KIT_DIR=../docs/seed_v2_latest  bash run_suite.sh api_test_mail4 ar_mail4
+    KIT_DIR=tests/kit/data  bash tests/api_suites/run_suite.sh api_test_mail4 ar_mail4
 """
 
 import asyncio

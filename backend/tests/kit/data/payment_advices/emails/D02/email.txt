@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Dispute INV-1053 - withholding
+ATTACH:  (none)
+WAVE:    0
+
+Hi,
+
+For INV-1053 we will pay only after you confirm the QA hours - they exceed what was agreed. We are paying the other invoice now.
+
+Regards,
+Accounts Payable
+Aravalli Manufacturing

@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Defects in deliverable - INV-1056
+ATTACH:  (none)
+WAVE:    1
+
+Hi team,
+
+The dashboard delivered under INV-1056 has several data mismatches between the summary and detail views. Please fix these; payment will follow our normal cycle.
+
+Regards,
+Sneha Kulkarni
+BlueOak Analytics Pvt Ltd

@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Request: statement of account
+ATTACH:  (none)
+WAVE:    1
+
+Hello,
+
+Could you send us a statement of account for the last quarter?
+
+Regards

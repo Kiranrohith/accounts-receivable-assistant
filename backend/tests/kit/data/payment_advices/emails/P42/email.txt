@@ -1,0 +1,15 @@
+FROM:    gamervimanthan246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Re: Payment reminder: INV-1040
+ATTACH:  (none)
+WAVE:    3
+NOTE:    REPLY in the actual reminder thread (needs outbound reminders sent through Gmail, not Mailpit). Otherwise send as a new mail - B7 untested.
+
+Hi,
+
+Paid Rs. 1,15,758.00 for INV-1040 today, UTR BCBN2026101500000031.
+
+Arjun
+
+> On 2026-10-16, genworx.ardemo@gmail.com wrote:
+> This is a gentle reminder that INV-1040 is overdue...

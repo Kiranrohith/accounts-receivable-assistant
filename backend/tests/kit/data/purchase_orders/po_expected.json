@@ -1,0 +1,2597 @@
+{
+  "_meta": {
+    "as_of": "2026-10-16",
+    "count": 80,
+    "normalize_rule": "casefold; punctuation -> space; collapse spaces",
+    "order_assumption": "linked invoices are ACCEPTED in invoice-number order; the cumulative check must lock the PO row (FOR UPDATE)"
+  },
+  "purchase_orders": [
+    {
+      "po_number": "PO-ZEN-4471",
+      "customer_code": "CUST-001",
+      "file": "purchase_orders/01_before_invoices/PO-ZEN-4471__CUST-001.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-09-20",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 174500.0,
+      "total_with_tax": 205910.0,
+      "linked_invoices": [
+        "INV-1001"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1001",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "software engineer person days": 3.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-ZEN-4502",
+      "customer_code": "CUST-001",
+      "file": "purchase_orders/01_before_invoices/PO-ZEN-4502__CUST-001.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-05",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 373900.0,
+      "total_with_tax": 441202.0,
+      "linked_invoices": [
+        "INV-1018",
+        "INV-1036"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1018",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1036",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 63.0,
+        "senior software engineer person days": 3.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-ZEN-5271",
+      "customer_code": "CUST-001",
+      "file": "purchase_orders/01_before_invoices/PO-ZEN-5271__CUST-001.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-03-14",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 640600.0,
+      "total_with_tax": 755908.0,
+      "linked_invoices": [
+        "INV-1154",
+        "INV-1188"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1154",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1188",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 142.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-ZEN-6395",
+      "customer_code": "CUST-001",
+      "file": "purchase_orders/01_before_invoices/PO-ZEN-6395__CUST-001.png",
+      "format": "image_png",
+      "currency": "INR",
+      "po_date": "2026-07-28",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 509100.0,
+      "total_with_tax": 600738.0,
+      "linked_invoices": [
+        "INV-1175",
+        "INV-1196"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1175",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1196",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "qa engineer person days": 2.0,
+        "senior software engineer person days": 7.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-ZEN-6511",
+      "customer_code": "CUST-001",
+      "file": "purchase_orders/01_before_invoices/PO-ZEN-6511__CUST-001.pdf",
+      "format": "scanned_pdf",
+      "currency": "INR",
+      "po_date": "2026-09-16",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 633500.0,
+      "total_with_tax": 747530.0,
+      "linked_invoices": [
+        "INV-1189"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1189",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "software engineer person days": 8.0,
+        "senior software engineer person days": 8.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-MER-1180",
+      "customer_code": "CUST-002",
+      "file": "purchase_orders/01_before_invoices/PO-MER-1180__CUST-002.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-19",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 358500.0,
+      "total_with_tax": 423030.0,
+      "linked_invoices": [
+        "INV-1002",
+        "INV-1003"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1002",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1003",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "qa engineer person days": 3.0,
+        "senior software engineer person days": 4.0,
+        "ui ux design screens": 5.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))",
+      "also": "INV-1077 (CUST-013 Deccan) quotes this number: belongs to another customer -> no link, review (G2)"
+    },
+    {
+      "po_number": "PO-MER-1192",
+      "customer_code": "CUST-002",
+      "file": "purchase_orders/01_before_invoices/PO-MER-1192__CUST-002.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-20",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 221000.0,
+      "total_with_tax": 260780.0,
+      "linked_invoices": [
+        "INV-1019",
+        "INV-1029"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1019",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1029",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 2.0,
+        "senior software engineer person days": 2.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-MER-2234",
+      "customer_code": "CUST-002",
+      "file": "purchase_orders/01_before_invoices/PO-MER-2234__CUST-002.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-03",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 600000.0,
+      "total_with_tax": 708000.0,
+      "linked_invoices": [
+        "INV-1151",
+        "INV-1157"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1151",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1157",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "security audit fixed fee": 1.0,
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-MER-8413",
+      "customer_code": "CUST-002",
+      "file": "purchase_orders/01_before_invoices/PO-MER-8413__CUST-002.jpg",
+      "format": "image_jpg",
+      "currency": "INR",
+      "po_date": "2026-04-30",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 620500.0,
+      "total_with_tax": 732190.0,
+      "linked_invoices": [
+        "INV-1156",
+        "INV-1159"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1156",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1159",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "software engineer person days": 10.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-BLU-0950",
+      "customer_code": "CUST-003",
+      "file": "purchase_orders/01_before_invoices/PO-BLU-0950__CUST-003.pdf",
+      "format": "scanned_pdf",
+      "currency": "INR",
+      "po_date": "2026-06-28",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 420000.0,
+      "total_with_tax": 495600.0,
+      "linked_invoices": [
+        "INV-1006",
+        "INV-1031"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1006",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1031",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "data engineering sprint 2 weeks": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-BLU-0988",
+      "customer_code": "CUST-003",
+      "file": "purchase_orders/03_after_INV-1083_paid/PO-BLU-0988__CUST-003.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-28",
+      "arrival": "after_invoice_paid",
+      "intake_outcome": "PO created",
+      "link_direction": "invoice_first (retro-link on PO creation)",
+      "order_value_excl_tax": 130000.0,
+      "total_with_tax": 153400.0,
+      "linked_invoices": [
+        "INV-1083"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1083",
+          "result": "po_mismatch",
+          "reasons": [
+            "cumulative qty 0 + 25 = 25 > ordered 20"
+          ],
+          "effect": "pending_invoice_changes(po_mismatch) + po_hold"
+        }
+      ],
+      "remaining_after_all": {
+        "software engineer person days": 20.0
+      },
+      "plan_note": "25 > 20 -> paid invoice flagged for human review",
+      "also": "upload only after INV-1083 is Paid: mismatch flags the paid invoice for human resolution; no money moves (G6)"
+    },
+    {
+      "po_number": "PO-BLU-6578",
+      "customer_code": "CUST-003",
+      "file": "purchase_orders/01_before_invoices/PO-BLU-6578__CUST-003.jpg",
+      "format": "image_jpg",
+      "currency": "INR",
+      "po_date": "2026-02-22",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 493500.0,
+      "total_with_tax": 582330.0,
+      "linked_invoices": [
+        "INV-1176"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1176",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "senior software engineer person days": 7.0,
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "HAL-PO-1617",
+      "customer_code": "CUST-005",
+      "file": "purchase_orders/01_before_invoices/HAL-PO-1617__CUST-005.pdf",
+      "format": "scanned_pdf",
+      "currency": "USD",
+      "po_date": "2026-09-25",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 19920.0,
+      "total_with_tax": 19920.0,
+      "linked_invoices": [
+        "INV-1086"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1086",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "qa engineer person days": 4.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "HAL-PO-7730",
+      "customer_code": "CUST-005",
+      "file": "purchase_orders/01_before_invoices/HAL-PO-7730__CUST-005.pdf",
+      "format": "digital_pdf",
+      "currency": "USD",
+      "po_date": "2026-08-21",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 10300.0,
+      "total_with_tax": 10300.0,
+      "linked_invoices": [
+        "INV-1024"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1024",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "senior software engineer person days": 3.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "HAL-PO-8959",
+      "customer_code": "CUST-005",
+      "file": "purchase_orders/01_before_invoices/HAL-PO-8959__CUST-005.pdf",
+      "format": "digital_pdf",
+      "currency": "USD",
+      "po_date": "2026-09-12",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 27260.0,
+      "total_with_tax": 27260.0,
+      "linked_invoices": [
+        "INV-1144",
+        "INV-1163"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1144",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1163",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "software engineer person days": 8.0,
+        "training workshop sessions": 1.0,
+        "ui ux design screens": 13.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "STP/PO/2246",
+      "customer_code": "CUST-006",
+      "file": "purchase_orders/01_before_invoices/STP_PO_2246__CUST-006.jpg",
+      "format": "image_jpg",
+      "currency": "INR",
+      "po_date": "2026-07-13",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 478500.0,
+      "total_with_tax": 564630.0,
+      "linked_invoices": [
+        "INV-1155"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1155",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 3.0,
+        "senior software engineer person days": 5.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "STP/PO/5001",
+      "customer_code": "CUST-006",
+      "file": "purchase_orders/01_before_invoices/STP_PO_5001__CUST-006.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-21",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 570000.0,
+      "total_with_tax": 672600.0,
+      "linked_invoices": [
+        "INV-1020",
+        "INV-1021",
+        "INV-1022"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1020",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1021",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1022",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "senior software engineer person days": 0.0
+      },
+      "plan_note": "pass at exact limit (20+20+20=60)"
+    },
+    {
+      "po_number": "STP/PO/8580",
+      "customer_code": "CUST-006",
+      "file": "purchase_orders/01_before_invoices/STP_PO_8580__CUST-006.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-09-22",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 330000.0,
+      "total_with_tax": 389400.0,
+      "linked_invoices": [
+        "INV-1195"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1195",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "STP/PO/9206",
+      "customer_code": "CUST-006",
+      "file": "purchase_orders/01_before_invoices/STP_PO_9206__CUST-006.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-09",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 239600.0,
+      "total_with_tax": 282728.0,
+      "linked_invoices": [
+        "INV-1148"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1148",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "qa engineer person days": 5.0,
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "SSPL-PO-0442",
+      "customer_code": "CUST-007",
+      "file": "purchase_orders/01_before_invoices/SSPL-PO-0442__CUST-007.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-23",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 270000.0,
+      "total_with_tax": 318600.0,
+      "linked_invoices": [
+        "INV-1035",
+        "INV-1082"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1035",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1082",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "senior software engineer person days": 8.0
+      },
+      "plan_note": "both invoices pass (normalized match; price not checked)"
+    },
+    {
+      "po_number": "SSPL-PO-7659",
+      "customer_code": "CUST-007",
+      "file": "purchase_orders/01_before_invoices/SSPL-PO-7659__CUST-007.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-09-08",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 356000.0,
+      "total_with_tax": 420080.0,
+      "linked_invoices": [
+        "INV-1181"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1181",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "senior software engineer person days": 6.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "SSPL-PO-8284",
+      "customer_code": "CUST-007",
+      "file": "purchase_orders/01_before_invoices/SSPL-PO-8284__CUST-007.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-17",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 747000.0,
+      "total_with_tax": 881460.0,
+      "linked_invoices": [
+        "INV-1088"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1088",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 138.0,
+        "software engineer person days": 6.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-KAV-3001",
+      "customer_code": "CUST-008",
+      "file": "purchase_orders/01_before_invoices/PO-KAV-3001__CUST-008.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-16",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 492500.0,
+      "total_with_tax": 581150.0,
+      "linked_invoices": [
+        "INV-1010",
+        "INV-1011",
+        "INV-1034"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1010",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1011",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1034",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 1.0,
+        "qa engineer person days": 5.0,
+        "software engineer person days": 9.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-KAV-3100",
+      "customer_code": "CUST-008",
+      "file": "purchase_orders/01_before_invoices/PO-KAV-3100__CUST-008.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-02",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 285000.0,
+      "total_with_tax": 336300.0,
+      "linked_invoices": [
+        "INV-1074",
+        "INV-1075"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1074",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1075",
+          "result": "po_mismatch",
+          "reasons": [
+            "cumulative qty 18 + 15 = 33 > ordered 30"
+          ],
+          "effect": "pending_invoice_changes(po_mismatch) + po_hold"
+        }
+      ],
+      "remaining_after_all": {
+        "senior software engineer person days": 12.0
+      },
+      "plan_note": "first linked invoice passes; second breaches cumulative (18+15=33>30)"
+    },
+    {
+      "po_number": "PO-KAV-6274",
+      "customer_code": "CUST-008",
+      "file": "purchase_orders/01_before_invoices/PO-KAV-6274__CUST-008.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-09-13",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 340000.0,
+      "total_with_tax": 401200.0,
+      "linked_invoices": [
+        "INV-1194"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1194",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 85.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-IND-7650",
+      "customer_code": "CUST-009",
+      "file": "purchase_orders/01_before_invoices/PO-IND-7650__CUST-009.jpg",
+      "format": "image_jpg",
+      "currency": "INR",
+      "po_date": "2026-07-30",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 811000.0,
+      "total_with_tax": 956980.0,
+      "linked_invoices": [
+        "INV-1009",
+        "INV-1023",
+        "INV-1032",
+        "INV-1033"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1009",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1023",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1032",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1033",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "software engineer person days": 7.0,
+        "senior software engineer person days": 5.0,
+        "application support retainer monthly": 1.0,
+        "ui ux design screens": 4.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-IND-7701",
+      "customer_code": "CUST-009",
+      "file": "purchase_orders/01_before_invoices/PO-IND-7701__CUST-009.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-31",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 360000.0,
+      "total_with_tax": 424800.0,
+      "linked_invoices": [
+        "INV-1076"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1076",
+          "result": "po_mismatch",
+          "reasons": [
+            "line 'Penetration testing — fixed fee' not on PO"
+          ],
+          "effect": "pending_invoice_changes(po_mismatch) + po_hold"
+        }
+      ],
+      "remaining_after_all": {
+        "application support retainer monthly": 6.0
+      },
+      "plan_note": "pentest line not on PO -> mismatch"
+    },
+    {
+      "po_number": "PO-IND-7817",
+      "customer_code": "CUST-009",
+      "file": "purchase_orders/01_before_invoices/PO-IND-7817__CUST-009.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-03-05",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 502500.0,
+      "total_with_tax": 592950.0,
+      "linked_invoices": [
+        "INV-1165"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1165",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 6.0,
+        "software engineer person days": 4.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-IND-9031",
+      "customer_code": "CUST-009",
+      "file": "purchase_orders/01_before_invoices/PO-IND-9031__CUST-009.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-09-04",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 831200.0,
+      "total_with_tax": 980816.0,
+      "linked_invoices": [
+        "INV-1143"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1143",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "saas platform licence user months": 130.0,
+        "ui ux design screens": 4.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "VR/PO/26-27/118",
+      "customer_code": "CUST-010",
+      "file": "purchase_orders/01_before_invoices/VR_PO_26-27_118__CUST-010.jpg",
+      "format": "image_jpg",
+      "currency": "INR",
+      "po_date": "2026-08-13",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 300000.0,
+      "total_with_tax": 354000.0,
+      "linked_invoices": [
+        "INV-1014"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1014",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 75.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "VR/PO/26-27/4410",
+      "customer_code": "CUST-010",
+      "file": "purchase_orders/01_before_invoices/VR_PO_26-27_4410__CUST-010.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-09-13",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 436000.0,
+      "total_with_tax": 514480.0,
+      "linked_invoices": [
+        "INV-1094"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1094",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "senior software engineer person days": 2.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "VR/PO/26-27/6321",
+      "customer_code": "CUST-010",
+      "file": "purchase_orders/01_before_invoices/VR_PO_26-27_6321__CUST-010.png",
+      "format": "image_png",
+      "currency": "INR",
+      "po_date": "2026-03-12",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 1999000.0,
+      "total_with_tax": 2358820.0,
+      "linked_invoices": [
+        "INV-1091",
+        "INV-1092",
+        "INV-1093",
+        "INV-1149"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1091",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1092",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1093",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1149",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 3.0,
+        "security audit fixed fee": 1.0,
+        "data engineering sprint 2 weeks": 1.0,
+        "saas platform licence user months": 106.0,
+        "software engineer person days": 8.0,
+        "application support retainer monthly": 1.0,
+        "ui ux design screens": 15.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "VF/PO/26-27/077",
+      "customer_code": "CUST-011",
+      "file": "purchase_orders/01_before_invoices/VF_PO_26-27_077__CUST-011.jpg",
+      "format": "image_jpg",
+      "currency": "INR",
+      "po_date": "2026-08-25",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 300000.0,
+      "total_with_tax": 354000.0,
+      "linked_invoices": [
+        "INV-1015"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1015",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 75.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "VF/PO/26-27/1617",
+      "customer_code": "CUST-011",
+      "file": "purchase_orders/01_before_invoices/VF_PO_26-27_1617__CUST-011.jpg",
+      "format": "image_jpg",
+      "currency": "INR",
+      "po_date": "2026-09-18",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 755000.0,
+      "total_with_tax": 890900.0,
+      "linked_invoices": [
+        "INV-1096"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1096",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "saas platform licence user months": 80.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PHT-PO-0410",
+      "customer_code": "CUST-012",
+      "file": "purchase_orders/01_before_invoices/PHT-PO-0410__CUST-012.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-09-01",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 202000.0,
+      "total_with_tax": 238360.0,
+      "linked_invoices": [
+        "INV-1005"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1005",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 2.0,
+        "cloud infrastructure management monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "DE-PO-1120",
+      "customer_code": "CUST-013",
+      "file": "purchase_orders/01_before_invoices/DE-PO-1120__CUST-013.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-29",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 349500.0,
+      "total_with_tax": 412410.0,
+      "linked_invoices": [
+        "INV-1008",
+        "INV-1028"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1008",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1028",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "software engineer person days": 3.0,
+        "training workshop sessions": 1.0,
+        "ui ux design screens": 8.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "DE-PO-6940",
+      "customer_code": "CUST-013",
+      "file": "purchase_orders/01_before_invoices/DE-PO-6940__CUST-013.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-09-29",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 50000.0,
+      "total_with_tax": 59000.0,
+      "linked_invoices": [
+        "INV-1153"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1153",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "DE-PO-7252",
+      "customer_code": "CUST-013",
+      "file": "purchase_orders/01_before_invoices/DE-PO-7252__CUST-013.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-26",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 1311300.0,
+      "total_with_tax": 1547334.0,
+      "linked_invoices": [
+        "INV-1161",
+        "INV-1171",
+        "INV-1179",
+        "INV-1187"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1161",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1171",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1179",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1187",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 2.0,
+        "security audit fixed fee": 1.0,
+        "qa engineer person days": 5.0,
+        "saas platform licence user months": 121.0,
+        "software engineer person days": 5.0,
+        "ui ux design screens": 3.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "AML/PO/0991",
+      "customer_code": "CUST-014",
+      "file": "purchase_orders/01_before_invoices/AML_PO_0991__CUST-014.pdf",
+      "format": "scanned_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-03",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 255000.0,
+      "total_with_tax": 300900.0,
+      "linked_invoices": [
+        "INV-1012",
+        "INV-1013"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1012",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1013",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "AML/PO/1004",
+      "customer_code": "CUST-014",
+      "file": "purchase_orders/01_before_invoices/AML_PO_1004__CUST-014.pdf",
+      "format": "scanned_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-12",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 621300.0,
+      "total_with_tax": 733134.0,
+      "linked_invoices": [
+        "INV-1030",
+        "INV-1052",
+        "INV-1053"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1030",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1052",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1053",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "qa engineer person days": 4.0,
+        "software engineer person days": 5.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "AML/PO/1574",
+      "customer_code": "CUST-014",
+      "file": "purchase_orders/01_before_invoices/AML_PO_1574__CUST-014.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-31",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 412000.0,
+      "total_with_tax": 486160.0,
+      "linked_invoices": [
+        "INV-1145"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1145",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 73.0,
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "AML/PO/7889",
+      "customer_code": "CUST-014",
+      "file": "purchase_orders/01_before_invoices/AML_PO_7889__CUST-014.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-02-09",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 1319200.0,
+      "total_with_tax": 1556656.0,
+      "linked_invoices": [
+        "INV-1164",
+        "INV-1169"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1164",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1169",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 7.0,
+        "saas platform licence user months": 140.0,
+        "software engineer person days": 10.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-1001",
+      "customer_code": "CUST-014",
+      "file": "purchase_orders/01_before_invoices/PO-1001__CUST-014.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-21",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 78000.0,
+      "total_with_tax": 92040.0,
+      "linked_invoices": [
+        "INV-1078"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1078",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "qa engineer person days": 3.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))",
+      "also": "PO-1001 exists for BOTH CUST-014 and CUST-017 - unique per customer"
+    },
+    {
+      "po_number": "PO-GAN-0201",
+      "customer_code": "CUST-015",
+      "file": "purchase_orders/01_before_invoices/PO-GAN-0201__CUST-015.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-30",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 367000.0,
+      "total_with_tax": 433060.0,
+      "linked_invoices": [
+        "INV-1016",
+        "INV-1037"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1016",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1037",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "qa engineer person days": 2.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-GAN-0220",
+      "customer_code": "CUST-015",
+      "file": "purchase_orders/02_after_invoices/PO-GAN-0220__CUST-015.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-25",
+      "arrival": "after_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "invoice_first (retro-link on PO creation)",
+      "order_value_excl_tax": 142000.0,
+      "total_with_tax": 167560.0,
+      "linked_invoices": [
+        "INV-1080"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1080",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "software engineer person days": 2.0
+      },
+      "plan_note": "retro-link then pass"
+    },
+    {
+      "po_number": "PO-GAN-4690",
+      "customer_code": "CUST-015",
+      "file": "purchase_orders/01_before_invoices/PO-GAN-4690__CUST-015.png",
+      "format": "image_png",
+      "currency": "INR",
+      "po_date": "2026-06-22",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 850000.0,
+      "total_with_tax": 1003000.0,
+      "linked_invoices": [
+        "INV-1150"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1150",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 7.0,
+        "security audit fixed fee": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-GAN-9834",
+      "customer_code": "CUST-015",
+      "file": "purchase_orders/01_before_invoices/PO-GAN-9834__CUST-015.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-07-20",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 322000.0,
+      "total_with_tax": 379960.0,
+      "linked_invoices": [
+        "INV-1192"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1192",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "ui ux design screens": 12.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "KM-PO-0712",
+      "customer_code": "CUST-017",
+      "file": "purchase_orders/01_before_invoices/KM-PO-0712__CUST-017.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-11",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 1104000.0,
+      "total_with_tax": 1302720.0,
+      "linked_invoices": [
+        "INV-1007"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1007",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "device provisioning and mdm setup": 1.0,
+        "rugged field tablets supply": 7.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "KM-PO-1871",
+      "customer_code": "CUST-017",
+      "file": "purchase_orders/01_before_invoices/KM-PO-1871__CUST-017.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-31",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 281100.0,
+      "total_with_tax": 331698.0,
+      "linked_invoices": [
+        "INV-1180"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1180",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "qa engineer person days": 2.0,
+        "software engineer person days": 5.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "PO-1001",
+      "customer_code": "CUST-017",
+      "file": "purchase_orders/01_before_invoices/PO-1001__CUST-017.pdf",
+      "format": "digital_pdf",
+      "currency": "INR",
+      "po_date": "2026-08-26",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 78000.0,
+      "total_with_tax": 92040.0,
+      "linked_invoices": [
+        "INV-1079"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1079",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "software engineer person days": 3.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))",
+      "also": "PO-1001 exists for BOTH CUST-014 and CUST-017 - unique per customer"
+    },
+    {
+      "po_number": "BW-PO-2231",
+      "customer_code": "CUST-018",
+      "file": "purchase_orders/01_before_invoices/BW-PO-2231__CUST-018.png",
+      "format": "image_png",
+      "currency": "GBP",
+      "po_date": "2026-08-26",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 8202.0,
+      "total_with_tax": 8202.0,
+      "linked_invoices": [
+        "INV-1025"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1025",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "BW-PO-4469",
+      "customer_code": "CUST-018",
+      "file": "purchase_orders/01_before_invoices/BW-PO-4469__CUST-018.pdf",
+      "format": "digital_pdf",
+      "currency": "GBP",
+      "po_date": "2026-08-27",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 18140.0,
+      "total_with_tax": 18140.0,
+      "linked_invoices": [
+        "INV-1105"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1105",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "application support retainer monthly": 1.0,
+        "ui ux design screens": 14.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "BW-PO-6146",
+      "customer_code": "CUST-018",
+      "file": "purchase_orders/01_before_invoices/BW-PO-6146__CUST-018.pdf",
+      "format": "digital_pdf",
+      "currency": "GBP",
+      "po_date": "2026-08-28",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 53495.0,
+      "total_with_tax": 53495.0,
+      "linked_invoices": [
+        "INV-1104",
+        "INV-1106",
+        "INV-1190"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1104",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1106",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1190",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 14.0,
+        "cloud infrastructure management monthly": 1.0,
+        "senior software engineer person days": 8.0,
+        "ui ux design screens": 3.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "BW-PO-8318",
+      "customer_code": "CUST-018",
+      "file": "purchase_orders/01_before_invoices/BW-PO-8318__CUST-018.pdf",
+      "format": "scanned_pdf",
+      "currency": "GBP",
+      "po_date": "2026-06-27",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 15176.0,
+      "total_with_tax": 15176.0,
+      "linked_invoices": [
+        "INV-1162"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1162",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 109.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "4500012345",
+      "customer_code": "CUST-019",
+      "file": "purchase_orders/01_before_invoices/4500012345__CUST-019.pdf",
+      "format": "digital_pdf",
+      "currency": "EUR",
+      "po_date": "2026-08-03",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 5690.0,
+      "total_with_tax": 5690.0,
+      "linked_invoices": [
+        "INV-1026"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1026",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 2.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "4500020729",
+      "customer_code": "CUST-019",
+      "file": "purchase_orders/01_before_invoices/4500020729__CUST-019.pdf",
+      "format": "digital_pdf",
+      "currency": "EUR",
+      "po_date": "2026-08-13",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 23155.0,
+      "total_with_tax": 23155.0,
+      "linked_invoices": [
+        "INV-1107"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1107",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "qa engineer person days": 8.0,
+        "senior software engineer person days": 8.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "4500073257",
+      "customer_code": "CUST-019",
+      "file": "purchase_orders/01_before_invoices/4500073257__CUST-019.pdf",
+      "format": "scanned_pdf",
+      "currency": "EUR",
+      "po_date": "2026-07-08",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 26395.0,
+      "total_with_tax": 26395.0,
+      "linked_invoices": [
+        "INV-1108",
+        "INV-1109"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1108",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1109",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "qa engineer person days": 6.0,
+        "saas platform licence user months": 78.0,
+        "ui ux design screens": 10.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "4500095296",
+      "customer_code": "CUST-019",
+      "file": "purchase_orders/01_before_invoices/4500095296__CUST-019.png",
+      "format": "image_png",
+      "currency": "EUR",
+      "po_date": "2026-08-05",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 6875.0,
+      "total_with_tax": 6875.0,
+      "linked_invoices": [
+        "INV-1167"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1167",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "software engineer person days": 5.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "KC-PO-0311",
+      "customer_code": "CUST-020",
+      "file": "purchase_orders/01_before_invoices/KC-PO-0311__CUST-020.pdf",
+      "format": "digital_pdf",
+      "currency": "SGD",
+      "po_date": "2026-08-28",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 10425.0,
+      "total_with_tax": 10425.0,
+      "linked_invoices": [
+        "INV-1027"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1027",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "KC-PO-1442",
+      "customer_code": "CUST-020",
+      "file": "purchase_orders/01_before_invoices/KC-PO-1442__CUST-020.pdf",
+      "format": "digital_pdf",
+      "currency": "SGD",
+      "po_date": "2026-07-24",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 108253.0,
+      "total_with_tax": 108253.0,
+      "linked_invoices": [
+        "INV-1111",
+        "INV-1112",
+        "INV-1174",
+        "INV-1182"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1111",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1112",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1174",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1182",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 6.0,
+        "cloud infrastructure management monthly": 1.0,
+        "data engineering sprint 2 weeks": 1.0,
+        "saas platform licence user months": 159.0,
+        "software engineer person days": 11.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "KC-PO-2911",
+      "customer_code": "CUST-020",
+      "file": "purchase_orders/01_before_invoices/KC-PO-2911__CUST-020.pdf",
+      "format": "digital_pdf",
+      "currency": "SGD",
+      "po_date": "2026-09-07",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 43678.0,
+      "total_with_tax": 43678.0,
+      "linked_invoices": [
+        "INV-1172"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1172",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "qa engineer person days": 4.0,
+        "saas platform licence user months": 148.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "KC-PO-4406",
+      "customer_code": "CUST-020",
+      "file": "purchase_orders/01_before_invoices/KC-PO-4406__CUST-020.pdf",
+      "format": "scanned_pdf",
+      "currency": "SGD",
+      "po_date": "2026-07-15",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 59067.0,
+      "total_with_tax": 59067.0,
+      "linked_invoices": [
+        "INV-1110",
+        "INV-1183"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1110",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1183",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 3.0,
+        "security audit fixed fee": 1.0,
+        "saas platform licence user months": 40.0,
+        "ui ux design screens": 15.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "ANT/PO/4205",
+      "customer_code": "CUST-021",
+      "file": "purchase_orders/01_before_invoices/ANT_PO_4205__CUST-021.pdf",
+      "format": "digital_pdf",
+      "currency": "AED",
+      "po_date": "2026-06-17",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 110463.0,
+      "total_with_tax": 110463.0,
+      "linked_invoices": [
+        "INV-1117",
+        "INV-1170"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1117",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1170",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 2.0,
+        "software engineer person days": 4.0,
+        "senior software engineer person days": 5.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "ANT/PO/5423",
+      "customer_code": "CUST-021",
+      "file": "purchase_orders/01_before_invoices/ANT_PO_5423__CUST-021.pdf",
+      "format": "scanned_pdf",
+      "currency": "AED",
+      "po_date": "2026-05-21",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 30840.0,
+      "total_with_tax": 30840.0,
+      "linked_invoices": [
+        "INV-1158"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1158",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "senior software engineer person days": 4.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "ANT/PO/9778",
+      "customer_code": "CUST-021",
+      "file": "purchase_orders/01_before_invoices/ANT_PO_9778__CUST-021.png",
+      "format": "image_png",
+      "currency": "AED",
+      "po_date": "2026-08-12",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 136993.0,
+      "total_with_tax": 136993.0,
+      "linked_invoices": [
+        "INV-1115",
+        "INV-1147"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1115",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1147",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "software engineer person days": 5.0,
+        "application support retainer monthly": 1.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "SCD-PO-1610",
+      "customer_code": "CUST-022",
+      "file": "purchase_orders/01_before_invoices/SCD-PO-1610__CUST-022.pdf",
+      "format": "digital_pdf",
+      "currency": "AUD",
+      "po_date": "2026-05-14",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 45083.0,
+      "total_with_tax": 45083.0,
+      "linked_invoices": [
+        "INV-1119",
+        "INV-1120",
+        "INV-1123"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1119",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1120",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1123",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "qa engineer person days": 4.0,
+        "software engineer person days": 4.0,
+        "senior software engineer person days": 7.0,
+        "ui ux design screens": 6.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "SCD-PO-2280",
+      "customer_code": "CUST-022",
+      "file": "purchase_orders/01_before_invoices/SCD-PO-2280__CUST-022.pdf",
+      "format": "digital_pdf",
+      "currency": "AUD",
+      "po_date": "2026-06-01",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 19929.0,
+      "total_with_tax": 19929.0,
+      "linked_invoices": [
+        "INV-1122"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1122",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "ui ux design screens": 15.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "SCD-PO-8456",
+      "customer_code": "CUST-022",
+      "file": "purchase_orders/01_before_invoices/SCD-PO-8456__CUST-022.pdf",
+      "format": "digital_pdf",
+      "currency": "AUD",
+      "po_date": "2026-08-09",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 22416.0,
+      "total_with_tax": 22416.0,
+      "linked_invoices": [
+        "INV-1121"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1121",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "MRA-PO-3467",
+      "customer_code": "CUST-023",
+      "file": "purchase_orders/01_before_invoices/MRA-PO-3467__CUST-023.pdf",
+      "format": "digital_pdf",
+      "currency": "CAD",
+      "po_date": "2026-06-23",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 42944.0,
+      "total_with_tax": 42944.0,
+      "linked_invoices": [
+        "INV-1124"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1124",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 150.0,
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "MRA-PO-6673",
+      "customer_code": "CUST-023",
+      "file": "purchase_orders/01_before_invoices/MRA-PO-6673__CUST-023.pdf",
+      "format": "digital_pdf",
+      "currency": "CAD",
+      "po_date": "2026-07-16",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 66359.0,
+      "total_with_tax": 66359.0,
+      "linked_invoices": [
+        "INV-1125",
+        "INV-1126",
+        "INV-1128"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1125",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1126",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1128",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "qa engineer person days": 6.0,
+        "senior software engineer person days": 10.0,
+        "training workshop sessions": 2.0,
+        "ui ux design screens": 11.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "MRA-PO-7308",
+      "customer_code": "CUST-023",
+      "file": "purchase_orders/01_before_invoices/MRA-PO-7308__CUST-023.pdf",
+      "format": "digital_pdf",
+      "currency": "CAD",
+      "po_date": "2026-07-23",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 11760.0,
+      "total_with_tax": 11760.0,
+      "linked_invoices": [
+        "INV-1127"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1127",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "ui ux design screens": 10.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "LS-BC-2903",
+      "customer_code": "CUST-024",
+      "file": "purchase_orders/01_before_invoices/LS-BC-2903__CUST-024.pdf",
+      "format": "scanned_pdf",
+      "currency": "EUR",
+      "po_date": "2026-07-18",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 20851.0,
+      "total_with_tax": 20851.0,
+      "linked_invoices": [
+        "INV-1131",
+        "INV-1132"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1131",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1132",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "saas platform licence user months": 86.0,
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "LS-BC-4605",
+      "customer_code": "CUST-024",
+      "file": "purchase_orders/01_before_invoices/LS-BC-4605__CUST-024.pdf",
+      "format": "scanned_pdf",
+      "currency": "EUR",
+      "po_date": "2026-07-18",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 10272.0,
+      "total_with_tax": 10272.0,
+      "linked_invoices": [
+        "INV-1129"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1129",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "cloud infrastructure management monthly": 1.0,
+        "application support retainer monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "LS-BC-8141",
+      "customer_code": "CUST-024",
+      "file": "purchase_orders/01_before_invoices/LS-BC-8141__CUST-024.pdf",
+      "format": "digital_pdf",
+      "currency": "EUR",
+      "po_date": "2026-02-22",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 54116.0,
+      "total_with_tax": 54116.0,
+      "linked_invoices": [
+        "INV-1130",
+        "INV-1185"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1130",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1185",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0,
+        "saas platform licence user months": 142.0,
+        "senior software engineer person days": 7.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "VPS-PO-2980",
+      "customer_code": "CUST-025",
+      "file": "purchase_orders/01_before_invoices/VPS-PO-2980__CUST-025.pdf",
+      "format": "digital_pdf",
+      "currency": "USD",
+      "po_date": "2026-06-18",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 29400.0,
+      "total_with_tax": 29400.0,
+      "linked_invoices": [
+        "INV-1133",
+        "INV-1134"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1133",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1134",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "security audit fixed fee": 1.0,
+        "cloud infrastructure management monthly": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "VPS-PO-4379",
+      "customer_code": "CUST-025",
+      "file": "purchase_orders/01_before_invoices/VPS-PO-4379__CUST-025.pdf",
+      "format": "digital_pdf",
+      "currency": "USD",
+      "po_date": "2026-08-17",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 63880.0,
+      "total_with_tax": 63880.0,
+      "linked_invoices": [
+        "INV-1135",
+        "INV-1136"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1135",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1136",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 9.0,
+        "qa engineer person days": 6.0,
+        "saas platform licence user months": 52.0,
+        "senior software engineer person days": 2.0,
+        "application support retainer monthly": 1.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "HX-PO-1252",
+      "customer_code": "CUST-026",
+      "file": "purchase_orders/01_before_invoices/HX-PO-1252__CUST-026.pdf",
+      "format": "digital_pdf",
+      "currency": "EUR",
+      "po_date": "2026-07-15",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 32954.0,
+      "total_with_tax": 32954.0,
+      "linked_invoices": [
+        "INV-1138",
+        "INV-1140",
+        "INV-1141"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1138",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1140",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        },
+        {
+          "invoice": "INV-1141",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 5.0,
+        "cloud infrastructure management monthly": 1.0,
+        "qa engineer person days": 10.0,
+        "saas platform licence user months": 39.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "HX-PO-2001",
+      "customer_code": "CUST-026",
+      "file": "purchase_orders/01_before_invoices/HX-PO-2001__CUST-026.pdf",
+      "format": "digital_pdf",
+      "currency": "EUR",
+      "po_date": "2026-07-27",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 9538.0,
+      "total_with_tax": 9538.0,
+      "linked_invoices": [
+        "INV-1139"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1139",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "data engineering sprint 2 weeks": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": "HX-PO-3862",
+      "customer_code": "CUST-026",
+      "file": "purchase_orders/01_before_invoices/HX-PO-3862__CUST-026.pdf",
+      "format": "digital_pdf",
+      "currency": "EUR",
+      "po_date": "2026-07-11",
+      "arrival": "before_invoices",
+      "intake_outcome": "PO created",
+      "link_direction": "po_first (link at invoice creation)",
+      "order_value_excl_tax": 44819.0,
+      "total_with_tax": 44819.0,
+      "linked_invoices": [
+        "INV-1142"
+      ],
+      "fulfillment": [
+        {
+          "invoice": "INV-1142",
+          "result": "pass",
+          "effect": "po_fulfillments rows written"
+        }
+      ],
+      "remaining_after_all": {
+        "solution architect person days": 9.0,
+        "senior software engineer person days": 9.0,
+        "training workshop sessions": 1.0
+      },
+      "plan_note": "pass (ordered = ceil(1.25 x invoiced))"
+    },
+    {
+      "po_number": null,
+      "customer_code": "CUST-017",
+      "file": "purchase_orders/01_before_invoices/PO_G1_no_po_number_CUST-017.pdf",
+      "format": "digital_pdf",
+      "intake_outcome": "REJECTED (po_number genuinely absent) - or REVIEW if the extractor returns null without certainty",
+      "case": "G1",
+      "linked_invoices": [],
+      "fulfillment": []
+    }
+  ],
+  "edge_files": [
+    {
+      "file": "PE01_byte_identical_copy_PO-MER-1192__CUST-002.pdf",
+      "case": "sha256 duplicate",
+      "expected": "rejected as duplicate upload of PO-MER-1192"
+    },
+    {
+      "file": "PE02_unknown_customer_OB-PO-0101.pdf",
+      "case": "customer link",
+      "expected": "Orchid not in master -> rejected (unknown customer)"
+    },
+    {
+      "file": "PE03_zero_quantity_line.pdf",
+      "case": "qty > 0",
+      "expected": "validation fail -> rejected"
+    },
+    {
+      "file": "PE04_invoice_uploaded_as_po_INV-1088.pdf",
+      "case": "doc-type (G5)",
+      "expected": "classifier says invoice, not PO -> invoice branch; if uploaded again after the 200, it is also a sha256 duplicate of INV-1088"
+    },
+    {
+      "file": "PE05_corrupted_po.pdf",
+      "case": "A1 / case 9 for POs",
+      "expected": "parse fails -> Failed item, re-runnable; batch continues"
+    }
+  ]
+}

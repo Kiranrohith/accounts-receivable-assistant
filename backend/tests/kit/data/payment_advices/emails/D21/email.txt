@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Wrong PO on INV-1077
+ATTACH:  (none)
+WAVE:    1
+
+Hello,
+
+INV-1077 quotes PO-MER-1180, which is not our purchase order. Please reissue with our correct PO reference.
+
+Regards,
+Farhan Ali
+Deccan Edutech Pvt Ltd
