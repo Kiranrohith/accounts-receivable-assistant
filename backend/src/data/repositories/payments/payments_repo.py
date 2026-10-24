@@ -272,6 +272,52 @@ async def list_notes(
     return [(n, name) for n, name in rows]
 
 
+_NOTE_SORTS = {
+    "created": Note.created_at,
+    "number": Note.note_number,
+    "customer": Customer.customer_name,
+    "amount": Note.amount,
+    "remaining": Note.remaining_amount,
+    "status": Note.status,
+}
+
+
+async def search_notes(
+    db: AsyncSession,
+    *,
+    status: NoteStatus | None,
+    customer_id: uuid.UUID | None,
+    search: str | None,
+    sort: str,
+    descending: bool,
+    limit: int,
+    offset: int,
+) -> tuple[list[tuple[Note, str]], int]:
+    """(rows, total) for the credit notes page: filtered, searched, sorted and cut to one page by the database."""
+    where = []
+    if status is not None:
+        where.append(Note.status == status)
+    if customer_id is not None:
+        where.append(Note.customer_id == customer_id)
+    if search and search.strip():
+        # What the person typed is text, not a pattern: a "%" or "_" in it must match itself.
+        escaped = search.strip().replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+        like = f"%{escaped}%"
+        where.append(
+            or_(
+                Note.note_number.ilike(like, escape="\\"),
+                Customer.customer_name.ilike(like, escape="\\"),
+                Note.reason.ilike(like, escape="\\"),
+            )
+        )
+    base = select(Note, Customer.customer_name).join(Customer, Customer.id == Note.customer_id).where(*where)
+    total = await db.scalar(select(func.count()).select_from(base.order_by(None).subquery()))
+    column = _NOTE_SORTS.get(sort, Note.created_at)
+    ordered = column.desc().nullslast() if descending else column.asc().nullslast()
+    rows = await db.execute(base.order_by(ordered, Note.id).limit(limit).offset(offset))
+    return [(n, name) for n, name in rows], total or 0
+
+
 async def spends_for_note(
     db: AsyncSession, note_id: uuid.UUID
 ) -> list[tuple[PaymentAllocation, str]]:
