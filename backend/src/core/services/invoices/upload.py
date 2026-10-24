@@ -156,6 +156,21 @@ async def store_upload(
     except DuplicateRecordError:  # concurrent identical upload won the race on file_hash
         winner = await documents_repo.document_id_by_hash(db, file_hash)
         if winner is None:
+            await _drop_unrecorded_file(db, path, file_hash)
             raise
         return await _record_duplicate(db, actor, winner, file_name)
+    except Exception:  # the row was not saved (database trouble): do not leave the file on disk with no row
+        await _drop_unrecorded_file(db, path, file_hash)
+        raise
     return StoredUpload(document.id, duplicate=False)
+
+
+async def _drop_unrecorded_file(db: AsyncSession, path: Path, file_hash: str) -> None:
+    """The save failed: delete the stored file unless a row for the same content exists by now (a concurrent
+    identical upload shares the file, since it is named by its hash). Never hides the error being handled."""
+    try:
+        await db.rollback()
+        if await documents_repo.document_id_by_hash(db, file_hash) is None:
+            await asyncio.to_thread(path.unlink, missing_ok=True)
+    except Exception:
+        pass  # cleanup is best effort; the original error is what the caller must see
