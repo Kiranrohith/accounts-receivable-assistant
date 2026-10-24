@@ -19,7 +19,7 @@ from core.exceptions.errors import (
     ValidationFailure,
 )
 from core.services.customers.resolution import resolve_customer
-from core.services.invoices.fx import is_foreign, rate_for_invoice
+from core.services.invoices.fx import is_foreign, manual_rate, rate_for_invoice
 from core.services.invoices import versioning
 from core.services.invoices.routing import create_invoice
 from core.services.invoices.validation import validate_extraction
@@ -200,7 +200,13 @@ async def approve_review(
 
     # Rate lookup only for a foreign invoice. No usable rate (422) or the service being
     # down (502) stops the approval; nothing is saved and the item stays pending.
-    fx = await rate_for_invoice(currency, edited.invoice_date) if is_foreign(currency) else None
+    # A rate a person typed in (a currency the ECB does not publish) is used instead of the ECB's.
+    if not is_foreign(currency):
+        fx = None
+    elif body.fx_rate is not None:
+        fx = manual_rate(currency, edited.invoice_date, body.fx_rate)
+    else:
+        fx = await rate_for_invoice(currency, edited.invoice_date)
 
     try:
         created = await create_invoice(db, document, edited, customer, user.id, fx)

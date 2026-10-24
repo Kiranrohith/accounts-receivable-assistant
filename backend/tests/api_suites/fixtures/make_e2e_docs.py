@@ -27,7 +27,7 @@ invoice("c02_name_match.docx", number="GW-E2E-002", to_name="Meridian Tech Solut
 invoice("c03_debit_note.docx", title="DEBIT NOTE", number="GW-E2E-003", total="5000.00", item=("Late fee", "1", "5000.00"))
 invoice("c04_unknown_customer.docx", number="GW-E2E-004", to_name="Unknown Widgets Ltd", to_gstin="07AAACU9999A1Z1")
 invoice("c05_identity_conflict.docx", number="GW-E2E-005", to_name="Meridian Tech Solutions Pvt Ltd", to_gstin="33AABCZ1234F1Z5")
-invoice("c06_usd.docx", number="GW-E2E-006", currency="AED", total="1000.00", item=("Licence", "1", "1000.00"))
+invoice("c06_usd.docx", number="GW-E2E-006", currency="QAR", total="1000.00", item=("Licence", "1", "1000.00"))
 invoice("c07_duplicate_number.docx", number="GW-E2E-001", total="777.00", item=("Different thing", "1", "777.00"))
 invoice("c09_no_due_date.docx", number="GW-E2E-009", due=None)
 invoice("c11_review_race.docx", number="GW-E2E-011", to_name="Unknown Widgets Ltd", to_gstin=None)

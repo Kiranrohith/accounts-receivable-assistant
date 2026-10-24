@@ -46,6 +46,7 @@ async def main():
         check("Christmas 2025-12-25 (TARGET closed) -> earlier day", j(("USD", "2025-12-25"))["rate_date"] < "2025-12-25" and j(("USD", "2025-12-25"))["days_back"] >= 1, str(j(("USD", "2025-12-25"))["rate_date"]))
         check("New Year 2026-01-01 -> earlier day", j(("USD", "2026-01-01"))["rate_date"] < "2026-01-01")
         check("old date works (2024-01-15)", ok(("USD", "2024-01-15")) and j(("USD", "2024-01-15"))["rate_date"] == "2024-01-15")
+        check("AED (not published by the ECB) is derived from the USD rate and the fixed peg 3.6725", ok(("AED", "2026-10-01")) and abs(Decimal(j(("AED", "2026-10-01"))["inr_per_unit"]) * Decimal("3.6725") - Decimal(j(("USD", "2026-10-01"))["inr_per_unit"])) < Decimal("0.0001") and j(("AED", "2026-10-01"))["rate_date"] == j(("USD", "2026-10-01"))["rate_date"], str(rows[("AED", "2026-10-01")].json()))
         check("lowercase currency accepted", ok(("usd", "2026-10-15")) and j(("usd", "2026-10-15"))["currency"] == "USD")
         check("EUR: eur_foreign null, rate equals the INR leg", j(("EUR", "2026-10-01"))["eur_foreign"] is None and Decimal(j(("EUR", "2026-10-01"))["inr_per_unit"]) == Decimal(j(("EUR", "2026-10-01"))["eur_inr"]).quantize(Decimal("0.00000001")))
         check("sanity: USD roughly 70-120 INR, GBP above USD, JPY under 1", 70 < float(j(("USD", "2026-10-01"))["inr_per_unit"]) < 120 and float(j(("GBP", "2026-10-01"))["inr_per_unit"]) > float(j(("USD", "2026-10-01"))["inr_per_unit"]) and float(j(("JPY", "2026-10-01"))["inr_per_unit"]) < 1)

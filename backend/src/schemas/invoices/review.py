@@ -3,7 +3,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, StringConstraints, field_validator
+from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 from schemas.invoices.extraction import DocumentType, ExtractedInvoice
 
@@ -39,6 +39,9 @@ class ReviewEdits(BaseModel):
 class ReviewApprove(BaseModel):
     reason: Reason
     customer_id: uuid.UUID | None = None  # pick the customer yourself when matching failed
+    # INR per 1 unit of the invoice's currency, for a currency the ECB does not publish (a foreign invoice only);
+    # when given it is used instead of the ECB's rate
+    fx_rate: Decimal | None = Field(default=None, gt=0, max_digits=18, decimal_places=8)
     edits: ReviewEdits = ReviewEdits()
 
 

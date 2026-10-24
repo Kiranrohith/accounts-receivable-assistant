@@ -150,11 +150,36 @@ async def test_other_4xx_is_not_retried():
 
 
 async def test_currency_the_ecb_does_not_publish_returns_only_the_inr_leg():
-    body = csv_rows([("INR", "2026-10-01", "100")])  # what the ECB sends for AED: INR only
-    with pytest.raises(FxRateNotFound, match="No ECB rate for AED"):
-        await fetch_rate_to_inr("AED", date(2026, 10, 1), client(lambda _: httpx.Response(200, text=body)))
+    body = csv_rows([("INR", "2026-10-01", "100")])  # what the ECB sends for QAR: INR only
+    with pytest.raises(FxRateNotFound, match="No ECB rate for QAR"):
+        await fetch_rate_to_inr("QAR", date(2026, 10, 1), client(lambda _: httpx.Response(200, text=body)))
 
 
 async def test_no_observations_in_window_is_not_found():
     with pytest.raises(FxRateNotFound, match="No ECB rate for USD"):
         await fetch_rate_to_inr("USD", date(2026, 10, 1), client(lambda _: httpx.Response(200, text=HEADER)))
+
+
+async def test_aed_is_derived_from_the_usd_rate_and_the_fixed_peg():
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.url.path)
+        return httpx.Response(200, text=csv_rows([("INR", "2026-10-01", "100"), ("USD", "2026-10-01", "1.25")]))
+
+    r = await fetch_rate_to_inr("aed", date(2026, 10, 1), client(handler))
+    # INR per USD is 80, and 1 USD is 3.6725 AED, so 1 AED is 80 / 3.6725 INR
+    assert r.currency == "AED" and r.inr_per_unit == (Decimal(80) / Decimal("3.6725")).quantize(Decimal("0.00000001"))
+    assert seen == ["/service/data/EXR/D.USD+INR.EUR.SP00.A"]  # only the dollar's two legs are asked for
+    assert r.rate_date == date(2026, 10, 1) and r.days_back == 0 and "peg" in r.source
+
+
+async def test_aed_on_a_weekend_uses_the_dollars_latest_day():
+    body = csv_rows([("INR", "2026-10-09", "100"), ("USD", "2026-10-09", "1.25")])
+    r = await fetch_rate_to_inr("AED", date(2026, 10, 11), client(lambda _: httpx.Response(200, text=body)))
+    assert r.rate_date == date(2026, 10, 9) and r.days_back == 2
+
+
+async def test_an_aed_rate_is_not_found_when_the_dollar_has_none():
+    with pytest.raises(FxRateNotFound):
+        await fetch_rate_to_inr("AED", date(2026, 10, 1), client(lambda _: httpx.Response(404, text="none")))

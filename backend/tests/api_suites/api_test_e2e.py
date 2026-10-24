@@ -92,7 +92,7 @@ async def main():
             for n, num, needle in (
                 ("c04_unknown_customer.docx", "GW-E2E-004", "Unknown customer"),
                 ("c05_identity_conflict.docx", "GW-E2E-005", "Identity conflict"),
-                ("c06_usd.docx", "GW-E2E-006", "AED"),
+                ("c06_usd.docx", "GW-E2E-006", "QAR"),
                 ("c10_name_ok_gstin_unknown.docx", "GW-E2E-010", "not in the customer master"),
             ):
                 u = lst[n]

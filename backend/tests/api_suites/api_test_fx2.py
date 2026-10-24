@@ -60,7 +60,7 @@ async def main():
     make_invoice(tmp / "inr.docx", number="FX-INR", currency="INR", total="100000.00")
     make_invoice(tmp / "usd.docx", number="FX-USD", currency="USD", total="1000.00", issued="05/10/2026")
     make_invoice(tmp / "eur_sun.docx", number="FX-EUR", currency="EUR", total="500.00", issued="11/10/2026")
-    make_invoice(tmp / "aed.docx", number="FX-AED", currency="AED", total="2000.00")
+    make_invoice(tmp / "qar.docx", number="FX-QAR", currency="QAR", total="2000.00")
     make_invoice(tmp / "usd_down.docx", number="FX-DOWN", currency="USD", total="300.00", issued="06/10/2026")
     make_invoice(tmp / "usd_stale.docx", number="FX-STALE", currency="USD", total="400.00", issued="07/10/2026")
     make_invoice(tmp / "usd_unknown.docx", number="FX-UNK", currency="USD", total="100.00", to="Nobody Ltd", gstin="07AAACN1111A1Z1")
@@ -124,11 +124,18 @@ async def main():
         check("... and the step log says it was 2 days back", route["fx"]["rate_date"] == "2026-10-09" and route["fx"]["days_back"] == 2, str(route["fx"]))
 
         # 4. a currency the ECB does not publish
-        row, det = await up("aed.docx")
-        check("AED invoice -> review, reason says the ECB may not publish it", row["disposition"] == "review" and any("AED" in x and "ECB" in x for x in det["disposition_reasons"]), str(det["disposition_reasons"]))
+        row, det = await up("qar.docx")
+        check("QAR invoice -> review, reason says the ECB may not publish it and a rate can be entered", row["disposition"] == "review" and any("QAR" in x and "ECB" in x and "enter the INR rate" in x for x in det["disposition_reasons"]), str(det["disposition_reasons"]))
         check("... and no invoice was created", row["invoice_id"] is None)
         r = await c.post(f"/invoices/reviews/{row['review_id']}/approve", headers=H, json={"reason": "try"})
-        check("approving the AED invoice -> 422 (still no rate), stays pending", r.status_code == 422 and "No ECB rate" in r.text, r.text[:140])
+        check("approving the QAR invoice without a rate -> 422 (still no rate), stays pending", r.status_code == 422 and "No ECB rate" in r.text, r.text[:140])
+        r = await c.post(f"/invoices/reviews/{row['review_id']}/approve", headers=H, json={"reason": "rate from the bank", "fx_rate": "-1"})
+        check("a rate that is not positive -> 422", r.status_code == 422, r.text[:140])
+        r = await c.post(f"/invoices/reviews/{row['review_id']}/approve", headers=H, json={"reason": "rate from the bank", "fx_rate": "22.75"})
+        check("approving with a typed rate -> 200 and the invoice is created", r.status_code == 200 and r.json()["invoice_id"], r.text[:140])
+        async with SessionLocal() as db:
+            r = (await db.execute(text("select i.fx_rate_invoice, i.amount_inr, (select reason from state_log where entity_type='invoice' and entity_id=i.id order by occurred_at limit 1) from invoices i where invoice_number='FX-QAR'"))).one()
+        check("... frozen at the typed rate, and the timeline says it was entered by a person", r[0] == Decimal("22.75") and r[1] == Decimal("45500.00") and "entered by a person" in r[2], str(tuple(r)))
 
         # 5. ECB down at upload -> review; later approval (service back) creates the invoice
         async def down(currency, on_date):
@@ -166,7 +173,7 @@ async def main():
 
         async with SessionLocal() as db:
             n = (await db.execute(text("select count(*) from invoices"))).scalar()
-            check("invoices created: INR, USD, EUR, and the approved one = 4", n == 4, str(n))
+            check("invoices created: INR, USD, EUR, the QAR one approved with a typed rate, and the one approved after the ECB came back = 5", n == 5, str(n))
     await worker.stop(grace_seconds=5)
     await engine.dispose()
     print(f"RESULT {sum(results)}/{len(results)} passed")
