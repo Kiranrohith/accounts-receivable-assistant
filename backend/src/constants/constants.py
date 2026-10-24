@@ -45,6 +45,9 @@ FX_RATES: Final = {"INR": Decimal("1")}
 
 # ECB Data Portal (SDMX REST): reference rates are EUR-based, one per TARGET working day.
 ECB_API_URL: Final = "https://data-api.ecb.europa.eu/service/data/EXR"
+# Currencies the ECB does not publish but whose value is fixed against the US dollar: units of the currency per
+# 1 USD. Their INR rate is the ECB's USD rate divided by this. Add a pegged currency here, one line.
+PEGGED_TO_USD: Final = {"AED": Decimal("3.6725")}
 ECB_TIMEOUT_SECONDS: Final = 10
 FX_LOOKBACK_DAYS: Final = 10  # weekends / holidays: use the latest rate published before the date
 # A rate older than this (vs the invoice date) is not used automatically: the invoice goes to

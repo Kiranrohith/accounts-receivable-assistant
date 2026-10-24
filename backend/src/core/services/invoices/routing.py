@@ -130,7 +130,10 @@ async def route_extracted_invoice(
         try:
             fx = await rate_for_invoice(invoice.currency.strip().upper(), invoice.invoice_date)
         except ValidationFailure as exc:
-            reasons.append(f"Cannot convert the {invoice.currency.strip().upper()} invoice to INR: {exc.message}")
+            reasons.append(
+                f"Cannot convert the {invoice.currency.strip().upper()} invoice to INR: {exc.message}. "
+                "When you approve it you can enter the INR rate yourself"
+            )
         except ExternalServiceError:
             reasons.append(
                 f"The exchange-rate service (ECB) is not available right now, so the "
@@ -285,7 +288,7 @@ async def create_invoice(
         reason=f"Created from uploaded document {document.file_name}"
         + (
             f"; {currency} converted at {fx.inr_per_unit} INR per unit "
-            f"(ECB rate of {fx.rate_date})"
+            f"({fx.source}, rate of {fx.rate_date})"
             if fx
             else ""
         ),

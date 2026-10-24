@@ -33,6 +33,7 @@ function InvoiceReviewForm({ review, itemId, onDone }: { review: InvoiceReview; 
   const extraction = review.extraction
   const [form, setForm] = useState<FormValues>(() => toForm(extraction))
   const [customerId, setCustomerId] = useState('')
+  const [fxRate, setFxRate] = useState('')
   const [asking, setAsking] = useState<'approve' | 'reject' | null>(null)
 
   const edits = diffEdits(extraction, form)
@@ -41,6 +42,8 @@ function InvoiceReviewForm({ review, itemId, onDone }: { review: InvoiceReview; 
   const busy = approve.isPending || reject.isPending
   const set = (key: keyof FormValues, value: string) => setForm((current) => ({ ...current, [key]: value }))
   const name = review.file_name ?? 'The document'
+  const currency = form.currency.trim().toUpperCase()
+  const foreign = currency !== '' && currency !== 'INR'
 
   return (
     <>
@@ -91,6 +94,20 @@ function InvoiceReviewForm({ review, itemId, onDone }: { review: InvoiceReview; 
                   })}
                 </div>
 
+                {foreign && (
+                  <div className="space-y-1">
+                    <Label htmlFor="f-fx_rate">Rate to INR (only if the ECB has no {currency} rate)</Label>
+                    <Input
+                      id="f-fx_rate"
+                      inputMode="decimal"
+                      placeholder={`INR for 1 ${currency}, e.g. 22.75`}
+                      value={fxRate}
+                      onChange={(e) => setFxRate(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">Leave empty to use the ECB rate for the invoice date.</p>
+                  </div>
+                )}
+
                 {extraction.line_items.length > 0 && (
                   <section aria-label="Line items" className="space-y-1">
                     <h4 className="text-sm font-medium">Line items (as read)</h4>
@@ -139,7 +156,7 @@ function InvoiceReviewForm({ review, itemId, onDone }: { review: InvoiceReview; 
         pending={approve.isPending}
         onConfirm={(reason) =>
           approve.mutate(
-            { reason, customerId: customerId || undefined, edits },
+            { reason, customerId: customerId || undefined, fxRate: foreign ? fxRate.trim() || undefined : undefined, edits },
             {
               onSuccess: (decision) => {
                 setAsking(null)

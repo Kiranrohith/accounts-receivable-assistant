@@ -32,6 +32,7 @@ from constants.constants import (
     ECB_TIMEOUT_SECONDS,
     FX_LOOKBACK_DAYS,
     OTHER_RETRY_DELAYS_SECONDS,
+    PEGGED_TO_USD,
 )
 from core.exceptions.errors import ExternalServiceError, ValidationFailure
 
@@ -117,6 +118,20 @@ async def fetch_rate_to_inr(
         raise FxRateNotFound(f"'{currency}' is not a valid 3-letter currency code")
     if code == BASE:
         return FxRate(BASE, on_date, on_date, Decimal(1), Decimal(1), None, source="identity")
+
+    peg = PEGGED_TO_USD.get(code)
+    if peg is not None:  # not published by the ECB, but fixed against the dollar: derive it from the USD rate
+        usd = await fetch_rate_to_inr("USD", on_date, client)
+        eur_foreign = usd.eur_foreign * peg  # units of this currency per euro
+        return FxRate(
+            currency=code,
+            requested_date=on_date,
+            rate_date=usd.rate_date,
+            inr_per_unit=(usd.eur_inr / eur_foreign).quantize(RATE_PLACES, rounding=ROUND_HALF_UP),
+            eur_inr=usd.eur_inr,
+            eur_foreign=eur_foreign,
+            source=f"ECB USD rate and the fixed peg ({peg} {code} per USD)",
+        )
 
     series = f"D.{BASE}.EUR.SP00.A" if code == "EUR" else f"D.{code}+{BASE}.EUR.SP00.A"
     params = {

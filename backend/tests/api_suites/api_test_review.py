@@ -130,7 +130,7 @@ async def main():
             # ---- unsupported currency: cannot approve, can reject ----
             R6 = rid["c06_usd"]
             r = await ap(R6, reason="ok")
-            check("AED invoice (no ECB rate) cannot be approved -> 422", r.status_code == 422 and "No ECB rate" in r.json()["detail"], r.json()["detail"][:100])
+            check("QAR invoice (no ECB rate) cannot be approved -> 422", r.status_code == 422 and "No ECB rate" in r.json()["detail"], r.json()["detail"][:100])
             r = await c.post(f"/invoices/reviews/{R6}/reject", headers=A, json={"reason": "Foreign currency, handle manually"})
             check("reject -> 200 Rejected", r.status_code == 200 and r.json()["status"] == "Rejected" and r.json()["invoice_id"] is None)
             rj = (await q("select rejection_reasons->0->>'code', rejection_reasons->0->>'message', jsonb_array_length(rejection_reasons), resolution::text, created_by::text, attempted_file_name from rejected_invoices where source_document_id=:i", i=ids["c06_usd"])).one()

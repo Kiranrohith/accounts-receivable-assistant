@@ -110,6 +110,24 @@ describe('Invoice check panel', () => {
     await waitFor(() => expect(seen.approved).toEqual([{ reason: 'Fixed the number', customer_id: GLOBEX, edits: { invoice_number: 'INV-2026-009' } }]))
   })
 
+  it('a foreign-currency invoice offers a rate to INR, sent only when typed; an INR one does not', async () => {
+    const seen = serve(review({ extraction: { ...extraction, currency: 'QAR' } }))
+    open()
+    const rate = await screen.findByLabelText(/Rate to INR/)
+    await userEvent.type(rate, '22.75')
+    await userEvent.click(screen.getByRole('button', { name: 'Approve invoice' }))
+    await userEvent.type(await screen.findByLabelText(/reason/i), 'Rate from the bank')
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm approval' }))
+    await waitFor(() => expect(seen.approved).toEqual([{ reason: 'Rate from the bank', fx_rate: '22.75', edits: {} }]))
+  })
+
+  it('an INR invoice shows no rate field', async () => {
+    serve()
+    open()
+    await screen.findByLabelText('Invoice number')
+    expect(screen.queryByLabelText(/Rate to INR/)).not.toBeInTheDocument()
+  })
+
   it('says so when no customer matched, and offers to choose one', async () => {
     serve(review({ matched_customer_id: null, matched_customer_name: null }))
     open()
