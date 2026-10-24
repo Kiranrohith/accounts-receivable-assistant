@@ -49,5 +49,6 @@ export function diffPoEdits(extraction: ExtractedPo, form: PoFormValues, lines: 
 export function describePoApproval(decision: PoDecision, poNumber: string): string {
   const linked = decision.linked_invoices.length
   const base = `Purchase order ${poNumber} was created.`
-  return linked > 0 ? `${base} ${linked === 1 ? '1 waiting invoice was' : `${linked} waiting invoices were`} linked and checked against it.` : base
+  const withInvoices = linked > 0 ? `${base} ${linked === 1 ? '1 waiting invoice was' : `${linked} waiting invoices were`} linked and checked against it.` : base
+  return decision.alias_saved ? `${withInvoices} “${decision.alias_saved}” was saved as another name of the customer.` : withInvoices
 }
