@@ -408,6 +408,22 @@ async def main():
     r, _ = await pay(pn)
     check("contention that never clears: review after the cap, nothing applied", o.status is Status.REVIEW and r[0] == "NeedsReview" and r[9] == 4 and len(calls) == 4 and (await inv("NV-1"))[0] == "Open", f"{o.status} rematch={r[9]} calls={len(calls)}")
 
+    # ---- 14b. contention in an EARLIER run does not shorten this run's retries ----------------------
+    c = await customer("Earlier")
+    await invoice(c, "NV-2", "900")
+    pe = await payment(c, "900", quoted=[("NV-2", None)])
+    async with SessionLocal() as db:
+        await db.execute(text("update payments set rematch_count = 3 where id = :i"), {"i": pe})
+        await db.commit()
+    calls.clear()
+    engine.apply, engine.CONTENTION_BACKOFF_SECONDS = always_contended, (0, 0, 0)
+    try:
+        o = await run(pe)
+    finally:
+        engine.apply, engine.CONTENTION_BACKOFF_SECONDS = real_apply, real_backoff
+    r, _ = await pay(pe)
+    check("an earlier run's contention does not cut this run's retries (still the full 4 tries, then review)", o.status is Status.REVIEW and len(calls) == 4 and r[9] == 7, f"{o.status} calls={len(calls)} rematch={r[9]}")
+
     # ---- the whole book ------------------------------------------------------------------------
     async with SessionLocal() as db:
         found = await verify_money_identities(db)

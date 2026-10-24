@@ -646,10 +646,10 @@ async def run_matching(
             await db.rollback()
             payment = await payments_repo.get_payment(db, payment_id)
             await db.refresh(payment)
-            payment.rematch_count += 1
-            count = payment.rematch_count
+            payment.rematch_count += 1  # a running total for the payment's history, shown on its page
             await unit_of_work.commit(db)
-            if count > REMATCH_CAP:
+            # the cap is for THIS run: contention in an earlier run must not shorten the retries of this one
+            if attempt >= REMATCH_CAP:
                 break
             delay = CONTENTION_BACKOFF_SECONDS[min(attempt, len(CONTENTION_BACKOFF_SECONDS) - 1)]
             await asyncio.sleep(delay * (1 + random.uniform(-float(BACKOFF_JITTER), float(BACKOFF_JITTER))))
