@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions.errors import ConflictError, NotFoundError
+from core.exceptions.errors import ConflictError, NotFoundError, PermissionDeniedError
 from core.services.mail import handoff, ingest, reroute
 from core.services.mail.attachments import MailRef
 from core.services.mail.parse import parse_mail
@@ -131,10 +131,14 @@ async def get_detail(db: AsyncSession, email_id: uuid.UUID) -> TriageDetail:
     return await _item(db, email, full=True)
 
 
-async def classify(db: AsyncSession, user: User, email_id: uuid.UUID, body: ClassifyMail) -> ClassifyResult:
+async def classify(
+    db: AsyncSession, user: User, email_id: uuid.UUID, body: ClassifyMail, *, ignored_only: bool = False
+) -> ClassifyResult:
     email = await emails_repo.lock_email(db, email_id)
     if email is None:
         raise NotFoundError("Mail not found")
+    if ignored_only and not _is_ignored(email):  # the log-only right: a mail set aside may be sent on, nothing else may be routed
+        raise PermissionDeniedError("Your role may send on only a mail that was set aside as general mail")
     if email.status is not EmailStatus.HUMAN_TRIAGE and not _is_ignored(email) and not _is_unclassified(email):
         raise ConflictError(
             "This mail is not waiting for a person: only mails in the triage queue, or in the ignored list, can be routed here"

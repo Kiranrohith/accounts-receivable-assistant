@@ -26,6 +26,28 @@ export interface TaskHistoryEntry {
   reason: string | null
 }
 
+/** One row of the collection-task list. */
+export interface TaskItem {
+  task_id: string
+  type: string
+  status: 'Open' | 'Closed'
+  invoice_id: string | null
+  invoice_number: string | null
+  customer_id: string | null
+  customer_name: string | null
+  assigned_to: string | null
+  assigned_to_name: string | null
+  created_at: string
+  closed_reason: string | null
+  closed_at: string | null
+  /** The invoice's due date. */
+  due_date: string | null
+  /** Days past the due date today, while the task is open. */
+  days_overdue: number | null
+  /** What is still owed on the invoice, a decimal string. */
+  balance: string | null
+}
+
 export interface TaskDetail {
   task_id: string
   type: string
@@ -39,6 +61,9 @@ export interface TaskDetail {
   created_at: string
   closed_reason: string | null
   closed_at: string | null
+  due_date: string | null
+  days_overdue: number | null
+  balance: string | null
   payload: TaskPayload | null
   closed_note: string | null
   history: TaskHistoryEntry[]

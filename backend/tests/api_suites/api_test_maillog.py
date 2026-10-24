@@ -46,7 +46,7 @@ async def main():
         FTM = {"Authorization": f"Bearer {(await login('ftm.ml@example.com', 'pass12345')).json()['access_token']}"}
 
         check("no token -> 401", (await c.get("/mail/log")).status_code == 401)
-        check("an FTM may not read the mail log -> 403", (await c.get("/mail/log", headers=FTM)).status_code == 403)
+        check("an FTM may read the mail log (mail.log.view) -> 200", (await c.get("/mail/log", headers=FTM)).status_code == 200)
         r = (await c.get("/mail/log", headers=FA)).json()
         check("an empty log answers", r == {"items": [], "total": 0})
 

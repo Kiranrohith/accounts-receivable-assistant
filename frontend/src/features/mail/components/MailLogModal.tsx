@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { PERMISSIONS } from '@/config/constants'
+import { hasPermission, useCurrentUser } from '@/features/auth'
 import { formatDateTime } from '@/utils/format'
 
 import { triageMailQuery, useRerouteMail, useRouteMailFromLog } from '../queries/mailQueries'
@@ -63,13 +65,17 @@ function Actions({ mail }: { mail: TriageMail }) {
   const reroute = useRerouteMail(mail.email_id)
   const [note, setNote] = useState('')
   const [moving, setMoving] = useState(false)
+  const user = useCurrentUser()
+  const canClassify = hasPermission(user, PERMISSIONS.mailTriageClassify) // the whole triage: the queue, a handed-on mail
+  const canRouteIgnored = canClassify || hasPermission(user, PERMISSIONS.mailIgnoredRoute) // a mail set aside, nothing else
   const outcome = outcomeOf(mail)
   const waiting = outcome === 'waiting' || (mail.status === null && mail.suggested_class === null)
 
   return (
     <section aria-label="What you can do" className="space-y-3">
       <h3 className="text-sm font-semibold">What you can do</h3>
-      {waiting && (
+      {waiting && !canClassify && <p className="text-sm text-muted-foreground">This mail is waiting for a person to say where it belongs. That is done by the finance team members in Take Action.</p>}
+      {waiting && canClassify && (
         <p className="text-sm">
           This mail is waiting for a person to say where it belongs.{' '}
           <Link to="/take-action" search={{ section: 'mail_triage', item: `mail_triage:${mail.email_id}`, page: 1, size: 25, sort: 'newest' }} className="font-medium underline">
@@ -77,7 +83,7 @@ function Actions({ mail }: { mail: TriageMail }) {
           </Link>
         </p>
       )}
-      {outcome === 'ignored' && (
+      {outcome === 'ignored' && canRouteIgnored && (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">It was set aside as general mail. If that was wrong, send it to the right place.</p>
           <Label htmlFor="log-note" className="text-xs text-muted-foreground">
@@ -99,7 +105,7 @@ function Actions({ mail }: { mail: TriageMail }) {
           </div>
         </div>
       )}
-      {mail.reroute_to && (
+      {mail.reroute_to && canClassify && (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">It was handed on as {mail.suggested_class === 'payment' ? 'a payment advice' : 'a complaint'}. If that was wrong, it can go to the other pipeline.</p>
           <Button variant="outline" onClick={() => setMoving(true)}>

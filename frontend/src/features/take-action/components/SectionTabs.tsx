@@ -11,6 +11,9 @@ interface SectionTabsProps {
   total: number
 }
 
+/** The queue whose tab leads to the Collection Tasks section instead of listing its items below. */
+export const COLLECTION_QUEUE = 'collection_task'
+
 const TAB = 'relative rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted'
 
 /** One tab per queue the role works, each with its count in the corner; they wrap onto a second line rather than scroll. */
@@ -22,7 +25,19 @@ export function SectionTabs({ queues, active, total }: SectionTabsProps) {
         All
         <CountBadge count={total} corner />
       </Link>
-      {queues.map((queue) => (
+      {queues.map((queue) =>
+        queue.key === COLLECTION_QUEUE ? (
+          // collection tasks live in their own section of the sidebar: the tab keeps its count and leads there
+          <Link
+            key={queue.key}
+            to="/collection-tasks"
+            title={queue.description}
+            className={cn(TAB, queue.count === 0 && 'text-muted-foreground')}
+          >
+            {queue.label}
+            <CountBadge count={queue.count} corner />
+          </Link>
+        ) : (
         <Link
           key={queue.key}
           from="/take-action"
@@ -35,7 +50,8 @@ export function SectionTabs({ queues, active, total }: SectionTabsProps) {
           {queue.label}
           <CountBadge count={queue.count} corner />
         </Link>
-      ))}
+        ),
+      )}
     </nav>
   )
 }

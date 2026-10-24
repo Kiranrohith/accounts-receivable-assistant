@@ -12,6 +12,7 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { formatAge, formatDate } from '@/utils/format'
 
 import { describeItem, itemParam } from '../utils/items'
+import { COLLECTION_QUEUE } from './SectionTabs'
 
 const SORT_LABELS: Record<QueueSort, string> = {
   newest: 'Newest first',
@@ -31,6 +32,7 @@ interface ItemListProps {
 /** The merged (or one-queue) list. Every control writes to the URL; the data is whatever the server returns for it. */
 export function ItemList({ section, q, sort, page, size }: ItemListProps) {
   const navigate = useNavigate({ from: '/take-action' })
+  const navigateTo = useNavigate() // to another section
   const items = useQuery(queueItemsQuery({ queue: section, q, sort, page, size }))
 
   // The search box keeps its own text and writes it to the URL once typing pauses.
@@ -65,9 +67,16 @@ export function ItemList({ section, q, sort, page, size }: ItemListProps) {
       header: <span className="sr-only">Action</span>,
       align: 'right',
       cell: (item) => (
-        <Button size="sm" onClick={() => navigate({ search: (prev) => ({ ...prev, item: itemParam(item.queue, item.item_id) }) })}>
-          Review
-        </Button>
+        item.queue === COLLECTION_QUEUE ? (
+          // a collection task is worked in its own section, with the task already open
+          <Button size="sm" onClick={() => void navigateTo({ to: '/collection-tasks', search: { task: item.item_id } })}>
+            Open
+          </Button>
+        ) : (
+          <Button size="sm" onClick={() => navigate({ search: (prev) => ({ ...prev, item: itemParam(item.queue, item.item_id) }) })}>
+            Review
+          </Button>
+        )
       ),
     },
   ]
