@@ -55,9 +55,9 @@ async def main():
     worker = await testsupport.start_worker()
     tmp = Path(tempfile.mkdtemp())
     async with SessionLocal() as db:
-        zen = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="A", email="ap@zenith.com", gstin="33AABCZ1234F1Z5",
+        zen = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="A", email="ap@zenith.com", tax_id_type="GSTIN", tax_id="33AABCZ1234F1Z5",
                        deducts_tds=False, billing_currency="INR", country="India")
-        mer = Customer(customer_name="Meridian Tech Solutions Pvt Ltd", contact="B", email="ap@meridian.com", gstin="29AABCM5678K1Z3",
+        mer = Customer(customer_name="Meridian Tech Solutions Pvt Ltd", contact="B", email="ap@meridian.com", tax_id_type="GSTIN", tax_id="29AABCM5678K1Z3",
                        deducts_tds=False, billing_currency="INR", country="India")
         db.add_all([zen, mer])
         await db.flush()

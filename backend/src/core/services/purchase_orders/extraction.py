@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from config.settings import get_settings
-from core.services.customers.gstin import with_gstin_from_text
+from core.services.customers.tax_id import read_tax_id
 from core.services.invoices.extraction import ExtractionError, run_structured_extraction
 from prompts.purchase_orders.extraction import USER_PROMPT_TEMPLATE, build_system_prompt
 from schemas.purchase_orders.extraction import ExtractedPurchaseOrder
@@ -18,6 +18,7 @@ class PurchaseOrderOutcome:
     purchase_order: ExtractedPurchaseOrder
     model_used: str
     attempts: int
+    tax_id_note: str | None = None  # why the reader's tax ID was left out (it failed the shape of its type), if it was
 
 
 async def extract_purchase_order(markdown: str) -> PurchaseOrderOutcome:
@@ -27,6 +28,6 @@ async def extract_purchase_order(markdown: str) -> PurchaseOrderOutcome:
         HumanMessage(USER_PROMPT_TEMPLATE.format(document=markdown)),
     ]
     po, model_used, attempts = await run_structured_extraction(ExtractedPurchaseOrder, messages)
-    # the reader sometimes gives our own GSTIN, or none, for the customer: take the document's other GSTIN instead
-    po = with_gstin_from_text(po, markdown, settings.our_gstin)
-    return PurchaseOrderOutcome(po, model_used, attempts)
+    # the tax ID must have the shape of its type; when the reader gave none, our own GSTIN or a bad one, take the document's other id
+    po, tax_id_note = read_tax_id(po, markdown, settings.our_gstin)
+    return PurchaseOrderOutcome(po, model_used, attempts, tax_id_note)

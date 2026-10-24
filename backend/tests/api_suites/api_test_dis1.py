@@ -56,7 +56,7 @@ NOW = datetime(2026, 10, 19, 4, 0, tzinfo=UTC)
 
 async def main():
     async with SessionLocal() as db:
-        c = Customer(customer_name="D1 Check Ltd", contact="A", email="d1@check.test", gstin="27ABCDE1234F1Z5",
+        c = Customer(customer_name="D1 Check Ltd", contact="A", email="d1@check.test", tax_id_type="GSTIN", tax_id="27ABCDE1234F1Z5",
                      deducts_tds=False, billing_currency="INR", country="India")
         db.add(c)
         await db.flush()

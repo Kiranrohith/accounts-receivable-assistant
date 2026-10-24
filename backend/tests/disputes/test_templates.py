@@ -88,13 +88,13 @@ def test_the_note_documents_render():
     env = templates._env
     credit = env.get_template("notes/credit_note.html.j2").render(
         **templates.company_context(), note_number="CN-0001", issue_date="2026-10-21", customer_name="Zenith",
-        customer_gstin="27ABCDE1234F1Z5", note_amount="5,000.00", note_reason="Overpayment",
+        customer_tax_id="27ABCDE1234F1Z5", customer_tax_id_label="GSTIN", note_amount="5,000.00", note_reason="Overpayment",
         linked_invoice_number="INV-1", linked_payment_reference="UTR-9",
     )
     assert "CREDIT NOTE" in credit and "CN-0001" in credit and "Please quote this number (CN-0001)" in credit
     debit = env.get_template("notes/debit_note.html.j2").render(
         **templates.company_context(), invoice_number="DN-1", invoice_date="2026-10-21", due_date="2026-11-20",
-        customer_name="Zenith", customer_gstin=None, lines=[{"description": "Extra work", "amount": "2,000.00"}],
+        customer_name="Zenith", customer_tax_id=None, customer_tax_id_label="Tax ID", lines=[{"description": "Extra work", "amount": "2,000.00"}],
         total="2,000.00", linked_reference="INV-1",
     )
     assert "DEBIT NOTE" in debit and "Extra work" in debit and "GSTIN" not in debit

@@ -10,7 +10,7 @@ const endpoint = (path: string) => `${env.apiBaseUrl}${path}`
 const ID = 'c1111111-1111-4111-8111-111111111111'
 
 const detail = (over: Record<string, unknown> = {}) => ({
-  id: ID, customer_name: 'Acme Corp', contact: 'Ravi', email: 'ap@acme.test', gstin: '29ABCDE1234F1Z5', deducts_tds: false, billing_currency: 'INR',
+  id: ID, customer_name: 'Acme Corp', contact: 'Ravi', email: 'ap@acme.test', tax_id: '29ABCDE1234F1Z5', tax_id_type: 'GSTIN', deducts_tds: false, billing_currency: 'INR',
   country: 'India', is_active: true, created_at: '2026-01-05T00:00:00Z', open_invoices: 3, overdue_invoices: 1, outstanding: '265500.00', unapplied_cash: '1500.00',
   aliases: [], tds_out_of_date: 0, ...over,
 })
@@ -65,7 +65,7 @@ describe('Customer dialog: figures and details', () => {
     expect(figures).toHaveTextContent('Overdue1')
     expect(figures).toHaveTextContent('₹2,65,500.00')
     expect(figures).toHaveTextContent('₹1,500.00')
-    expect(within(dialog).getByText('29ABCDE1234F1Z5')).toBeInTheDocument()
+    expect(within(dialog).getByText('29ABCDE1234F1Z5 (GSTIN)')).toBeInTheDocument()
     expect(within(dialog).getByText('None confirmed yet.')).toBeInTheDocument()
   })
 })
@@ -94,13 +94,13 @@ describe('Customer dialog: editing', () => {
     expect(seen.patched).toEqual([])
   })
 
-  it('a bad GSTIN is stopped in the form with the reason', async () => {
+  it('a bad tax ID is stopped in the form with the reason', async () => {
     const seen = serve()
     open('customers.manage')
     await userEvent.click(await screen.findByRole('button', { name: /Edit/ }))
-    const gstin = screen.getByLabelText('GSTIN')
-    await userEvent.clear(gstin)
-    await userEvent.type(gstin, '123')
+    const taxId = screen.getByLabelText('Tax ID')
+    await userEvent.clear(taxId)
+    await userEvent.type(taxId, '123')
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
     expect(await screen.findByText(/A GSTIN is 15 characters/)).toBeInTheDocument()
     expect(seen.patched).toEqual([])
@@ -108,15 +108,15 @@ describe('Customer dialog: editing', () => {
 
   it('a clash with another customer keeps the form open and shows the server reason', async () => {
     serve()
-    server.use(http.patch(endpoint(`/customers/${ID}`), () => HttpResponse.json({ detail: 'Another customer already has the same GSTIN' }, { status: 409 })))
+    server.use(http.patch(endpoint(`/customers/${ID}`), () => HttpResponse.json({ detail: 'Another customer already has the same tax ID' }, { status: 409 })))
     open('customers.manage')
     await userEvent.click(await screen.findByRole('button', { name: /Edit/ }))
-    const gstin = screen.getByLabelText('GSTIN')
-    await userEvent.clear(gstin)
-    await userEvent.type(gstin, '29ABCDE9999F1Z5')
+    const taxId = screen.getByLabelText('Tax ID')
+    await userEvent.clear(taxId)
+    await userEvent.type(taxId, '29ABCDE9999F1Z5')
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
-    expect(await screen.findByText('Another customer already has the same GSTIN')).toBeInTheDocument()
-    expect(screen.getByLabelText('GSTIN')).toHaveValue('29ABCDE9999F1Z5')
+    expect(await screen.findByText('Another customer already has the same tax ID')).toBeInTheDocument()
+    expect(screen.getByLabelText('Tax ID')).toHaveValue('29ABCDE9999F1Z5')
   })
 
   it('cancelling leaves the details as they were', async () => {

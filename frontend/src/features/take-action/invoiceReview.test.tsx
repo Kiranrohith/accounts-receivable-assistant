@@ -13,11 +13,11 @@ const ACME = 'c1111111-1111-4111-8111-111111111111'
 const GLOBEX = 'c2222222-2222-4222-8222-222222222222'
 
 const extraction = {
-  document_type: 'INVOICE', invoice_number: 'INV-2026-008', customer_name: 'Acme Corp', customer_gstin: '29ABCDE1234F1Z5',
+  document_type: 'INVOICE', invoice_number: 'INV-2026-008', customer_name: 'Acme Corp', tax_id_type: 'GSTIN', tax_id_value: '29ABCDE1234F1Z5', tax_id_raw_label: 'GSTIN',
   invoice_date: '2026-03-01', due_date: '2026-03-31', currency: 'INR', subtotal: '1000.00', tax_total: '180.00', tax_breakdown: [],
   total_amount: '1180.00', po_number: null,
   line_items: [{ description: 'Annual licence', quantity: '1', unit_price: '1000.00', line_total: '1000.00' }],
-  confidence: { invoice_number: 98, customer_name: 55, customer_gstin: 90, invoice_date: 95, due_date: 90, currency: 99, subtotal: 90, tax: 90, total_amount: 99, line_items: 80, po_number: null },
+  confidence: { invoice_number: 98, customer_name: 55, tax_id: 90, invoice_date: 95, due_date: 90, currency: 99, subtotal: 90, tax: 90, total_amount: 99, line_items: 80, po_number: null },
 }
 
 const review = (over: Record<string, unknown> = {}) => ({
@@ -40,9 +40,9 @@ function serve(detail: Record<string, unknown> = review()): Seen {
     http.get(endpoint('/notifications/unread-count'), () => HttpResponse.json({ unread: 0 })),
     http.get(endpoint('/customers'), () =>
       HttpResponse.json([
-        { id: ACME, customer_name: 'Acme Corporation Pvt Ltd', gstin: '29ABCDE1234F1Z5', is_active: true },
-        { id: GLOBEX, customer_name: 'Globex Ltd', gstin: null, is_active: true },
-        { id: 'c3', customer_name: 'Dormant Co', gstin: null, is_active: false },
+        { id: ACME, customer_name: 'Acme Corporation Pvt Ltd', tax_id: '29ABCDE1234F1Z5', is_active: true },
+        { id: GLOBEX, customer_name: 'Globex Ltd', tax_id: null, is_active: true },
+        { id: 'c3', customer_name: 'Dormant Co', tax_id: null, is_active: false },
       ])),
     http.get(endpoint(`/invoices/reviews/${REVIEW_ID}`), () => HttpResponse.json(detail)),
     http.get(endpoint(`/documents/uploads/${DOC_ID}/file`), () => new HttpResponse(new Uint8Array([137, 80, 78, 71]), { headers: { 'content-type': 'image/png' } })),
@@ -110,6 +110,20 @@ describe('Invoice check panel', () => {
     await waitFor(() => expect(seen.approved).toEqual([{ reason: 'Fixed the number', customer_id: GLOBEX, edits: { invoice_number: 'INV-2026-009' } }]))
   })
 
+  it('the customer tax ID has a type; correcting both sends both', async () => {
+    const seen = serve(review({ extraction: { ...extraction, tax_id_type: null, tax_id_value: null, tax_id_raw_label: null } }))
+    open()
+    const kind = await screen.findByLabelText('Tax ID type')
+    expect(kind).toHaveValue('')
+    await userEvent.selectOptions(kind, 'VAT')
+    await userEvent.type(screen.getByLabelText('Customer tax ID'), 'GB 284 7731 09')
+    expect(await screen.findByText('2 fields corrected')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Approve invoice' }))
+    await userEvent.type(await screen.findByLabelText(/reason/i), 'Read it off the PDF')
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm approval' }))
+    await waitFor(() => expect(seen.approved).toEqual([{ reason: 'Read it off the PDF', edits: { tax_id_type: 'VAT', tax_id_value: 'GB 284 7731 09' } }]))
+  })
+
   it('a foreign-currency invoice offers a rate to INR, sent only when typed; an INR one does not', async () => {
     const seen = serve(review({ extraction: { ...extraction, currency: 'QAR' } }))
     open()
@@ -132,7 +146,7 @@ describe('Invoice check panel', () => {
     serve(review({ matched_customer_id: null, matched_customer_name: null }))
     open()
     expect(await screen.findByText(/No customer matched/)).toBeInTheDocument()
-    expect(within(screen.getByLabelText('Customer')).getByRole('option', { name: 'Match by the name and GSTIN below' })).toBeInTheDocument()
+    expect(within(screen.getByLabelText('Customer')).getByRole('option', { name: 'Match by the name and tax ID below' })).toBeInTheDocument()
   })
 
   it('a role that cannot browse customers is told to fix the name instead of seeing a picker', async () => {

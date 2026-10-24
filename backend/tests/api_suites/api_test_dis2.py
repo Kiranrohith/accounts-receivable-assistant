@@ -46,9 +46,9 @@ MONDAY = datetime(2027, 3, 1, 6, 0, tzinfo=UTC)  # a Monday in the future, so th
 
 async def main():
     async with SessionLocal() as db:
-        c = Customer(customer_name="D2 Check Ltd", contact="A", email="d2@check.test", gstin="27ABCDE1234F1Z5",
+        c = Customer(customer_name="D2 Check Ltd", contact="A", email="d2@check.test", tax_id_type="GSTIN", tax_id="27ABCDE1234F1Z5",
                      deducts_tds=False, billing_currency="INR", country="India")
-        c2 = Customer(customer_name="D2 Other Ltd", contact="B", email="d2b@check.test", gstin="29ABCDE1234F1Z5",
+        c2 = Customer(customer_name="D2 Other Ltd", contact="B", email="d2b@check.test", tax_id_type="GSTIN", tax_id="29ABCDE1234F1Z5",
                       deducts_tds=False, billing_currency="INR", country="India")
         db.add_all([c, c2])
         await db.flush()

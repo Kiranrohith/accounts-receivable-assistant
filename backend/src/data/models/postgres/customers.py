@@ -1,4 +1,4 @@
-"""Customer master data. Every business field is required; GSTIN, e-mail and the
+"""Customer master data. Every business field is required; the tax ID (a GSTIN, a VAT number, a TRN...), e-mail and the
 normalised name (trimmed, spaces collapsed, case-insensitive) are each unique.
 Aliases are extra names or e-mail addresses a person has confirmed for a customer."""
 
@@ -9,7 +9,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from data.models.postgres.base import AuditMixin, Base, uuid_pk
-from data.models.postgres.enums import AliasSource, AliasType
+from data.models.postgres.enums import AliasSource, AliasType, TaxIdType
 
 
 class Customer(Base, AuditMixin):
@@ -29,8 +29,16 @@ class Customer(Base, AuditMixin):
     email: Mapped[str] = mapped_column(
         String, nullable=False, comment="primary contact + L2 sender key"
     )
-    gstin: Mapped[str] = mapped_column(
-        String, unique=True, nullable=False, comment="invoice -> customer deterministic key"
+    tax_id: Mapped[str] = mapped_column(
+        String,
+        unique=True,
+        nullable=False,
+        comment="the customer's registration number, stored normalized (upper case, no spaces, dots, hyphens or slashes): "
+        "document -> customer deterministic key",
+    )
+    tax_id_type: Mapped[TaxIdType | None] = mapped_column(
+        Enum(TaxIdType, name="tax_id_type", values_callable=lambda e: [m.value for m in e]),
+        comment="what kind of number tax_id is (GSTIN, VAT, TRN, EIN, OTHER)",
     )
     deducts_tds: Mapped[bool] = mapped_column(Boolean, nullable=False)
     billing_currency: Mapped[str] = mapped_column(CHAR(3), nullable=False)

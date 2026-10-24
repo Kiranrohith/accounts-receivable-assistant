@@ -58,7 +58,7 @@ async def classify(markdown):
 async def extract_invoice(markdown):
     key = key_of(markdown)
     inv = ExtractedInvoice(
-        invoice_number=f"INV-{key}", customer_name="Zenith Softlabs Pvt Ltd", customer_gstin="33AABCZ1234F1Z5",
+        invoice_number=f"INV-{key}", customer_name="Zenith Softlabs Pvt Ltd", tax_id_type="GSTIN", tax_id_value="33AABCZ1234F1Z5",
         invoice_date=date(2026, 10, 1), due_date=date(2026, 10, 31), currency="INR", total_amount=D("1000"),
         line_items=[LineItem(description="Consulting", quantity=D("1"))],
         confidence=FieldConfidences(**{f: 95 for f in FieldConfidences.model_fields}),
@@ -90,7 +90,7 @@ async def main():
         await c.post("/admin/users", headers=ADM, json={"name": "Fa Two", "email": "fa.two@example.com", "password": "pass12345", "role": "FA"})
         FA = {"Authorization": f"Bearer {(await login('fa.two@example.com', 'pass12345')).json()['access_token']}"}
         cust = lambda **kw: {"contact": "Contact", "country": "India", "billing_currency": "INR", **kw}
-        assert (await c.post("/customers", headers=ADM, json=cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", gstin="33AABCZ1234F1Z5", deducts_tds=True))).status_code == 201
+        assert (await c.post("/customers", headers=ADM, json=cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", tax_id="33AABCZ1234F1Z5", deducts_tds=True))).status_code == 201
 
         async def q(sql, **p):
             async with SessionLocal() as db:

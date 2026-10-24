@@ -49,7 +49,7 @@ def clear_mail():
 async def main():
     clear_mail()
     async with SessionLocal() as db:
-        cust = Customer(customer_name="D8 Check Ltd", contact="Priya", email="ap@d8check.test", gstin="27ABCDE1234F1Z5",
+        cust = Customer(customer_name="D8 Check Ltd", contact="Priya", email="ap@d8check.test", tax_id_type="GSTIN", tax_id="27ABCDE1234F1Z5",
                         deducts_tds=False, billing_currency="INR", country="India")
         db.add(cust)
         await db.flush()

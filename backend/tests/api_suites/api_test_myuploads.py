@@ -37,7 +37,7 @@ def check(name, cond, extra=""):
 
 def invoice(number, customer, gstin):
     return ExtractedInvoice(
-        invoice_number=number, customer_name=customer, customer_gstin=gstin, invoice_date=date(2026, 10, 1),
+        invoice_number=number, customer_name=customer, tax_id_type="GSTIN", tax_id_value=gstin, invoice_date=date(2026, 10, 1),
         due_date=date(2026, 10, 31), currency="INR", total_amount=Decimal("10000"), confidence=FieldConfidences(**ALL),
         line_items=[LineItem(description="Consulting", quantity=Decimal("1"))],
     )
@@ -84,7 +84,7 @@ async def main():
             assert (await c.post("/admin/users", headers=ADM, json={"name": name, "email": email, "password": "pass12345", "role": "FA"})).status_code == 201
         FA = {"Authorization": f"Bearer {(await login('fa.mine@example.com', 'pass12345')).json()['access_token']}"}
         FB = {"Authorization": f"Bearer {(await login('fa.other@example.com', 'pass12345')).json()['access_token']}"}
-        assert (await c.post("/customers", headers=ADM, json={"customer_name": "Zenith Softlabs Pvt Ltd", "email": "ap@zenith.com", "gstin": "33AABCZ1234F1Z5",
+        assert (await c.post("/customers", headers=ADM, json={"customer_name": "Zenith Softlabs Pvt Ltd", "email": "ap@zenith.com", "tax_id": "33AABCZ1234F1Z5",
                                                               "contact": "C", "country": "India", "billing_currency": "INR", "deducts_tds": False})).status_code == 201
 
         async def up(H, name):

@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
+from schemas.customers.tax_id import TaxIdType
 from schemas.invoices.review import Reason
 from schemas.purchase_orders.extraction import ExtractedPurchaseOrder
 
@@ -26,15 +27,16 @@ class POReviewEdits(BaseModel):
     po_number: Text | None = None
     po_date: date | None = None
     customer_name: Text | None = None
-    customer_gstin: str | None = None
+    tax_id_type: TaxIdType | None = None
+    tax_id_value: str | None = None
     currency: str | None = None
     total_amount: Decimal | None = None
     line_items: list[POLineEdit] | None = None
 
-    @field_validator("customer_gstin")
+    @field_validator("tax_id_value")
     @classmethod
-    def _gstin(cls, value: str | None) -> str | None:
-        return "".join(value.split()).upper() if value else None
+    def _tax_id(cls, value: str | None) -> str | None:
+        return value.strip() or None if value else None
 
     @field_validator("currency")
     @classmethod

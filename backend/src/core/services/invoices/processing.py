@@ -137,6 +137,12 @@ async def run_invoice_steps(
         model_used=outcome.model_used,
     )
 
+    if outcome.tax_id_note:  # a tax ID that failed its shape was left out: say so in the log, the document goes on
+        log_step(
+            db, job, document.id, started, step_name="tax_id", result=StepResult.WARNING,
+            output_summary={"note": outcome.tax_id_note},
+        )
+
     # --- validate --- the verdict is a business outcome, not a job failure: the job
     # still Succeeds (the document was processed); FAIL/REVIEW are recorded on the step.
     started = datetime.now(UTC)

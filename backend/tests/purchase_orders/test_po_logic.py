@@ -22,7 +22,7 @@ def po(**over) -> ExtractedPurchaseOrder:
     base = dict(
         po_number="PO-1",
         customer_name="Zenith",
-        customer_gstin="33AABCZ1234F1Z5",
+        tax_id_type="GSTIN", tax_id_value="33AABCZ1234F1Z5",
         currency="INR",
         total_amount=D("1000"),
         line_items=[POLineItem(description="Laptop", quantity=D("10"))],
@@ -63,8 +63,8 @@ def test_po_number_possibly_missed_goes_to_review():
     assert validate_purchase_order(po(po_number=None, confidence=none)).outcome is Outcome.REVIEW
 
 
-def test_no_customer_at_all_fails_but_gstin_alone_is_enough():
-    assert validate_purchase_order(po(customer_name=None, customer_gstin=None)).outcome is Outcome.FAIL
+def test_no_customer_at_all_fails_but_a_tax_id_alone_is_enough():
+    assert validate_purchase_order(po(customer_name=None, tax_id_value=None)).outcome is Outcome.FAIL
     r = validate_purchase_order(po(customer_name=None))
     assert "missing_field" not in codes(r)
 

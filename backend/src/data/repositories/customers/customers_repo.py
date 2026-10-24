@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from data.models.postgres import Customer, CustomerAlias, Invoice, Payment, User
 from data.models.postgres.enums import AliasSource, AliasType, InvoiceStatus, InvoiceType
 from data.repositories import unit_of_work
+from data.repositories.customers.tax_ids import normalize_tax_id
 
 
 def _name_key(value: Any) -> ColumnElement:
@@ -15,8 +16,9 @@ def _name_key(value: Any) -> ColumnElement:
     return func.lower(func.regexp_replace(func.btrim(value), r"\s+", " ", "g"))
 
 
-async def gstin_exists(db: AsyncSession, gstin: str, *, except_id: Any = None) -> bool:
-    query = select(Customer.id).where(Customer.gstin == gstin)
+async def tax_id_exists(db: AsyncSession, tax_id: str, *, except_id: Any = None) -> bool:
+    """Does another customer hold this tax ID (compared in its normalized form)?"""
+    query = select(Customer.id).where(Customer.tax_id == normalize_tax_id(tax_id))
     if except_id is not None:
         query = query.where(Customer.id != except_id)
     return await db.scalar(query.limit(1)) is not None
@@ -45,8 +47,12 @@ async def get_by_id(db: AsyncSession, customer_id: Any) -> Customer | None:
     return await db.get(Customer, customer_id)
 
 
-async def get_by_gstin(db: AsyncSession, gstin: str) -> Customer | None:
-    return await db.scalar(select(Customer).where(Customer.gstin == gstin))
+async def get_by_tax_id(db: AsyncSession, tax_id: str) -> Customer | None:
+    """The customer holding this tax ID: exact equality of the normalized forms, nothing looser."""
+    normalized = normalize_tax_id(tax_id)
+    if not normalized:
+        return None
+    return await db.scalar(select(Customer).where(Customer.tax_id == normalized))
 
 
 async def get_by_name(db: AsyncSession, name: str) -> Customer | None:

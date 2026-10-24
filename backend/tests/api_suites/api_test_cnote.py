@@ -55,7 +55,7 @@ async def customer(label, email=None):
     _n[0] += 1
     async with SessionLocal() as db:
         c = Customer(customer_name=f"{label} Ltd", contact="Anita", email=email or f"ap@{label.lower()}-{RUN}.test",
-                     gstin=f"29ABCDE{_n[0]:04d}F1Z5", deducts_tds=False, billing_currency="INR", country="India")
+                     tax_id_type="GSTIN", tax_id=f"29ABCDE{_n[0]:04d}F1Z5", deducts_tds=False, billing_currency="INR", country="India")
         db.add(c)
         await db.commit()
         return c.id, c.email

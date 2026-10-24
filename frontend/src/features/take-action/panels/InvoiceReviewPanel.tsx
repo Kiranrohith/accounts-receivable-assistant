@@ -8,6 +8,7 @@ import { ReasonDialog } from '@/components/common/ReasonDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { TAX_ID_TYPES, TAX_ID_TYPE_LABEL } from '@/features/customers'
 import { formatCurrency } from '@/utils/format'
 
 import { invoiceReviewQuery, useApproveInvoice, useRejectInvoice } from '../queries/invoiceReviewQueries'
@@ -73,7 +74,7 @@ function InvoiceReviewForm({ review, itemId, onDone }: { review: InvoiceReview; 
                     </select>
                   </div>
                   {FIELDS.map((field) => {
-                    const sure = extraction.confidence[field.confidence]
+                    const sure = field.confidence ? extraction.confidence[field.confidence] : null
                     const low = sure !== null && sure < LOW_CONFIDENCE
                     return (
                       <div key={field.key} className="space-y-1">
@@ -81,14 +82,25 @@ function InvoiceReviewForm({ review, itemId, onDone }: { review: InvoiceReview; 
                           {field.label}
                           {low && <span className="ml-2 text-xs font-normal text-amber-700">{sure}% sure</span>}
                         </Label>
-                        <Input
-                          id={`f-${field.key}`}
-                          type={field.kind === 'date' ? 'date' : 'text'}
-                          inputMode={field.kind === 'amount' ? 'decimal' : undefined}
-                          value={form[field.key]}
-                          onChange={(e) => set(field.key, e.target.value)}
-                          aria-invalid={low || undefined}
-                        />
+                        {field.kind === 'taxType' ? (
+                          <select id={`f-${field.key}`} className={SELECT_CLASS} value={form[field.key]} onChange={(e) => set(field.key, e.target.value)}>
+                            <option value="">Not known</option>
+                            {TAX_ID_TYPES.map((type) => (
+                              <option key={type} value={type}>
+                                {TAX_ID_TYPE_LABEL[type]}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <Input
+                            id={`f-${field.key}`}
+                            type={field.kind === 'date' ? 'date' : 'text'}
+                            inputMode={field.kind === 'amount' ? 'decimal' : undefined}
+                            value={form[field.key]}
+                            onChange={(e) => set(field.key, e.target.value)}
+                            aria-invalid={low || undefined}
+                          />
+                        )}
                       </div>
                     )
                   })}

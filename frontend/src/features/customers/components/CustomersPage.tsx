@@ -32,7 +32,7 @@ interface CustomersPageProps {
 
 const COLUMNS: Column<Customer>[] = [
   { key: 'name', header: 'Customer', sortKey: 'name', cell: (c) => <span className="font-medium">{c.customer_name}</span> },
-  { key: 'gstin', header: 'GSTIN', sortKey: 'gstin', cell: (c) => c.gstin ?? '—' },
+  { key: 'tax_id', header: 'Tax ID', sortKey: 'tax_id', cell: (c) => (c.tax_id ? <span>{c.tax_id}{c.tax_id_type && <span className="ml-1 text-xs text-muted-foreground">{c.tax_id_type}</span>}</span> : '—') },
   { key: 'currency', header: 'Currency', sortKey: 'currency', cell: (c) => c.billing_currency ?? '—' },
   { key: 'tds', header: 'TDS', cell: (c) => (c.deducts_tds ? <StatusChip status="TDS" label="Deducts TDS" /> : <span className="text-muted-foreground">—</span>) },
   { key: 'open', header: 'Open', sortKey: 'open', align: 'right', cell: (c) => (
@@ -93,7 +93,7 @@ export function CustomersPage({ q, sort, dir, page, size, customer }: CustomersP
         onRetry={() => customers.refetch()}
         onRowClick={(c) => navigate({ search: (prev) => ({ ...prev, customer: c.id }) })}
         selectedKey={customer}
-        toolbar={<Input type="search" aria-label="Search customers" placeholder="Search by name, GSTIN or e-mail" className="max-w-xs" value={text} onChange={(e) => setText(e.target.value)} />}
+        toolbar={<Input type="search" aria-label="Search customers" placeholder="Search by name, tax ID or e-mail" className="max-w-xs" value={text} onChange={(e) => setText(e.target.value)} />}
         empty={
           q ? (
             <EmptyState message="No customer matches that search." />

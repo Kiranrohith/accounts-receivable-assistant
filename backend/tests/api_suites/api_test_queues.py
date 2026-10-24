@@ -47,7 +47,7 @@ def minutes_ago(n):
 async def seed(fa, ftm):
     """One or more items in every queue, with distinct created_at so the order is not a coin toss."""
     async with SessionLocal() as db:
-        cust = Customer(customer_name=f"Queue Test {RUN} Ltd", contact="A", email=f"ap@q-{RUN}.test", gstin="29QUEUE0001F1Z5",
+        cust = Customer(customer_name=f"Queue Test {RUN} Ltd", contact="A", email=f"ap@q-{RUN}.test", tax_id_type="GSTIN", tax_id="29QUEUE0001F1Z5",
                         deducts_tds=False, billing_currency="INR", country="India")
         db.add(cust)
         await db.flush()

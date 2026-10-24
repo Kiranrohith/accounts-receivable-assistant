@@ -61,7 +61,7 @@ async def gather_facts(
         for customer in [*([exact] if exact else []), *await customers_repo.get_by_alias_name(db, name)]:
             matches[customer.id] = customer
     if extracted.customer_gstin and extracted.customer_gstin.strip():
-        by_gstin = await customers_repo.get_by_gstin(db, extracted.customer_gstin.strip().upper())
+        by_gstin = await customers_repo.get_by_tax_id(db, extracted.customer_gstin)  # a complaint's id is read as a GSTIN only
         if by_gstin is not None:
             matches[by_gstin.id] = by_gstin
     return IdentityFacts(

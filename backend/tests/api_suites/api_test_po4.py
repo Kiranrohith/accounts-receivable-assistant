@@ -78,7 +78,7 @@ async def main():
         FA = {"Authorization": f"Bearer {(await login('fa.two@example.com', 'pass12345')).json()['access_token']}"}
         FTM = {"Authorization": f"Bearer {(await login('ftm.one@example.com', 'pass12345')).json()['access_token']}"}
         cust = lambda **kw: {"contact": "Contact", "country": "India", "billing_currency": "INR", **kw}
-        assert (await c.post("/customers", headers=ADM, json=cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", gstin="33AABCZ1234F1Z5", deducts_tds=True))).status_code == 201
+        assert (await c.post("/customers", headers=ADM, json=cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", tax_id="33AABCZ1234F1Z5", deducts_tds=True))).status_code == 201
         async with SessionLocal() as db:
             ZEN = (await db.execute(text("select id from customers"))).scalar()
 
@@ -181,7 +181,7 @@ async def main():
         check("PO with a line missing its quantity -> review", row["disposition"] == "review" and rid2, str(row["disposition"]))
         r = await c.post(f"/purchase-orders/reviews/{rid2}/approve", headers=FA, json={
             "reason": "It really is a PO, fields typed in from the paper copy",
-            "edits": {"po_number": "PO-3000", "customer_name": "Zenith Softlabs Pvt Ltd", "customer_gstin": "33AABCZ1234F1Z5",
+            "edits": {"po_number": "PO-3000", "customer_name": "Zenith Softlabs Pvt Ltd", "tax_id_value": "33AABCZ1234F1Z5",
                       "currency": "inr", "line_items": [{"description": "Desk", "quantity": "2"}]}})
         check("approve with edits -> PO-3000 created with the typed line", r.status_code == 200 and r.json()["purchase_order_id"], r.text[:160])
 

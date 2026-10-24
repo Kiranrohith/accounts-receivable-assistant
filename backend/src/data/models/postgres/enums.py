@@ -114,6 +114,16 @@ class NotificationType(str, enum.Enum):
     REMINDER_REPLY = "ReminderReply"  # the customer answered one of our payment reminders
 
 
+class TaxIdType(str, enum.Enum):
+    """What kind of registration number a customer's tax ID is (the label it is printed under)."""
+
+    GSTIN = "GSTIN"
+    VAT = "VAT"
+    TRN = "TRN"
+    EIN = "EIN"
+    OTHER = "OTHER"
+
+
 class AliasType(str, enum.Enum):
     NAME = "name"
     EMAIL = "email"

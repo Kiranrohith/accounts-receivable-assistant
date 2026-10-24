@@ -21,7 +21,7 @@ from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.settings import get_settings
-from core.services.customers.gstin import with_customer_gstin
+from core.services.customers.tax_id import with_customer_tax_id
 from core.services.customers.resolution import CustomerMatch, resolve_customer
 from core.exceptions.errors import ExternalServiceError, ValidationFailure
 from core.services.fx.ecb import FxRate
@@ -98,16 +98,17 @@ async def route_extracted_invoice(
     settings = get_settings()
     match = await resolve_customer(
         db,
-        gstin=invoice.customer_gstin,
+        tax_id=invoice.tax_id_value,
+        tax_id_type=invoice.tax_id_type,
         name=invoice.customer_name,
         our_gstin=settings.our_gstin,
         our_company_name=settings.our_company_name,
     )
 
-    if match.matched:  # the customer is known: a GSTIN the reader did not find is filled in from the customer's record
-        invoice = with_customer_gstin(invoice, match.customer.gstin)
+    if match.matched:  # the customer is known: a tax ID the reader did not find is filled in from the customer's record
+        invoice = with_customer_tax_id(invoice, match.customer.tax_id, match.customer.tax_id_type)
         snapshot = invoice.model_dump(mode="json")
-        documents_repo.fill_customer_gstin(document, match.customer.gstin)
+        documents_repo.fill_customer_tax_id(document, match.customer.tax_id, match.customer.tax_id_type)
 
     reasons = [i.message for i in verdict.issues if i.severity is Severity.REVIEW]
     reasons += match.issues

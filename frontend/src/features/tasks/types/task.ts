@@ -13,7 +13,7 @@ export interface TaskPayload {
     balance_text: string
     status: string
   }
-  customer?: { customer_id: string; name: string; contact: string | null; email: string | null; gstin: string | null }
+  customer?: { customer_id: string; name: string; contact: string | null; email: string | null; tax_id: string | null; tax_id_type: string | null }
   payments?: { payment_id: string | null; payment_reference: string | null; credit_note: string | null; amount: string; status: string; at: string }[]
   reminders?: { reminder_id: string; tier: number; state: string; sent_at: string | null; sent_to: string | null }[]
   handed_over_on?: string

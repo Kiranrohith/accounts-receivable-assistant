@@ -17,7 +17,7 @@ from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.settings import get_settings
-from core.services.customers.gstin import with_customer_gstin
+from core.services.customers.tax_id import with_customer_tax_id
 from core.services.customers.resolution import CustomerMatch, resolve_customer
 from core.services.purchase_orders.fulfillment import retro_link
 from core.services.purchase_orders.normalize import normalize_description
@@ -81,14 +81,15 @@ async def route_extracted_po(
     settings = get_settings()
     match = await resolve_customer(
         db,
-        gstin=po.customer_gstin,
+        tax_id=po.tax_id_value,
+        tax_id_type=po.tax_id_type,
         name=po.customer_name,
         our_gstin=settings.our_gstin,
         our_company_name=settings.our_company_name,
     )
-    if match.matched:  # the customer is known: a GSTIN the reader did not find is filled in from the customer's record
-        po = with_customer_gstin(po, match.customer.gstin)
-        documents_repo.fill_customer_gstin(document, match.customer.gstin)
+    if match.matched:  # the customer is known: a tax ID the reader did not find is filled in from the customer's record
+        po = with_customer_tax_id(po, match.customer.tax_id, match.customer.tax_id_type)
+        documents_repo.fill_customer_tax_id(document, match.customer.tax_id, match.customer.tax_id_type)
     reasons += match.issues
     if (
         match.customer is not None

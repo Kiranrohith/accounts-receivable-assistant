@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
+from schemas.customers.tax_id import TaxIdType
 from schemas.invoices.extraction import DocumentType, ExtractedInvoice
 
 Reason = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
@@ -16,7 +17,8 @@ class ReviewEdits(BaseModel):
     invoice_number: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)] | None = None
     document_type: DocumentType | None = None
     customer_name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)] | None = None
-    customer_gstin: str | None = None
+    tax_id_type: TaxIdType | None = None
+    tax_id_value: str | None = None
     invoice_date: date | None = None
     due_date: date | None = None
     currency: str | None = None
@@ -25,10 +27,10 @@ class ReviewEdits(BaseModel):
     total_amount: Decimal | None = None
     po_number: str | None = None
 
-    @field_validator("customer_gstin")
+    @field_validator("tax_id_value")
     @classmethod
-    def _gstin(cls, value: str | None) -> str | None:
-        return "".join(value.split()).upper() if value else None
+    def _tax_id(cls, value: str | None) -> str | None:
+        return value.strip() or None if value else None
 
     @field_validator("currency")
     @classmethod

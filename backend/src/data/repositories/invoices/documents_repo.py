@@ -108,13 +108,14 @@ def save_extraction(document: SourceDocument, raw: dict, confidences: dict) -> N
     document.field_confidences = confidences
 
 
-def fill_customer_gstin(document: SourceDocument, gstin: str) -> None:
-    """The document's extraction had no customer GSTIN and the customer is now known: keep the customer's own GSTIN
-    in the extraction, marked as coming from the customer record (a GSTIN the reader found is never replaced)."""
+def fill_customer_tax_id(document: SourceDocument, tax_id: str, tax_id_type: object) -> None:
+    """The document's extraction had no customer tax ID and the customer is now known: keep the customer's own tax ID and
+    type in the extraction, marked as coming from the customer record (an id the reader found is never replaced)."""
     raw = dict(document.raw_extraction_json or {})
-    if (raw.get("customer_gstin") or "").strip():
+    if (raw.get("tax_id_value") or "").strip():
         return
-    document.raw_extraction_json = {**raw, "customer_gstin": gstin, "customer_gstin_from_customer": True}
+    kind = getattr(tax_id_type, "value", tax_id_type)
+    document.raw_extraction_json = {**raw, "tax_id_value": tax_id, "tax_id_type": kind, "tax_id_from_customer": True}
 
 
 def save_dispute_extraction(document: SourceDocument, raw: dict) -> None:

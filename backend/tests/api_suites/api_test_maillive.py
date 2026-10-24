@@ -37,7 +37,7 @@ def ago(seconds):
 async def seed():
     ids = {}
     async with SessionLocal() as db:
-        customer = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="Anita", email="ap@zenith.test", gstin="29ABCDE1234F1Z5",
+        customer = Customer(customer_name="Zenith Softlabs Pvt Ltd", contact="Anita", email="ap@zenith.test", tax_id_type="GSTIN", tax_id="29ABCDE1234F1Z5",
                             deducts_tds=False, billing_currency="INR", country="India")
         db.add(customer)
         await db.flush()

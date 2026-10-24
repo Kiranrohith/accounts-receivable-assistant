@@ -70,6 +70,12 @@ async def run_po_steps(
         model_used=outcome.model_used,
     )
 
+    if outcome.tax_id_note:  # a tax ID that failed its shape was left out: say so in the log, the document goes on
+        log_step(
+            db, job, document.id, started, step_name="tax_id", result=StepResult.WARNING,
+            output_summary={"note": outcome.tax_id_note},
+        )
+
     # --- validate ---
     started = datetime.now(UTC)
     verdict = validate_purchase_order(po)

@@ -93,7 +93,7 @@ async def main():
     worker = await testsupport.start_worker()
     smtp.retry_delays_seconds = (0.05, 0.05, 0.05)
     async with SessionLocal() as db:
-        cust = Customer(customer_name="D4 Check Ltd", contact="Priya", email="ap@d4check.test", gstin="27ABCDE1234F1Z5",
+        cust = Customer(customer_name="D4 Check Ltd", contact="Priya", email="ap@d4check.test", tax_id_type="GSTIN", tax_id="27ABCDE1234F1Z5",
                         deducts_tds=False, billing_currency="INR", country="India")
         db.add(cust)
         await db.flush()

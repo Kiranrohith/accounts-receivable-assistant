@@ -141,6 +141,14 @@ DUE_DATE_MAX_FUTURE_YEARS: Final = 1
 JUNK_REFERENCES: Final = frozenset({"NEFT", "IMPS", "RTGS", "PAYMENT", "NA", "-"})
 
 GSTIN_PATTERN: Final = r"^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$"  # 15 characters
+# Shape of a customer's tax ID by type, in its NORMALIZED form (upper case, no spaces, dots, hyphens or slashes).
+# OTHER has no shape: it is stored and shown, never used to find a customer.
+TAX_ID_SHAPES: Final = {
+    "GSTIN": GSTIN_PATTERN,
+    "VAT": r"^[A-Z]{2}[A-Z0-9]{2,13}$",  # country prefix, then 2-13 letters or digits
+    "EIN": r"^\d{9}$",
+    "TRN": r"^\d{15}$",
+}
 
 # --- Auth ---
 ACCESS_TOKEN_MINUTES: Final = 30  # the bearer token the UI sends on every call; short, because it is readable by the page

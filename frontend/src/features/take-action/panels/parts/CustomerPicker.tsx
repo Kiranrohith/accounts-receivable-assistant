@@ -11,7 +11,7 @@ export const SELECT_CLASS =
 interface CustomerPickerProps {
   /** The customer the system matched on its own, if it did. */
   matchedName: string | null
-  /** The customer chosen by hand; '' means "keep the match / match by name and GSTIN". */
+  /** The customer chosen by hand; '' means "keep the match / match by name and tax ID". */
   value: string
   onChange: (customerId: string) => void
   /** Wording for when nothing matched (an invoice says "correct the name"; a payment says who paid is unknown). */
@@ -20,7 +20,7 @@ interface CustomerPickerProps {
 }
 
 /** Says which customer was matched and, for roles that may browse customers, lets the person pick another. */
-export function CustomerPicker({ matchedName, value, onChange, noMatchText = 'No customer matched. Choose one below, or correct the name or GSTIN.', emptyLabel }: CustomerPickerProps) {
+export function CustomerPicker({ matchedName, value, onChange, noMatchText = 'No customer matched. Choose one below, or correct the name or tax ID.', emptyLabel }: CustomerPickerProps) {
   const user = useCurrentUser()
   const canPick = hasPermission(user, PERMISSIONS.customersView)
   const customers = useQuery({ ...customersQuery(), enabled: canPick })
@@ -35,16 +35,16 @@ export function CustomerPicker({ matchedName, value, onChange, noMatchText = 'No
       )}
       {canPick ? (
         <select id="customer-pick" className={SELECT_CLASS} value={value} disabled={customers.isPending} onChange={(e) => onChange(e.target.value)}>
-          <option value="">{emptyLabel ?? (matchedName ? 'Keep the matched customer' : 'Match by the name and GSTIN below')}</option>
+          <option value="">{emptyLabel ?? (matchedName ? 'Keep the matched customer' : 'Match by the name and tax ID below')}</option>
           {(customers.data ?? []).filter((c) => c.is_active).map((c) => (
             <option key={c.id} value={c.id}>
               {c.customer_name}
-              {c.gstin ? ` (${c.gstin})` : ''}
+              {c.tax_id ? ` (${c.tax_id})` : ''}
             </option>
           ))}
         </select>
       ) : (
-        <p className="text-xs text-muted-foreground">Your role cannot browse customers; correct the name or GSTIN to match one.</p>
+        <p className="text-xs text-muted-foreground">Your role cannot browse customers; correct the name or tax ID to match one.</p>
       )}
     </section>
   )

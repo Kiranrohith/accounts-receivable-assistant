@@ -69,7 +69,7 @@ async def main():
         tok = (await c.post("/auth/login", json={"email": s.seed_admin_email, "password": s.seed_admin_password})).json()["access_token"]
         H = {"Authorization": f"Bearer {tok}"}
         cust = lambda **kw: {"contact": "Contact", "country": "India", "billing_currency": "INR", **kw}
-        assert (await c.post("/customers", headers=H, json=cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", gstin="33AABCZ1234F1Z5", deducts_tds=True))).status_code == 201
+        assert (await c.post("/customers", headers=H, json=cust(customer_name="Zenith Softlabs Pvt Ltd", email="ap@zenith.com", tax_id="33AABCZ1234F1Z5", deducts_tds=True))).status_code == 201
 
         async def up(name):
             r = await c.post("/documents/upload", headers=H, files={"file": (name, (tmp / name).read_bytes())})

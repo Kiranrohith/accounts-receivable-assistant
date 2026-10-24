@@ -43,7 +43,7 @@ function Stats({ customer }: { customer: CustomerDetail }) {
 
 function Details({ customer }: { customer: CustomerDetail }) {
   const rows: [string, string][] = [
-    ['GSTIN', customer.gstin ?? '—'],
+    ['Tax ID', customer.tax_id ? `${customer.tax_id}${customer.tax_id_type ? ` (${customer.tax_id_type})` : ''}` : '—'],
     ['Contact', customer.contact ?? '—'],
     ['E-mail', customer.email ?? '—'],
     ['Billing currency', customer.billing_currency ?? '—'],

@@ -4,7 +4,9 @@ from datetime import date
 from decimal import Decimal
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+from schemas.customers.tax_id import TaxIdFields, from_legacy
 
 
 class DocumentType(str, Enum):
@@ -31,7 +33,7 @@ class FieldConfidences(BaseModel):
 
     invoice_number: int | None = Field(default=None, ge=0, le=100)
     customer_name: int | None = Field(default=None, ge=0, le=100)
-    customer_gstin: int | None = Field(default=None, ge=0, le=100)
+    tax_id: int | None = Field(default=None, ge=0, le=100)
     invoice_date: int | None = Field(default=None, ge=0, le=100)
     due_date: int | None = Field(default=None, ge=0, le=100)
     currency: int | None = Field(default=None, ge=0, le=100)
@@ -42,11 +44,10 @@ class FieldConfidences(BaseModel):
     po_number: int | None = Field(default=None, ge=0, le=100)
 
 
-class ExtractedInvoice(BaseModel):
+class ExtractedInvoice(TaxIdFields):
     document_type: DocumentType = DocumentType.INVOICE
     invoice_number: str | None = None
     customer_name: str | None = None
-    customer_gstin: str | None = None
     invoice_date: date | None = None
     due_date: date | None = None
     currency: str | None = Field(default=None, description="ISO 4217 code, e.g. INR")
@@ -57,3 +58,8 @@ class ExtractedInvoice(BaseModel):
     line_items: list[LineItem] = Field(default_factory=list)
     po_number: str | None = None
     confidence: FieldConfidences = Field(default_factory=FieldConfidences)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _read_old_gstin(cls, data):  # noqa: ANN001, ANN206
+        return from_legacy(data)
