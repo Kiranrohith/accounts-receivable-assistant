@@ -17,6 +17,7 @@ from core.exceptions.errors import (
     ValidationFailure,
 )
 from core.services.customers.customers import remember_name
+from core.services.customers.gstin import with_customer_gstin
 from core.services.customers.resolution import resolve_customer
 from core.services.invoices.review import record_decision
 from core.services.purchase_orders.routing import PO_KIND, create_purchase_order
@@ -148,6 +149,12 @@ async def approve_review(
                 + ". Choose the customer (customer_id) or correct the customer name or GSTIN."
             )
         customer = match.customer
+
+    # the document showed no customer GSTIN: the customer's own is kept in its extraction (a printed one is never replaced)
+    filled = with_customer_gstin(edited, customer.gstin)
+    if filled is not edited:
+        edited = filled
+        documents_repo.fill_customer_gstin(document, customer.gstin)
 
     number = edited.po_number.strip()
     if await po_repo.get_by_customer_number(db, customer.id, number):

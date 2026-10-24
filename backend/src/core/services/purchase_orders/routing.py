@@ -17,12 +17,13 @@ from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.settings import get_settings
+from core.services.customers.gstin import with_customer_gstin
 from core.services.customers.resolution import CustomerMatch, resolve_customer
 from core.services.purchase_orders.fulfillment import retro_link
 from core.services.purchase_orders.normalize import normalize_description
 from data.models.postgres import Customer, SourceDocument
 from data.models.postgres.enums import PendingChangeReason
-from data.repositories.invoices import invoices_repo
+from data.repositories.invoices import documents_repo, invoices_repo
 from data.repositories.platform import logs_repo
 from data.repositories.purchase_orders import purchase_orders_repo as po_repo
 from schemas.invoices.validation import Outcome, Severity, ValidationResult
@@ -85,6 +86,9 @@ async def route_extracted_po(
         our_gstin=settings.our_gstin,
         our_company_name=settings.our_company_name,
     )
+    if match.matched:  # the customer is known: a GSTIN the reader did not find is filled in from the customer's record
+        po = with_customer_gstin(po, match.customer.gstin)
+        documents_repo.fill_customer_gstin(document, match.customer.gstin)
     reasons += match.issues
     if (
         match.customer is not None

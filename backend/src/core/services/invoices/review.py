@@ -18,6 +18,7 @@ from core.exceptions.errors import (
     PermissionDeniedError,
     ValidationFailure,
 )
+from core.services.customers.gstin import with_customer_gstin
 from core.services.customers.resolution import resolve_customer
 from core.services.invoices.fx import is_foreign, manual_rate, rate_for_invoice
 from core.services.invoices import versioning
@@ -168,6 +169,12 @@ async def approve_review(
                 + ". Choose the customer (customer_id) or correct the customer name or GSTIN."
             )
         customer = match.customer
+
+    # the document showed no customer GSTIN: the customer's own is kept in its extraction (a printed one is never replaced)
+    filled = with_customer_gstin(edited, customer.gstin)
+    if filled is not edited:
+        edited = filled
+        documents_repo.fill_customer_gstin(document, customer.gstin)
 
     currency = (edited.currency or "").strip().upper()
     if not currency:

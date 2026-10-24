@@ -22,9 +22,20 @@ PARTIES
 - A purchase order is issued BY the customer (the buyer, who orders) TO us (the seller, \
 who supplies). customer_name and customer_gstin are the BUYER's: the party that issued \
 the order. Never return the supplier's / vendor's name or GSTIN as the customer's.
+- A purchase order prints (at least) TWO GSTINs: the buyer's (who issued the order) and the \
+supplier's (ours). They may be labelled "GSTIN", "GSTIN/UIN", "GST No", "GST Reg No" or "Tax \
+ID", and they can sit anywhere: the letterhead, the vendor / ship-to blocks, the footer, or \
+an [embedded image] section. Search the WHOLE document, not only one block.
+- Work by elimination. List every GSTIN you can see. The supplier's / vendor's is the one in \
+the vendor / "To" / supplier block (and the one that equals OUR GSTIN when that is given \
+below). customer_gstin is the OTHER one: the buyer's, from the letterhead of the party that \
+issued the order or its buyer / bill-to block. When the document shows exactly two different \
+GSTINs and one is the supplier's, the other is the buyer's: return it, even if its label is \
+missing or unusual. Never return the supplier's GSTIN as the customer's.
+- Return null for customer_gstin only when the document shows no GSTIN other than the \
+supplier's.
 - A GSTIN is 15 characters (for example 29ABCDE1234F1Z5). Return it uppercase with no \
-spaces; if what you read is not 15 characters, return null. If you cannot tell which \
-GSTIN is the buyer's, return null.
+spaces; if what you read is not 15 characters, return null.
 
 PO NUMBER
 - po_number is the number the customer gave this order ("PO No", "PO Number", "Purchase \
@@ -84,6 +95,7 @@ def build_system_prompt(our_company_name: str | None, our_gstin: str | None) -> 
         + "\nOUR OWN COMPANY\n"
         + f"- We are the SUPPLIER on the purchase orders you read: {details}.\n"
         + "- Our name and our GSTIN are NEVER the customer's. The customer is the buyer "
-        + "who issued the order. If the document shows our GSTIN, ignore it for "
-        + "customer_gstin and look for the buyer's (null if there is none).\n"
+        + "who issued the order. If the document shows our GSTIN, it is the supplier's: "
+        + "ignore it and return the OTHER GSTIN printed in the document as customer_gstin "
+        + "(null only if there is none).\n"
     )
