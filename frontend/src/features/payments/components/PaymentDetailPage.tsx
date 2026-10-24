@@ -219,7 +219,7 @@ function Body({ payment }: { payment: PaymentDetail }) {
             {payment.notes.map((n) => (
               <li key={n.note_id} className="flex justify-between gap-4">
                 <span>
-                  <span className="font-medium">{n.note_number}</span> <span className="text-muted-foreground">({n.status})</span>
+                  <Link to="/credit-notes/$noteId" params={{ noteId: n.note_id }} className="font-medium underline-offset-2 hover:underline">{n.note_number}</Link> <span className="text-muted-foreground">({n.status})</span>
                 </span>
                 <span className="tabular-nums">
                   {formatCurrency(n.amount, 'INR')}

@@ -27,6 +27,8 @@ import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppTakeActionRouteImport } from './routes/_app/take-action'
 import { Route as AppUploadRouteImport } from './routes/_app/upload'
 import { Route as AppUsersRouteImport } from './routes/_app/users'
+import { Route as AppCreditNotesIndexRouteImport } from './routes/_app/credit-notes/index'
+import { Route as AppCreditNotesNoteIdRouteImport } from './routes/_app/credit-notes/$noteId'
 import { Route as AppDisputesIndexRouteImport } from './routes/_app/disputes/index'
 import { Route as AppDisputesDisputeIdRouteImport } from './routes/_app/disputes/$disputeId'
 import { Route as AppInvoicesIndexRouteImport } from './routes/_app/invoices/index'
@@ -125,6 +127,16 @@ const AppUsersRoute = AppUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCreditNotesIndexRoute = AppCreditNotesIndexRouteImport.update({
+  id: '/credit-notes/',
+  path: '/credit-notes/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCreditNotesNoteIdRoute = AppCreditNotesNoteIdRouteImport.update({
+  id: '/credit-notes/$noteId',
+  path: '/credit-notes/$noteId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDisputesIndexRoute = AppDisputesIndexRouteImport.update({
   id: '/disputes/',
   path: '/disputes/',
@@ -185,10 +197,12 @@ export interface FileRoutesByFullPath {
   '/take-action': typeof AppTakeActionRoute
   '/upload': typeof AppUploadRoute
   '/users': typeof AppUsersRoute
+  '/credit-notes/$noteId': typeof AppCreditNotesNoteIdRoute
   '/disputes/$disputeId': typeof AppDisputesDisputeIdRoute
   '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
   '/purchase-orders/$purchaseOrderId': typeof AppPurchaseOrdersPurchaseOrderIdRoute
+  '/credit-notes/': typeof AppCreditNotesIndexRoute
   '/disputes/': typeof AppDisputesIndexRoute
   '/invoices/': typeof AppInvoicesIndexRoute
   '/payments/': typeof AppPaymentsIndexRoute
@@ -212,10 +226,12 @@ export interface FileRoutesByTo {
   '/take-action': typeof AppTakeActionRoute
   '/upload': typeof AppUploadRoute
   '/users': typeof AppUsersRoute
+  '/credit-notes/$noteId': typeof AppCreditNotesNoteIdRoute
   '/disputes/$disputeId': typeof AppDisputesDisputeIdRoute
   '/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
   '/purchase-orders/$purchaseOrderId': typeof AppPurchaseOrdersPurchaseOrderIdRoute
+  '/credit-notes': typeof AppCreditNotesIndexRoute
   '/disputes': typeof AppDisputesIndexRoute
   '/invoices': typeof AppInvoicesIndexRoute
   '/payments': typeof AppPaymentsIndexRoute
@@ -241,10 +257,12 @@ export interface FileRoutesById {
   '/_app/take-action': typeof AppTakeActionRoute
   '/_app/upload': typeof AppUploadRoute
   '/_app/users': typeof AppUsersRoute
+  '/_app/credit-notes/$noteId': typeof AppCreditNotesNoteIdRoute
   '/_app/disputes/$disputeId': typeof AppDisputesDisputeIdRoute
   '/_app/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
   '/_app/payments/$paymentId': typeof AppPaymentsPaymentIdRoute
   '/_app/purchase-orders/$purchaseOrderId': typeof AppPurchaseOrdersPurchaseOrderIdRoute
+  '/_app/credit-notes/': typeof AppCreditNotesIndexRoute
   '/_app/disputes/': typeof AppDisputesIndexRoute
   '/_app/invoices/': typeof AppInvoicesIndexRoute
   '/_app/payments/': typeof AppPaymentsIndexRoute
@@ -270,10 +288,12 @@ export interface FileRouteTypes {
     | '/take-action'
     | '/upload'
     | '/users'
+    | '/credit-notes/$noteId'
     | '/disputes/$disputeId'
     | '/invoices/$invoiceId'
     | '/payments/$paymentId'
     | '/purchase-orders/$purchaseOrderId'
+    | '/credit-notes/'
     | '/disputes/'
     | '/invoices/'
     | '/payments/'
@@ -297,10 +317,12 @@ export interface FileRouteTypes {
     | '/take-action'
     | '/upload'
     | '/users'
+    | '/credit-notes/$noteId'
     | '/disputes/$disputeId'
     | '/invoices/$invoiceId'
     | '/payments/$paymentId'
     | '/purchase-orders/$purchaseOrderId'
+    | '/credit-notes'
     | '/disputes'
     | '/invoices'
     | '/payments'
@@ -325,10 +347,12 @@ export interface FileRouteTypes {
     | '/_app/take-action'
     | '/_app/upload'
     | '/_app/users'
+    | '/_app/credit-notes/$noteId'
     | '/_app/disputes/$disputeId'
     | '/_app/invoices/$invoiceId'
     | '/_app/payments/$paymentId'
     | '/_app/purchase-orders/$purchaseOrderId'
+    | '/_app/credit-notes/'
     | '/_app/disputes/'
     | '/_app/invoices/'
     | '/_app/payments/'
@@ -469,6 +493,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUsersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/credit-notes/': {
+      id: '/_app/credit-notes/'
+      path: '/credit-notes'
+      fullPath: '/credit-notes/'
+      preLoaderRoute: typeof AppCreditNotesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/credit-notes/$noteId': {
+      id: '/_app/credit-notes/$noteId'
+      path: '/credit-notes/$noteId'
+      fullPath: '/credit-notes/$noteId'
+      preLoaderRoute: typeof AppCreditNotesNoteIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/disputes/': {
       id: '/_app/disputes/'
       path: '/disputes'
@@ -544,10 +582,12 @@ interface AppRouteChildren {
   AppTakeActionRoute: typeof AppTakeActionRoute
   AppUploadRoute: typeof AppUploadRoute
   AppUsersRoute: typeof AppUsersRoute
+  AppCreditNotesNoteIdRoute: typeof AppCreditNotesNoteIdRoute
   AppDisputesDisputeIdRoute: typeof AppDisputesDisputeIdRoute
   AppInvoicesInvoiceIdRoute: typeof AppInvoicesInvoiceIdRoute
   AppPaymentsPaymentIdRoute: typeof AppPaymentsPaymentIdRoute
   AppPurchaseOrdersPurchaseOrderIdRoute: typeof AppPurchaseOrdersPurchaseOrderIdRoute
+  AppCreditNotesIndexRoute: typeof AppCreditNotesIndexRoute
   AppDisputesIndexRoute: typeof AppDisputesIndexRoute
   AppInvoicesIndexRoute: typeof AppInvoicesIndexRoute
   AppPaymentsIndexRoute: typeof AppPaymentsIndexRoute
@@ -570,10 +610,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppTakeActionRoute: AppTakeActionRoute,
   AppUploadRoute: AppUploadRoute,
   AppUsersRoute: AppUsersRoute,
+  AppCreditNotesNoteIdRoute: AppCreditNotesNoteIdRoute,
   AppDisputesDisputeIdRoute: AppDisputesDisputeIdRoute,
   AppInvoicesInvoiceIdRoute: AppInvoicesInvoiceIdRoute,
   AppPaymentsPaymentIdRoute: AppPaymentsPaymentIdRoute,
   AppPurchaseOrdersPurchaseOrderIdRoute: AppPurchaseOrdersPurchaseOrderIdRoute,
+  AppCreditNotesIndexRoute: AppCreditNotesIndexRoute,
   AppDisputesIndexRoute: AppDisputesIndexRoute,
   AppInvoicesIndexRoute: AppInvoicesIndexRoute,
   AppPaymentsIndexRoute: AppPaymentsIndexRoute,
