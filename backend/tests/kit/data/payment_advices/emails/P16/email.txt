@@ -1,0 +1,14 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1023 - adjust credit
+ATTACH:  Remittance_Advice_BCBN2026101500000018.pdf
+WAVE:    2
+NOTE:    send AFTER P06 created its credit note
+
+Hi,
+
+We have paid Rs. 89,090.00 for INV-1023. Please adjust the balance against the credit available from our earlier excess payment.
+
+Regards,
+Accounts Payable
+Indus Fintech

@@ -1,0 +1,9 @@
+FROM:    gamervimanthan246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: payment intimation
+ATTACH:  NEFT_Advice_BCBN2026101500000044.pdf
+WAVE:    1
+
+Payment intimation attached.
+
+Meridian Tech Solutions - AP

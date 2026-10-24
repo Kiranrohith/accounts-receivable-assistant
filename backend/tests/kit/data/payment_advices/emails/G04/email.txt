@@ -1,0 +1,9 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Undeliverable: Payment reminder
+ATTACH:  (none)
+WAVE:    1
+
+Delivery to the following recipient failed permanently: ap-old@example.invalid
+
+Technical details of permanent failure: 550 5.1.1 user unknown

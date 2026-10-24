@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Fwd: Payment remittance
+ATTACH:  Remittance_Advice_BCBN2026101500000029.pdf
+WAVE:    1
+
+FYI - forwarding the remittance below.
+
+---------- Forwarded message ---------
+From: Marcus Reed <ap@vantagepointsys.example>
+Subject: Payment remittance
+
+Please find remittance for INV-1136 attached.

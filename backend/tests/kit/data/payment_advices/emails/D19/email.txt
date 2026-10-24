@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: SAC code missing - INV-1148
+ATTACH:  (none)
+WAVE:    1
+
+Dear Genworx,
+
+INV-1148 has no SAC code, so we cannot claim input credit. Payment is on hold until a revised invoice is received.
+
+Regards,
+Rohan Deshpande
+Sterling Systems Pvt Ltd

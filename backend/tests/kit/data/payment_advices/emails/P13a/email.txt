@@ -1,0 +1,13 @@
+FROM:    gamerkiran246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment advice INV-1018
+ATTACH:  Remittance_Advice_BCBN2026101500000013.pdf
+WAVE:    1
+
+Dear Team,
+
+Payment for INV-1018 attached.
+
+Regards,
+Accounts Payable
+Zenith Softlabs

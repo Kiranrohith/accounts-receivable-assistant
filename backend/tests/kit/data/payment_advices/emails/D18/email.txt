@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Place of supply on INV-1153
+ATTACH:  (none)
+WAVE:    1
+
+Hello,
+
+The place of supply on INV-1153 looks incorrect, which affects our input tax credit. Please check and issue a corrected copy.
+
+Regards,
+Farhan Ali
+Deccan Edutech Pvt Ltd

@@ -1,0 +1,14 @@
+FROM:    gamervimanthan246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Part payment INV-1019 (a)
+ATTACH:  Remittance_Advice_BCBN2026101500000015.pdf
+WAVE:    1
+NOTE:    send P14a and P14b in the SAME minute; run >= 2 workers
+
+Hi,
+
+Part payment Rs. 44,604.00 against INV-1019.
+
+Regards,
+Accounts Payable
+Meridian Tech Solutions

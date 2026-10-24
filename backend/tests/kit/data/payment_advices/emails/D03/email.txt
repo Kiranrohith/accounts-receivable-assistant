@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Rate query on INV-1159
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+The day rate charged on INV-1159 is higher than the rate card we signed in April. Could you please review and send a corrected invoice?
+
+Regards,
+Arjun Nair
+Meridian Tech Solutions Pvt Ltd

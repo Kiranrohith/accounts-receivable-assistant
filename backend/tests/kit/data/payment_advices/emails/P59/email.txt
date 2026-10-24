@@ -1,0 +1,11 @@
+FROM:    brazilacc246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1193
+ATTACH:  Remittance_Advice_BCBN2026101500000049.pdf
+WAVE:    1
+
+Payment for INV-1193 attached.
+
+Regards,
+Accounts Payable
+Nexora Retail LLP

@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1194 (scanned copy)
+ATTACH:  Remittance_Advice_BCBN2026101500000038.jpg
+WAVE:    1
+
+Scanned remittance for INV-1194 attached.
+
+Regards,
+Accounts Payable
+Kaveri Infotech

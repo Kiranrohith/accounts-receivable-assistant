@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment transfer INV-1114
+ATTACH:  MT103_FT261016392257.pdf
+WAVE:    1
+
+Dear Genworx,
+
+Transfer for INV-1114 completed.
+
+Omar Haddad

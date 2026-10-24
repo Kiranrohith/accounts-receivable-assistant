@@ -1,0 +1,10 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment advice INV-1101
+ATTACH:  Advice.pdf
+WAVE:    1
+NOTE:    same 0-byte caveat as P61
+
+PFA the payment advice.
+
+Shree Balaji Traders

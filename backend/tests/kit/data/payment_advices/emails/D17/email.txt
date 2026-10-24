@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Wrong GST type - INV-1034
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+INV-1034 charges IGST, but we are registered in Tamil Nadu like you - it should be CGST + SGST. We will pay after a corrected invoice.
+
+Regards,
+Karthik Subramanian
+Kaveri Infotech Pvt Ltd

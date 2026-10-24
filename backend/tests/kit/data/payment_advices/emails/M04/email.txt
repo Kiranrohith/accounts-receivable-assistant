@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: PO KC-PO-9004 and payment INV-1110
+ATTACH:  PO_KC-PO-9004.pdf, MT103_FT261016198073.pdf
+WAVE:    1
+
+Hi,
+
+Attached: our new PO KC-PO-9004 and the MT103 for INV-1110.
+
+Wei Ling
+Kestrel Cloud

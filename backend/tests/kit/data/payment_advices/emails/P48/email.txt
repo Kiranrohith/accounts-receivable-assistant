@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1192
+ATTACH:  Remittance_Advice_BCBN2026101500000037.pdf
+WAVE:    2
+NOTE:    send AFTER P11 created Ganga's 15,000 credit note
+
+Payment for INV-1192 attached.
+
+Regards,
+Accounts Payable
+Ganga Cloud Services

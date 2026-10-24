@@ -1,0 +1,882 @@
+[
+  {
+    "customer_code": "CUST-001",
+    "customer_name": "Zenith Softlabs Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Priya Raman",
+    "email": "gamerkiran246@gmail.com",
+    "phone": "+91-44-4000-1101",
+    "gstin": "33AABCZ1234F1ZR",
+    "pan": "AABCZ1234F",
+    "gst_state_code": "33",
+    "gst_state": "Tamil Nadu",
+    "address": {
+      "line1": "4th Floor, Olympia Tech Park, Guindy",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "postal_code": "600032"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Zenith Softlabs"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Zenith Soft Labs Private Limited"
+      },
+      {
+        "alias_type": "email",
+        "alias_value": "ap@zenithsoftlabs.example"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-002",
+    "customer_name": "Meridian Tech Solutions Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Arjun Nair",
+    "email": "gamervimanthan246@gmail.com",
+    "phone": "+91-80-4000-1202",
+    "gstin": "29AABCM5678K1ZU",
+    "pan": "AABCM5678K",
+    "gst_state_code": "29",
+    "gst_state": "Karnataka",
+    "address": {
+      "line1": "91 Springboard, Koramangala",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "postal_code": "560095"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Meridian Tech"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Meridian Technology Solutions"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-003",
+    "customer_name": "BlueOak Analytics Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Sneha Kulkarni",
+    "email": "pquill5000@gmail.com",
+    "phone": "+91-22-4000-1303",
+    "gstin": "27AABCB9012P1ZF",
+    "pan": "AABCB9012P",
+    "gst_state_code": "27",
+    "gst_state": "Maharashtra",
+    "address": {
+      "line1": "Unit 702, Supreme Business Park, Powai",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "postal_code": "400076"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 45,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Blue Oak Analytics"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "BlueOak"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-004",
+    "customer_name": "Nexora Retail LLP",
+    "legal_entity_type": "llp",
+    "contact": "Vikram Shetty",
+    "email": "brazilacc246@gmail.com",
+    "phone": "+91-79-4000-1404",
+    "gstin": "24AADFN4321Q1Z5",
+    "pan": "AADFN4321Q",
+    "gst_state_code": "24",
+    "gst_state": "Gujarat",
+    "address": {
+      "line1": "Nexora House, CG Road",
+      "city": "Ahmedabad",
+      "state": "Gujarat",
+      "postal_code": "380009"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": false,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Nexora"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Nexora Retail"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-005",
+    "customer_name": "Halcyon Systems Inc",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Dana Whitfield",
+    "email": "ap@halcyonsystems.example",
+    "phone": "+1-415-555-0142",
+    "gstin": "96AAFCH1234B1Z1",
+    "pan": "AAFCH1234B",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "2201 Mission St, Suite 400",
+      "city": "San Francisco, CA",
+      "state": null,
+      "postal_code": "94110"
+    },
+    "country": "United States",
+    "billing_currency": "USD",
+    "deducts_tds": false,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": "EIN 94-3456789",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Halcyon Systems"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Halcyon Sys Inc"
+      },
+      {
+        "alias_type": "email",
+        "alias_value": "payments@halcyonsystems.example"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-006",
+    "customer_name": "Sterling Systems Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Rohan Deshpande",
+    "email": "ap@sterlingsys-pune.example",
+    "phone": "+91-20-4000-1606",
+    "gstin": "27AABCS2468H1Z9",
+    "pan": "AABCS2468H",
+    "gst_state_code": "27",
+    "gst_state": "Maharashtra",
+    "address": {
+      "line1": "Level 5, Panchshil Tech Park, Yerwada",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "postal_code": "411006"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Sterling Systems Pune"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-007",
+    "customer_name": "Sterling Systems Private Limited",
+    "legal_entity_type": "private_limited",
+    "contact": "Lakshmi Reddy",
+    "email": "finance@sterlingsystems-hyd.example",
+    "phone": "+91-40-4000-1707",
+    "gstin": "36AAECS1357J1Z8",
+    "pan": "AAECS1357J",
+    "gst_state_code": "36",
+    "gst_state": "Telangana",
+    "address": {
+      "line1": "Block B, Cyber Towers, HITEC City",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "postal_code": "500081"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 45,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Sterling Systems Hyderabad"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "SSPL Hyderabad"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-008",
+    "customer_name": "Kaveri Infotech Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Karthik Subramanian",
+    "email": "accounts@kaveriinfotech.example",
+    "phone": "+91-44-4000-1808",
+    "gstin": "33AABCK8642L1ZB",
+    "pan": "AABCK8642L",
+    "gst_state_code": "33",
+    "gst_state": "Tamil Nadu",
+    "address": {
+      "line1": "12 Rajiv Gandhi Salai, Perungudi",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "postal_code": "600096"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Kaveri Info Tech"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Cauvery Infotech"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-009",
+    "customer_name": "Indus Fintech Solutions Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Neha Joshi",
+    "email": "ap@indusfintech.example",
+    "phone": "+91-22-4000-1909",
+    "gstin": "27AABCI7531M1ZA",
+    "pan": "AABCI7531M",
+    "gst_state_code": "27",
+    "gst_state": "Maharashtra",
+    "address": {
+      "line1": "B-Wing, One BKC, Bandra Kurla Complex",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "postal_code": "400051"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Indus Fintech"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Indus Fin Tech Solutions"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-010",
+    "customer_name": "Vasudha Retail Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Amit Khanna",
+    "email": "retail.accounts@vasudhagroup.example",
+    "phone": "+91-11-4000-2010",
+    "gstin": "07AABCV1122R1Z6",
+    "pan": "AABCV1122R",
+    "gst_state_code": "07",
+    "gst_state": "Delhi",
+    "address": {
+      "line1": "Vasudha Towers, Connaught Place",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "postal_code": "110001"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Vasudha Retail"
+      },
+      {
+        "alias_type": "email",
+        "alias_value": "ap@vasudhagroup.example"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-011",
+    "customer_name": "Vasudha Foods Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Pooja Malhotra",
+    "email": "foods.accounts@vasudhagroup.example",
+    "phone": "+91-11-4000-2011",
+    "gstin": "07AABCV3344S1ZS",
+    "pan": "AABCV3344S",
+    "gst_state_code": "07",
+    "gst_state": "Delhi",
+    "address": {
+      "line1": "Vasudha Towers, Connaught Place",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "postal_code": "110001"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Vasudha Foods"
+      },
+      {
+        "alias_type": "email",
+        "alias_value": "ap@vasudhagroup.example"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-012",
+    "customer_name": "Pinnacle HealthTech Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Anil Menon",
+    "email": "finance@pinnaclehealth.example",
+    "phone": "+91-484-4000-2012",
+    "gstin": "32AABCP5566T1ZR",
+    "pan": "AABCP5566T",
+    "gst_state_code": "32",
+    "gst_state": "Kerala",
+    "address": {
+      "line1": "Infopark Phase 2, Kakkanad",
+      "city": "Kochi",
+      "state": "Kerala",
+      "postal_code": "682042"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Pinnacle Health Tech"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-013",
+    "customer_name": "Deccan Edutech Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Farhan Ali",
+    "email": "accounts@deccanedutech.example",
+    "phone": "+91-40-4000-2013",
+    "gstin": "36AABCD7788U1ZH",
+    "pan": "AABCD7788U",
+    "gst_state_code": "36",
+    "gst_state": "Telangana",
+    "address": {
+      "line1": "Plot 21, Madhapur",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "postal_code": "500081"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Deccan EduTech"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Deccan Education Technologies"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-014",
+    "customer_name": "Aravalli Manufacturing Ltd",
+    "legal_entity_type": "public_limited",
+    "contact": "Suresh Rathore",
+    "email": "ap@aravallimfg.example",
+    "phone": "+91-141-4000-2014",
+    "gstin": "08AABCA9900V1ZZ",
+    "pan": "AABCA9900V",
+    "gst_state_code": "08",
+    "gst_state": "Rajasthan",
+    "address": {
+      "line1": "RIICO Industrial Area, Sitapura",
+      "city": "Jaipur",
+      "state": "Rajasthan",
+      "postal_code": "302022"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 60,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Aravalli Mfg"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Aravalli Manufacturing Limited"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-015",
+    "customer_name": "Ganga Cloud Services LLP",
+    "legal_entity_type": "llp",
+    "contact": "Ritu Agarwal",
+    "email": "accounts@gangacloud.example",
+    "phone": "+91-120-4000-2015",
+    "gstin": "09AAJFG2233W1ZN",
+    "pan": "AAJFG2233W",
+    "gst_state_code": "09",
+    "gst_state": "Uttar Pradesh",
+    "address": {
+      "line1": "Tower 3, Sector 62",
+      "city": "Noida",
+      "state": "Uttar Pradesh",
+      "postal_code": "201309"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Ganga Cloud"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Ganga Cloud Services"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-016",
+    "customer_name": "Shree Balaji Traders",
+    "legal_entity_type": "proprietorship",
+    "contact": "Ramesh Iyer",
+    "email": "accounts@shreebalajitraders.example",
+    "phone": "+91-422-4000-2016",
+    "gstin": "33AJKPI4455K1Z1",
+    "pan": "AJKPI4455K",
+    "gst_state_code": "33",
+    "gst_state": "Tamil Nadu",
+    "address": {
+      "line1": "45 Oppanakara Street",
+      "city": "Coimbatore",
+      "state": "Tamil Nadu",
+      "postal_code": "641001"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": false,
+    "payment_terms_days": 15,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Sri Balaji Traders"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Shri Balaji Traders"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "S. Balaji Traders"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-017",
+    "customer_name": "Konkan Mobility Pvt Ltd",
+    "legal_entity_type": "private_limited",
+    "contact": "Elton Fernandes",
+    "email": "finance@konkanmobility.example",
+    "phone": "+91-832-4000-2017",
+    "gstin": "30AABCK6677Y1ZK",
+    "pan": "AABCK6677Y",
+    "gst_state_code": "30",
+    "gst_state": "Goa",
+    "address": {
+      "line1": "EDC Complex, Patto Plaza",
+      "city": "Panaji",
+      "state": "Goa",
+      "postal_code": "403001"
+    },
+    "country": "India",
+    "billing_currency": "INR",
+    "deducts_tds": true,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": null,
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Konkan Mobility Solutions"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-018",
+    "customer_name": "Brightwave Digital Ltd",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Oliver Bennett",
+    "email": "accounts.payable@brightwave.example",
+    "phone": "+44-20-7946-0182",
+    "gstin": "96AAFCB4567C1ZN",
+    "pan": "AAFCB4567C",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "18 Old Street",
+      "city": "London",
+      "state": null,
+      "postal_code": "EC1V 9AB"
+    },
+    "country": "United Kingdom",
+    "billing_currency": "GBP",
+    "deducts_tds": false,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": "VAT GB 284 7731 09",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Brightwave Digital"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Brightwave Ltd"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-019",
+    "customer_name": "Nordlicht Software GmbH",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Lena Hoffmann",
+    "email": "kreditoren@nordlicht-software.example",
+    "phone": "+49-89-5550-1919",
+    "gstin": "96AAFCN7788D1ZW",
+    "pan": "AAFCN7788D",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "Leopoldstrasse 120",
+      "city": "Munich",
+      "state": null,
+      "postal_code": "80802"
+    },
+    "country": "Germany",
+    "billing_currency": "EUR",
+    "deducts_tds": false,
+    "payment_terms_days": 45,
+    "is_active": true,
+    "foreign_tax_id": "USt-IdNr DE 298 345 761",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Nordlicht Software"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Nordlicht GmbH"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-020",
+    "customer_name": "Kestrel Cloud Pte Ltd",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Wei Ling Tan",
+    "email": "finance@kestrelcloud.example",
+    "phone": "+65-6555-2020",
+    "gstin": "96AAFCK3344E1ZL",
+    "pan": "AAFCK3344E",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "71 Ayer Rajah Crescent, #05-12",
+      "city": "Singapore",
+      "state": null,
+      "postal_code": "139951"
+    },
+    "country": "Singapore",
+    "billing_currency": "SGD",
+    "deducts_tds": false,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": "UEN 201934512K",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Kestrel Cloud"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Kestrel Cloud Pte. Ltd."
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-021",
+    "customer_name": "Al Noor Trading Technologies LLC",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Omar Haddad",
+    "email": "accounts@alnoortech.example",
+    "phone": "+971-4-555-2121",
+    "gstin": "96AAFCA5566F1ZH",
+    "pan": "AAFCA5566F",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "Office 1402, Bay Square Building 7, Business Bay",
+      "city": "Dubai",
+      "state": null,
+      "postal_code": "00000"
+    },
+    "country": "United Arab Emirates",
+    "billing_currency": "AED",
+    "deducts_tds": false,
+    "payment_terms_days": 60,
+    "is_active": true,
+    "foreign_tax_id": "TRN 100234567800003",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Al-Noor Trading Technologies"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "AlNoor Trading Tech"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-022",
+    "customer_name": "Southern Cross Data Pty Ltd",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Mia Thompson",
+    "email": "ap@southerncrossdata.example",
+    "phone": "+61-2-5550-2222",
+    "gstin": "96AAFCS8899G1ZF",
+    "pan": "AAFCS8899G",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "Level 12, 1 Martin Place",
+      "city": "Sydney NSW",
+      "state": null,
+      "postal_code": "2000"
+    },
+    "country": "Australia",
+    "billing_currency": "AUD",
+    "deducts_tds": false,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": "ABN 51 824 753 556",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Southern Cross Data"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "SCD Pty Ltd"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-023",
+    "customer_name": "Maple Ridge Analytics Inc",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Ethan Clarke",
+    "email": "payables@mapleridge.example",
+    "phone": "+1-416-555-0123",
+    "gstin": "96AAFCM2211H1ZP",
+    "pan": "AAFCM2211H",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "200 Bay Street, Suite 1800",
+      "city": "Toronto, ON",
+      "state": null,
+      "postal_code": "M5J 2J2"
+    },
+    "country": "Canada",
+    "billing_currency": "CAD",
+    "deducts_tds": false,
+    "payment_terms_days": 45,
+    "is_active": true,
+    "foreign_tax_id": "BN 812345678 RT0001",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Maple Ridge Analytics"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-024",
+    "customer_name": "Lumière Solutions SAS",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Camille Laurent",
+    "email": "comptabilite@lumiere-solutions.example",
+    "phone": "+33-4-5550-2424",
+    "gstin": "96AAFCL6655J1ZX",
+    "pan": "AAFCL6655J",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "35 Rue de la République",
+      "city": "Lyon",
+      "state": null,
+      "postal_code": "69002"
+    },
+    "country": "France",
+    "billing_currency": "EUR",
+    "deducts_tds": false,
+    "payment_terms_days": 60,
+    "is_active": true,
+    "foreign_tax_id": "TVA FR 12 834567901",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Lumiere Solutions"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Lumiere Solutions SAS"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-025",
+    "customer_name": "Vantage Point Systems LLC",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Marcus Reed",
+    "email": "ap@vantagepointsys.example",
+    "phone": "+1-512-555-0125",
+    "gstin": "96AAFCV9988K1Z3",
+    "pan": "AAFCV9988K",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "600 Congress Ave, Floor 14",
+      "city": "Austin, TX",
+      "state": null,
+      "postal_code": "78701"
+    },
+    "country": "United States",
+    "billing_currency": "USD",
+    "deducts_tds": false,
+    "payment_terms_days": 30,
+    "is_active": true,
+    "foreign_tax_id": "EIN 74-2938475",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Vantage Point Systems"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "VPS LLC"
+      }
+    ]
+  },
+  {
+    "customer_code": "CUST-026",
+    "customer_name": "Helix Bio-Informatics BV",
+    "legal_entity_type": "foreign_corporation",
+    "contact": "Sanne de Vries",
+    "email": "crediteuren@helixbio.example",
+    "phone": "+31-20-555-2626",
+    "gstin": "96AAFCH4433L1Z9",
+    "pan": "AAFCH4433L",
+    "gst_state_code": "96",
+    "gst_state": "Foreign Country",
+    "address": {
+      "line1": "Science Park 402",
+      "city": "Amsterdam",
+      "state": null,
+      "postal_code": "1098 XH"
+    },
+    "country": "Netherlands",
+    "billing_currency": "EUR",
+    "deducts_tds": false,
+    "payment_terms_days": 45,
+    "is_active": true,
+    "foreign_tax_id": "BTW NL857321947B01",
+    "aliases": [
+      {
+        "alias_type": "name",
+        "alias_value": "Helix Bioinformatics"
+      },
+      {
+        "alias_type": "name",
+        "alias_value": "Helix Bio Informatics B.V."
+      }
+    ]
+  }
+]

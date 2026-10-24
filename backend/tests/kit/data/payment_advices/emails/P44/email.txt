@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1051
+ATTACH:  Remittance_Advice_BCBN2026101500000033.pdf
+WAVE:    1
+NOTE:    send AFTER D01 is classified
+
+Payment for INV-1051 attached.
+
+Regards,
+Accounts Payable
+Konkan Mobility

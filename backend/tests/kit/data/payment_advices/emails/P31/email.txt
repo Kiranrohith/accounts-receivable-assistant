@@ -1,0 +1,12 @@
+FROM:    gamerkiran246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: RE: Payment advice - INV-1001 (copy)
+ATTACH:  Remittance_Advice_copy.pdf
+WAVE:    2
+NOTE:    send AFTER P01 is Applied
+
+Re-sending the advice for INV-1001, UTR BCBN2026101500000001, for your records.
+
+Regards,
+Accounts Payable
+Zenith Softlabs

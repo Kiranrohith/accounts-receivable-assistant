@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment released - INV-1028
+ATTACH:  (none)
+WAVE:    1
+
+Dear Team,
+
+We have released the payment for INV-1028 via NEFT, UTR BCBN2026101500000020. Amount details will be shared by our treasury team.
+
+Regards,
+Accounts Payable
+Deccan Edutech

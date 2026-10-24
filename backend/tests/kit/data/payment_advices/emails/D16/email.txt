@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Wrong entity on INV-1092
+ATTACH:  (none)
+WAVE:    1
+
+Dear Team,
+
+INV-1092 is addressed to Vasudha Retail, but the work was ordered by Vasudha Foods. Please cancel and reissue to the correct entity.
+
+Regards,
+Amit Khanna
+Vasudha Retail Pvt Ltd

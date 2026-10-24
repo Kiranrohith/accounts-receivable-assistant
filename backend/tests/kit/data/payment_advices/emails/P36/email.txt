@@ -1,0 +1,13 @@
+FROM:    gamerkiran246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment confirmation INV-1188
+ATTACH:  zenith_logo.png
+WAVE:    1
+
+Dear Team,
+
+Payment for INV-1188: Rs. 3,00,758.40, RTGS UTR BCBR2026101500000028.
+
+Regards,
+Accounts Payable
+Zenith Softlabs

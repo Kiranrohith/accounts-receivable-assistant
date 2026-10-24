@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+pinnacle@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment made
+ATTACH:  NEFT_Advice_BCBN2026101500000004.pdf
+WAVE:    1
+
+Dear Genworx team,
+
+We have made the payment for the services this month. Bank advice attached for your reference.
+
+Regards,
+Accounts Payable
+Pinnacle HealthTech

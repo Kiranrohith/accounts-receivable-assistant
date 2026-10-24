@@ -1,0 +1,13 @@
+FROM:    brazilacc246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Part payment and issue - INV-1038
+ATTACH:  Remittance_Advice_BCBN2026101500000032.pdf
+WAVE:    1
+
+Hello,
+
+We have paid Rs. 89,208.00 against INV-1038. The remaining amount is withheld because several delivered screens have defects that were not fixed despite our tickets. Please resolve.
+
+Regards,
+Accounts Payable
+Nexora Retail LLP

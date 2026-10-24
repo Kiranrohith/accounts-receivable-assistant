@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1129
+ATTACH:  MT103_FT261016697740.pdf
+WAVE:    1
+
+Hello,
+
+Payment for INV-1129 sent.
+
+Lumière Solutions SAS

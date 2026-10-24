@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Service start date - INV-1152
+ATTACH:  (none)
+WAVE:    1
+
+Hello,
+
+INV-1152 bills the full month, but the support service only started on the 15th. Please adjust.
+
+Regards,
+Vikram Shetty
+Nexora Retail LLP

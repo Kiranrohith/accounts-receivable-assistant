@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment confirmation INV-1119
+ATTACH:  MT103_Southern_Cross.pdf
+WAVE:    1
+
+Good day,
+
+SWIFT confirmation for INV-1119 attached.
+
+Regards,
+Accounts Payable
+Southern Cross Data

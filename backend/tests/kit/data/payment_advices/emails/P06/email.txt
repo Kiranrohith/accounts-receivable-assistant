@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1009
+ATTACH:  Remittance_Advice_BCBN2026101500000007.pdf
+WAVE:    1
+
+Dear Sir/Madam,
+
+Payment against INV-1009 attached. Please note TDS was not deducted on this payment.
+
+Regards,
+Accounts Payable
+Indus Fintech

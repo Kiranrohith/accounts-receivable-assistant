@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+vasudha@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment intimation
+ATTACH:  NEFT_Advice_BCBN2026101500000010.pdf
+WAVE:    1
+
+Dear Vendor,
+
+Please find payment intimation attached.
+
+Vasudha Group Shared Services - Accounts Payable

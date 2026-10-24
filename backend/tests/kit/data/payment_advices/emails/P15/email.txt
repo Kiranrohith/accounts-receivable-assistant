@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Consolidated payment - Sterling Systems Pune
+ATTACH:  Remittance_Advice_BCBN2026101500000017.pdf
+WAVE:    1
+
+Dear Genworx,
+
+Consolidated payment of Rs. 5,04,450.00 against INV-1020, INV-1021, INV-1022.
+
+Regards,
+Accounts Payable
+Sterling Systems Pvt Ltd

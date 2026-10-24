@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Quantity over PO - INV-1164
+ATTACH:  (none)
+WAVE:    1
+
+Dear Sir,
+
+The quantity billed on INV-1164 exceeds the balance remaining on PO AML/PO/7889. We will release payment only for the PO quantity once corrected.
+
+Regards,
+Suresh Rathore
+Aravalli Manufacturing Ltd

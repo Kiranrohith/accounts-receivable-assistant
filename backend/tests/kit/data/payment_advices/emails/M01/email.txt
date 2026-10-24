@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Purchase order PO-ZEN-9001
+ATTACH:  PO_PO-ZEN-9001.pdf
+WAVE:    1
+
+Hi,
+
+Please find attached our purchase order PO-ZEN-9001 for the next phase.
+
+Regards,
+Priya Raman
+Zenith Softlabs

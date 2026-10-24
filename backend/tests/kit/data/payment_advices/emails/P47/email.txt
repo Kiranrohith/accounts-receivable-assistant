@@ -1,0 +1,13 @@
+FROM:    gamerkiran246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment against debit note DN-2001
+ATTACH:  Remittance_Advice_BCBN2026101500000036.pdf
+WAVE:    1
+
+Hi,
+
+Paid debit note DN-2001 (no TDS on debit notes).
+
+Regards,
+Accounts Payable
+Zenith Softlabs

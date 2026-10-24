@@ -1,0 +1,9 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1102
+ATTACH:  advice_small.pdf
+WAVE:    1
+
+Advice attached.
+
+Shree Balaji Traders

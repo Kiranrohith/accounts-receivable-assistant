@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1180
+ATTACH:  Remittance_Advice_BCBN2026101500000024.pdf
+WAVE:    1
+
+Advice for INV-1180 attached.
+
+Regards,
+Accounts Payable
+Konkan Mobility

@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: INV-1031 already paid
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+INV-1031 was paid on 2 October by NEFT, UTR BCBN2026100299887766. Please check your records and stop the reminders.
+
+Regards,
+Sneha Kulkarni
+BlueOak Analytics Pvt Ltd

@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Goods arrived damaged - INV-1007
+ATTACH:  (none)
+WAVE:    1
+
+Goods arrived damaged, we will not pay.
+
+Seven of the 25 rugged tablets delivered against INV-1007 have cracked screens.
+
+Regards,
+Elton Fernandes
+Konkan Mobility Pvt Ltd

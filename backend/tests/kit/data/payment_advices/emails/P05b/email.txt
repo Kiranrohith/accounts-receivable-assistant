@@ -1,0 +1,8 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: payment done
+ATTACH:  NEFT_Advice_BCBN2026101500000006.pdf
+WAVE:    1
+
+pls check payment done today. thanks
+RK

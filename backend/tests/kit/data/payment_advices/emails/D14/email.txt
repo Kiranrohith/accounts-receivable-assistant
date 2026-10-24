@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Duplicate billing - INV-1033
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+INV-1033 bills exactly the same support and engineering work as INV-1032. This looks like a duplicate invoice.
+
+Regards,
+Neha Joshi
+Indus Fintech Solutions Pvt Ltd

@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Remittance INV-1027
+ATTACH:  MT103_FT261016858086.pdf
+WAVE:    1
+
+Hi,
+
+Remittance for INV-1027.
+
+Wei Ling
+Kestrel Cloud

@@ -1,0 +1,11 @@
+FROM:    gamerkiran246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1054
+ATTACH:  Remittance_Advice_BCBN2026101500000042.pdf
+WAVE:    1
+
+Advice for INV-1054 attached.
+
+Regards,
+Accounts Payable
+Zenith Softlabs

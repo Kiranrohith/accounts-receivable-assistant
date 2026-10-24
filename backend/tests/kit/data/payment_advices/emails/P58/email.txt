@@ -1,0 +1,11 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1146
+ATTACH:  Remittance_Advice_BCBN2026101500000048.pdf
+WAVE:    1
+
+Payment for INV-1146 attached.
+
+Regards,
+Accounts Payable
+Vasudha Foods Pvt Ltd

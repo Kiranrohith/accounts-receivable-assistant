@@ -1,0 +1,9 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment
+ATTACH:  IMPS_Advice_626101500040.pdf
+WAVE:    1
+
+Payment done. Kindly check.
+
+Shri Balaji Traders

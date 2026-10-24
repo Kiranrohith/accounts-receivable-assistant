@@ -1,0 +1,12 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1025
+ATTACH:  MT103_FT261016762637.pdf
+WAVE:    1
+
+Hello,
+
+Please see payment confirmation for INV-1025.
+
+Oliver
+Brightwave Digital

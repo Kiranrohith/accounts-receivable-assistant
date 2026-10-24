@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1145, INV-1999
+ATTACH:  Remittance_Advice_BCBN2026101500000022.pdf
+WAVE:    1
+
+Dear Sir,
+
+Payment against INV-1145 and INV-1999 attached.
+
+Regards,
+Accounts Payable
+Aravalli Manufacturing

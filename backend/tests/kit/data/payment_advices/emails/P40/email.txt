@@ -1,0 +1,7 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Monthly newsletter - October edition
+ATTACH:  (none)
+WAVE:    1
+
+Top 10 productivity tips for finance teams! Unsubscribe here.

@@ -1,0 +1,14 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Training not conducted - INV-1008
+ATTACH:  (none)
+WAVE:    1
+NOTE:    required case 8: after ingestion, backdate disputes.received_at by >= 15 calendar days (or run the deadline scan with a clock override) so the 10-working-day deadline is breached
+
+Hi,
+
+Two of the three training sessions billed in INV-1008 were never conducted. Please check with your team.
+
+Regards,
+Farhan Ali
+Deccan Edutech Pvt Ltd

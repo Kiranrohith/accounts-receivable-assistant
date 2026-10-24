@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payments INV-1143 and INV-1165
+ATTACH:  Remittance_Advice_BCBN2026101500000025.pdf, Remittance_Advice_BCBN2026101500000026.pdf
+WAVE:    1
+
+Hi,
+
+Two separate advices attached, for INV-1143 and INV-1165.
+
+Regards,
+Accounts Payable
+Indus Fintech

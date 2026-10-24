@@ -1,0 +1,7 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: 
+ATTACH:  IMPS_Advice_626101500030.pdf
+WAVE:    1
+
+

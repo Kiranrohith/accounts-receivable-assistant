@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Part payment INV-1012 / INV-1013
+ATTACH:  Remittance_Advice_BCBN2026101500000009.pdf
+WAVE:    1
+
+Dear Team,
+
+We have remitted Rs. 1,27,440.00 towards INV-1012 and INV-1013. Balance will follow.
+
+Regards,
+Accounts Payable
+Aravalli Manufacturing

@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Credit note pending - INV-1036
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+You agreed to issue a credit note for last month's platform outage. We will pay INV-1036 once the credit note is issued.
+
+Regards,
+Priya Raman
+Zenith Softlabs Pvt Ltd

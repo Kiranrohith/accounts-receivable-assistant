@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: INV-1175 - payment on hold
+ATTACH:  (none)
+WAVE:    1
+
+Hello,
+
+We are holding payment of INV-1175 until the unit price is corrected to the agreed rate. Please revise and resend.
+
+Regards,
+Priya Raman
+Zenith Softlabs Pvt Ltd

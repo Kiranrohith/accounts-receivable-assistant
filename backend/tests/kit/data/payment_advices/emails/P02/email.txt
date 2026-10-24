@@ -1,0 +1,13 @@
+FROM:    gamervimanthan246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Remittance - INV-1002, INV-1003
+ATTACH:  Remittance_Advice_BCBR2026101500000002.pdf
+WAVE:    1
+
+Hi,
+
+We have paid INV-1002 (Rs. 1,51,335.00) and INV-1003 (Rs. 1,51,228.80) in a single RTGS, ref BCBR2026101500000002. Breakup attached.
+
+Regards,
+Accounts Payable
+Meridian Tech Solutions

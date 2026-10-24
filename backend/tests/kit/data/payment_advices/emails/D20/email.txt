@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Rate differs from PO - INV-1035
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+INV-1035 bills Senior Software Engineer days at 9,500, but PO SSPL-PO-0442 fixes the rate at 9,000. Please correct.
+
+Regards,
+Lakshmi Reddy
+Sterling Systems Private Limited

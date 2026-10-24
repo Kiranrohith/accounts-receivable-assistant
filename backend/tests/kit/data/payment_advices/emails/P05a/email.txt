@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Funds transfer - Deccan Edutech
+ATTACH:  NEFT_Advice_BCBN2026101500000005.pdf
+WAVE:    1
+
+Hi,
+
+Please note we have transferred Rs. 1,23,456.78 to your account. Kindly acknowledge.
+
+Regards,
+Accounts Payable
+Deccan Edutech

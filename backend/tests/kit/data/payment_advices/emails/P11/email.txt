@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment INV-1016
+ATTACH:  Remittance_Advice_BCBN2026101500000011.pdf
+WAVE:    1
+
+Hi,
+
+Paid INV-1016. Attached advice.
+
+Regards,
+Accounts Payable
+Ganga Cloud Services

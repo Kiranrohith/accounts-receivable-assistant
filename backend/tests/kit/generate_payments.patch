@@ -1,0 +1,180 @@
+--- a/generate_payments.py	2026-10-21 17:41:43.690247300 +0530
++++ b/generate_payments.py	2026-10-21 17:56:46.967424800 +0530
+@@ -329,6 +329,7 @@
+         self.args = args
+         self.rng = random.Random(9001)
+         self.emails: list[dict] = []
++        self.inputs: dict[str, list[dict]] = {}  # the facts each advice states (-> payments_input.json)
+         self.utr_n = 0
+         local, domain = args.sender_base.split("@")
+         self.addr = {"GENERIC": f"{local}+remit@{domain}"}
+@@ -390,6 +391,25 @@
+             + (f"\nNOTE:    {note}" if note else "") + f"\n\n{body}\n", encoding="utf-8")
+         self.emails.append(rec)
+ 
++    def record_input(self, eid, kind, adv, path, invoices):
++        """What an exact reader would extract from this advice: the extraction answer key."""
++        self.inputs.setdefault(eid, []).append({
++            "source": f"emails/{eid}/{Path(path).name}" if path else "body", "kind": kind,
++            "payer_name": adv.get("payer_name"), "currency": adv.get("currency"),
++            "amount": None if adv.get("amount") is None else str(q2(D(adv["amount"]))),
++            "payment_date": adv.get("payment_date"), "reference": adv.get("reference"),
++            "mode": adv.get("mode"), "invoices": invoices, "notes": list(adv.get("notes", [])),
++            "credit_note_reference": None,
++            "credit_note_requested": any("available credit" in n_.lower()
++                                         for n_ in adv.get("notes", []))})
++
++    def body_input(self, eid, payer, amount, reference, mode, invoices):
++        """Facts stated only in the mail body (no usable attachment)."""
++        self.record_input(eid, "body", {"payer_name": payer, "currency": "INR", "amount": amount,
++                                        "reference": reference, "mode": mode,
++                                        "payment_date": None}, None,
++                          [{"invoice_number": i, "amount": None} for i in invoices])
++
+     def f(self, eid, name):
+         p = self.out / "emails" / eid
+         p.mkdir(parents=True, exist_ok=True)
+@@ -414,6 +434,8 @@
+             scanned(rasterize(p, 150), self.rng).save(jp, "JPEG", quality=80)
+             p.unlink()
+             p = jp
++        self.record_input(eid, "remittance", adv, p, [
++            {"invoice_number": ln["label"], "amount": str(q2(ln["net"]))} for ln in lines])
+         return p, adv
+ 
+     def bank(self, eid, payer, amount, narration, *, mode="NEFT", ref=None, back=1,
+@@ -428,6 +450,7 @@
+         else:
+             p = self.f(eid, f"{mode}_Advice_{adv['reference']}.pdf")
+             render_bank_advice(adv, p)
++        self.record_input(eid, "bank_advice", adv, p, quoted_numbers(narration))
+         return p, adv
+ 
+     def swift(self, eid, payer, currency, amount, narration, *, charges=None,
+@@ -440,6 +463,7 @@
+                "logo": self.logo(payer)}
+         p = self.f(eid, f"MT103_{ref}.pdf")
+         render_swift(adv, p)
++        self.record_input(eid, "swift", adv, p, quoted_numbers(narration))
+         return p, adv
+ 
+ 
+@@ -609,9 +633,10 @@
+           "confirm receipt.\n\nSri Balaji Traders, Coimbatore", attachments=[p],
+           scenario=["L3_alias", "short", "no_bypass"],
+           expected={"triage": "payment", "layer": "L3 (alias 'Sri Balaji Traders')",
+-                    "payment_state": "NeedsReview",
++                    "payment_state": "Unapplied", "unapplied_inr": float(short),
+                     "rule": "L3 + short is NOT the bypass (bypass is L1 / single-"
+-                            "candidate L2 only) -> review",
++                            "candidate L2 only); 20% short fits no invoice exactly (T1/T2), so per "
++                            "the 2026-10-21 ruling the money is kept as unapplied cash",
+                     "invoices": [inv_effect(n, "Open", 0, k.coll(n))]})
+     n = "INV-1018"
+     p, a = k.remit("P13a", "CUST-001", [k.line(n)])
+@@ -777,9 +802,11 @@
+ 
+     # ---------------- other matching rules
+     n = "INV-1028"
++    ref = k.utr("NEFT")
++    k.body_input("P25", "Deccan Edutech", None, ref, "NEFT", [n])
+     k.add("P25", wave=1, subject=f"Payment released - {n}",
+           body=f"Dear Team,\n\nWe have released the payment for {n} via NEFT, UTR "
+-          f"{k.utr('NEFT')}. Amount details will be shared by our treasury team."
++          f"{ref}. Amount details will be shared by our treasury team."
+           f"{sig}\nDeccan Edutech", scenario=["G7_amount_missing", "B4b_body_only"],
+           expected={"triage": "payment", "source": "body-only (.eml source document)",
+                     "payment_state": "NeedsReview", "reason": "amount_missing",
+@@ -846,6 +873,7 @@
+     p02_file = k.out / k.emails[1]["attachments"][0]
+     dst = k.f("P32", p02_file.name)
+     shutil.copy(p02_file, dst)
++    k.inputs["P32"] = [dict(a_, source=f"emails/P32/{dst.name}") for a_ in k.inputs["P02"]]
+     k.add("P32", wave=2, subject="Fwd: Remittance - INV-1002, INV-1003",
+           body="Forwarding again in case it was missed.\n\n---------- Forwarded message "
+           "---------\nSubject: Remittance - INV-1002, INV-1003", attachments=[dst],
+@@ -882,6 +910,7 @@
+                                  inv_effect(f2, "Paid", k.coll(f2), 0)]})
+     n = "INV-1006"
+     ref = k.utr("NEFT")
++    k.body_input("P35", "BlueOak Analytics", str(q2(k.coll(n))), ref, "NEFT", [n])
+     k.add("P35", wave=1, subject=f"Payment for {n}",
+           body=f"Dear Genworx Accounts,\n\nWe have paid {n} today.\nAmount: "
+           f"{amt(k.coll(n), 'INR')} (net of TDS {amt(k.tds(n), 'INR')})\nMode: NEFT\n"
+@@ -894,6 +923,7 @@
+     lp = k.f("P36", "zenith_logo.png")
+     tiny_logo(lp)
+     ref = k.utr("RTGS")
++    k.body_input("P36", "Zenith Softlabs", str(q2(k.coll(n))), ref, "RTGS", [n])
+     k.add("P36", wave=1, subject=f"Payment confirmation {n}",
+           body=f"Dear Team,\n\nPayment for {n}: {amt(k.coll(n), 'INR')}, RTGS UTR "
+           f"{ref}.{sig}\nZenith Softlabs", attachments=[lp],
+@@ -935,8 +965,10 @@
+           body="I am out of office until Monday with limited access to email.",
+           scenario=["triage_noise"], expected={"triage": "general", "label": "AR/Ignored"})
+     n = "INV-1040"
++    ref = k.utr("NEFT")
++    k.body_input("P42", None, str(q2(k.coll(n))), ref, "NEFT", [n])
+     k.add("P42", wave=3, subject=f"Re: Payment reminder: {n}",
+-          body=f"Hi,\n\nPaid {amt(k.coll(n), 'INR')} for {n} today, UTR {k.utr('NEFT')}."
++          body=f"Hi,\n\nPaid {amt(k.coll(n), 'INR')} for {n} today, UTR {ref}."
+           f"\n\nArjun\n\n> On {k.pdate(0)}, ar@genworx wrote:\n> This is a gentle "
+           f"reminder that {n} is overdue...", scenario=["B4b_body_only", "B7_thread_reply"],
+           manual=True, note="REPLY in the actual reminder thread (needs outbound reminders"
+@@ -1130,6 +1162,7 @@
+     ep = k.f("P61", "Remittance_Advice.pdf")
+     ep.write_bytes(b"")
+     ref = k.utr("NEFT")
++    k.body_input("P61", "Vasudha Foods", str(q2(k.coll(n))), ref, "NEFT", [n])
+     k.add("P61", wave=1, subject=f"Payment advice {n}",
+           body=f"Dear Team,\n\nPayment for {n}: {amt(k.coll(n), 'INR')} via NEFT, UTR "
+           f"{ref}.{sig}\nVasudha Foods", attachments=[ep],
+@@ -1145,6 +1178,7 @@
+     n = "INV-1101"
+     ep = k.f("P62", "Advice.pdf")
+     ep.write_bytes(b"")
++    k.body_input("P62", "Shree Balaji Traders", None, None, None, [n])
+     k.add("P62", wave=1, subject=f"Payment advice {n}", body="PFA the payment advice."
+           "\n\nShree Balaji Traders", attachments=[ep], scenario=["empty_pdf_no_body"],
+           note="same 0-byte caveat as P61",
+@@ -1160,6 +1194,8 @@
+            "lines": [k.line(n)], "advice_no": "SBT/RA/0042", "notes": [], "logo": None}
+     sp = k.f("P63", "advice_small.pdf")
+     render_remittance(adv, c, sp)
++    k.record_input("P63", "remittance", adv, sp, [
++        {"invoice_number": ln["label"], "amount": str(q2(ln["net"]))} for ln in adv["lines"]])
+     k.add("P63", wave=1, subject=f"Payment {n}", body=f"Advice attached.\n\n"
+           "Shree Balaji Traders", attachments=[sp], scenario=["small_pdf_under_5kb"],
+           expected={"triage": "payment",
+@@ -1170,6 +1206,18 @@
+ 
+ 
+ # ----------------------------------------------------------------------------- outputs
++def quoted_numbers(text):
++    """Invoice numbers a narration names, as written (INV-1176, INV1176, inv 1157, DN-2001).
++    A bare number such as 'batch 1104' is not one."""
++    import re
++    return [{"invoice_number": m.group(0), "amount": None}
++            for m in re.finditer(r"(?<![A-Za-z0-9])(?:INV|DN)[\s\-]?\d{3,5}(?![0-9])", narration_of(text), re.I)]
++
++
++def narration_of(text):
++    return text or ""
++
++
+ def jsonable(o):
+     if isinstance(o, Decimal):
+         return float(o)
+@@ -1257,6 +1305,12 @@
+                                        "attachments", "scenario", "send_note",
+                                        "expected")} for e in order]},
+         indent=2, default=jsonable, ensure_ascii=False))
++    (k.out / "payments_input.json").write_text(json.dumps(
++        {"_meta": {"as_of": k.as_of, "about": "what an exact reader extracts from each email's "
++                   "advice(s); the extraction answer key and the matcher's deterministic input"},
++         "emails": {e["id"]: {"from": e["from"], "subject": e["subject"], "advices":
++                              k.inputs.get(e["id"], [])} for e in order}},
++        indent=2, default=jsonable, ensure_ascii=False), encoding="utf-8")
+     with open(k.out / "send_plan.csv", "w", newline="", encoding="utf-8") as fh:
+         w = csv.writer(fh)
+         w.writerow(["id", "wave", "from", "subject", "attachments", "scenario",

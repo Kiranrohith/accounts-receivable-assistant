@@ -1,0 +1,13 @@
+FROM:    ar.sender.test+remit@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Credit for returned licences - INV-1191
+ATTACH:  (none)
+WAVE:    1
+
+Hi,
+
+The credit for the 40 licences we returned in August is still pending. Please confirm when it will be issued against INV-1191.
+
+Regards,
+Dana Whitfield
+Halcyon Systems Inc

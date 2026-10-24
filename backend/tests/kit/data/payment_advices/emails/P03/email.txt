@@ -1,0 +1,13 @@
+FROM:    brazilacc246@gmail.com
+TO:      genworx.ardemo@gmail.com
+SUBJECT: Payment for INV-1004
+ATTACH:  Remittance_Advice_BCBN2026101500000003.pdf
+WAVE:    1
+
+Hello,
+
+Payment of Rs. 40,000 released against INV-1004. Advice attached.
+
+Regards,
+Accounts Payable
+Nexora Retail LLP
