@@ -58,7 +58,10 @@ gives no other hint of currency; € -> EUR). If unsure, return null.
 final grand total payable on the invoice, including tax. Do not use "amount in words" \
 or an amount already paid or a balance due after earlier payments.
 - tax_breakdown lists each tax line printed (CGST, SGST, IGST, VAT, GST, ...) with its \
-rate in percent (9 means 9%) and amount. Leave it empty if taxes are not itemised.
+rate in percent (9 means 9%) and amount. Leave it empty if taxes are not itemised. List \
+EVERY tax line, one entry each (CGST and SGST are two entries). If the document prints \
+separate tax lines but no combined total-tax figure, return tax_total as null: it is added \
+up from tax_breakdown afterwards.
 - Never compute, derive or correct any number yourself. Only return a number that is \
 literally printed in the document. If subtotal is not printed, subtotal is null even \
 when total and tax would let you work it out; the same applies to unit_price, \
