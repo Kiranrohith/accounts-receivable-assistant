@@ -1,0 +1,16 @@
+# Add-on for docker-compose.yml:  docker compose -f docker-compose.yml -f docker-compose.gmail.yml --profile app up -d
+# Sends the app's mail through the account in backend/.env (SMTP_HOST, SMTP_USER, SMTP_PASSWORD) instead of Mailpit.
+# Only the addresses in SMTP_ALLOWED_RECIPIENTS can be mailed, and the allowlist is enforced (the dev bypass is dropped).
+# Reading the mailbox (Gmail polling) is not affected: it follows GMAIL_* in backend/.env either way.
+x-real-mail: &real-mail
+  SMTP_HOST: !reset null
+  SMTP_PORT: !reset null
+  SMTP_USER: !reset null
+  SMTP_PASSWORD: !reset null
+  SMTP_ALLOWLIST_BYPASS: "false"
+
+services:
+  api:
+    environment: *real-mail
+  worker:
+    environment: *real-mail
