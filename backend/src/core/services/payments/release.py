@@ -32,6 +32,7 @@ from core.services.payments import holds
 from core.services.payments.engine import to_review
 from core.services.payments.notes import create_credit_note
 from core.services.payments.tolerance import Target, split_over_set
+from core.services.reminders import lifecycle as reminder_lifecycle
 from data.models.postgres import Dispute, Invoice, Job, Payment, SourceDocument
 from data.models.postgres.enums import (
     InvoiceStatus,
@@ -237,6 +238,9 @@ async def _apply_held(
     payment.updated_by = actor
     _log(db, payment, before.value, actor, payment.match_reason)
     await db.flush()
+    # money reached the invoice: reminder drafts waiting for a person are no longer wanted, and a collection task
+    # whose invoice is now paid closes (the same as when a payment is applied the normal way)
+    await reminder_lifecycle.invoice_changed_by_money(db, [invoice.id], user_id=actor)
     if open_disputes:  # other (non-holding) disputes are still open on the invoice: their owners hear of it
         await holds.tell_owners(db, payment, [holds.Touch(invoice, open_disputes, f"{held} released and applied")], actor)
     return Result("released", f"{sliced.allocated} applied to {invoice.invoice_number}")

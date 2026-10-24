@@ -17,7 +17,7 @@ from config.settings import get_settings
 from core.services.payments.engine import Status, run_matching
 from core.services.payments.identities import verify_money_identities
 from data.clients.db import SessionLocal, engine
-from data.models.postgres import Customer, Invoice, Payment
+from data.models.postgres import Customer, Invoice, Payment, Reminder
 from data.models.postgres.enums import InvoiceStatus, MatchedLayer, PaymentState
 
 D = Decimal
@@ -162,12 +162,17 @@ async def main():
         check("money identities hold with a hold in place", await verify_money_identities_() == [])
 
         # ---- 2. resolving releases it and applies the money --------------------------------------------------
+        # a reminder draft is waiting on the invoice: once the held money reaches it, the draft must be cancelled
+        async with SessionLocal() as db:
+            db.add(Reminder(invoice_id=i1, reminder_tier=1, draft_body="Subject: x\n\nPlease pay.", scheduled_date=date(2026, 11, 1)))
+            await db.commit()
         check("resolve: 200", (await resolve(d1)).status_code == 200)
         await idle()
         r = await pay(p1)
         check("release: Applied, nothing held, pin cleared", r[0] == "Applied" and r[2] == 0 and r[4] is None, str(r[:5]))
         check("release: invoice Paid by one allocation of 1000", (await inv("A-1"))[:3] == ("Paid", D("1000.00"), D("0.00")) and await allocs(p1) == [("A-1", D("1000.00"))], str(await allocs(p1)))
         check("release: the invoice is no longer flagged disputed", (await inv("A-1"))[3] is False)
+        check("release: the waiting reminder draft was cancelled (money arrived)", (await one("select state from reminders where invoice_id=:i", i=i1))[0] == "AutoCancelled", str(await q("select state, cancel_reason from reminders where invoice_id=:i", i=i1)))
 
         # ---- 3. a dispute that does not hold lets the payment apply ------------------------------------------
         i2 = await invoice(cu, "A-2", "800")
