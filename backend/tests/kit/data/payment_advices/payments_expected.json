@@ -2926,14 +2926,14 @@
       "expected": {
         "triage": "payment",
         "layer": "L1",
-        "payment_state": "Applied",
-        "rule": "reference 'NEFT' is in JUNK_REFERENCES -> never deduped; both P30a and P30b apply",
+        "payment_state": "NeedsReview",
+        "rule": "reference 'NEFT' is a bank-rail word, not a transaction reference -> review (and never deduped)",
         "invoices": [
           {
             "invoice": "INV-1096",
-            "status_after": "Paid",
-            "applied_inr": 579852.0,
-            "balance_after_inr": 0.0
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 579852.0
           }
         ],
         "triage_confidence": ">=75",
@@ -2956,7 +2956,7 @@
           "balance_inr": 579852.0,
           "is_set": false
         },
-        "score_decision": "auto (>= 85)"
+        "score_decision": "rule: C13: 'NEFT' is a bank-rail word, not a transaction reference -> review"
       }
     },
     {
@@ -2978,14 +2978,14 @@
       "expected": {
         "triage": "payment",
         "layer": "L1",
-        "payment_state": "Applied",
-        "rule": "reference 'NEFT' is in JUNK_REFERENCES -> never deduped; both P30a and P30b apply",
+        "payment_state": "NeedsReview",
+        "rule": "reference 'NEFT' is a bank-rail word, not a transaction reference -> review (and never deduped)",
         "invoices": [
           {
             "invoice": "INV-1097",
-            "status_after": "Paid",
-            "applied_inr": 356832.0,
-            "balance_after_inr": 0.0
+            "status_after": "Open",
+            "applied_inr": 0.0,
+            "balance_after_inr": 356832.0
           }
         ],
         "triage_confidence": ">=75",
@@ -3008,7 +3008,7 @@
           "balance_inr": 356832.0,
           "is_set": false
         },
-        "score_decision": "auto (>= 85)"
+        "score_decision": "rule: C13: 'NEFT' is a bank-rail word, not a transaction reference -> review"
       }
     },
     {

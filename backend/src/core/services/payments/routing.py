@@ -1,7 +1,8 @@
 """Decide what an extracted payment advice becomes, and write it (Flow 2, steps 3-4).
 
-- anything doubtful (validation REVIEW, customer not identified cleanly): a payment in state
-  NeedsReview with the reasons, every money bucket at zero (awaiting a human is not cash)
+- anything doubtful (validation REVIEW, which includes no usable transaction reference; customer not
+  identified cleanly): a payment in state NeedsReview with the reasons, every money bucket at zero
+  (awaiting a human is not cash)
 - the same (customer, reference) as a payment already standing (D4): state Rejected, `duplicate_of`
   set, zero buckets. A junk or empty reference never dedups.
 - otherwise: state Matching, customer and identity layer set, ready for the matcher
@@ -18,9 +19,9 @@ from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.settings import get_settings
-from constants.constants import JUNK_REFERENCES
 from core.services.invoices.fx import is_foreign
 from core.services.payments.identity import IdentityResult, identify_payer
+from core.services.payments.reference import reference_key
 from data.models.postgres import Payment, SourceDocument
 from data.models.postgres.enums import MatchedLayer, PaymentState, TriggerType
 from data.repositories.payments import payments_repo
@@ -48,17 +49,6 @@ class PaymentRouteResult:
     def customer_id(self) -> uuid.UUID | None:
         customer = self.identity.customer if self.identity else None
         return customer.id if customer else None
-
-
-def reference_key(reference: str | None) -> str | None:
-    """The normalised reference used to spot a repeat, or None when it cannot identify one:
-    empty, a bare bank-rail name (NEFT, IMPS...), or nothing but punctuation."""
-    if not reference:
-        return None
-    key = reference.strip().upper()
-    if not key or key in JUNK_REFERENCES or not any(ch.isalnum() for ch in key):
-        return None
-    return key
 
 
 def _amount_fields(extracted: ExtractedPayment) -> dict:

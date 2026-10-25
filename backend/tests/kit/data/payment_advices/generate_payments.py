@@ -899,10 +899,10 @@ def build(k: Kit):
         k.add(eid, wave=1, subject=f"Payment {n}", body=f"Dear Team,\n\nPayment for {n}"
               f" attached (ref NEFT).{sig}\nVasudha Foods", attachments=[p],
               scenario=["C13_junk_reference"],
-              expected={"triage": "payment", "layer": "L1", "payment_state": "Applied",
-                        "rule": "reference 'NEFT' is in JUNK_REFERENCES -> never deduped;"
-                                " both P30a and P30b apply",
-                        "invoices": [inv_effect(n, "Paid", k.coll(n), 0)]})
+              expected={"triage": "payment", "layer": "L1", "payment_state": "NeedsReview",
+                        "rule": "reference 'NEFT' is a bank-rail word, not a transaction reference"
+                                " -> review (and never deduped)",
+                        "invoices": [inv_effect(n, "Open", 0, k.coll(n))]})
     p01 = k.emails[0]
     utr1 = p01["body"].split("UTR ")[1].split(")")[0]
     p, a = k.remit("P31", "CUST-001", [k.line("INV-1001")], ref=utr1,
@@ -1687,6 +1687,8 @@ RULE_DRIVEN = {
     "P27": "C2: unknown number INV-1999 -> known part applied, remainder unapplied",
     "P28": "C4: stated split differs from total by more than Rs.1 -> review",
     "P29": "C9: zero amount -> review",
+    "P30a": "C13: 'NEFT' is a bank-rail word, not a transaction reference -> review",
+    "P30b": "C13: 'NEFT' is a bank-rail word, not a transaction reference -> review",
     "P44": "D5: open payment_related dispute -> whole payment held",
     "P45": "D5: disputed invoice's slice held; clean invoice applies",
     "P52": "G4: invoice on po_hold -> payment parks",

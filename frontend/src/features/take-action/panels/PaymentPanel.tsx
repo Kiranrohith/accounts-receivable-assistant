@@ -99,6 +99,7 @@ function PaymentBody({ payment, itemId, onDone }: { payment: PaymentDetail; item
   const [alias, setAlias] = useState<'' | 'name' | 'email'>('')
   const [enteredAmount, setEnteredAmount] = useState('')
   const [enteredCurrency, setEnteredCurrency] = useState('')
+  const [enteredReference, setEnteredReference] = useState(payment.reference_number ?? '')
   const [asking, setAsking] = useState<'unapplied' | 'reject' | 'convert' | null>(null)
 
   const hasCustomer = payment.customer_id !== null
@@ -147,6 +148,11 @@ function PaymentBody({ payment, itemId, onDone }: { payment: PaymentDetail; item
                   <Label htmlFor="entered-amount">Amount received</Label>
                   <Input id="entered-amount" inputMode="decimal" value={enteredAmount} onChange={(e) => setEnteredAmount(e.target.value)} />
                 </div>
+                <div className="space-y-1">
+                  <Label htmlFor="entered-reference">Transaction reference (UTR)</Label>
+                  <Input id="entered-reference" value={enteredReference} onChange={(e) => setEnteredReference(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">The reference is what shows the money was sent. Copy it from the bank statement.</p>
+                </div>
                 {payment.currency === null && (
                   <div className="space-y-1">
                     <Label htmlFor="entered-currency">Currency</Label>
@@ -154,10 +160,14 @@ function PaymentBody({ payment, itemId, onDone }: { payment: PaymentDetail; item
                   </div>
                 )}
                 <Button
-                  disabled={busy || toMinor(enteredAmount) <= 0}
+                  disabled={busy || toMinor(enteredAmount) <= 0 || enteredReference.trim() === ''}
                   onClick={() =>
                     enter.mutate(
-                      { amount: enteredAmount.trim(), currency: payment.currency === null ? enteredCurrency.trim() || undefined : undefined },
+                      {
+                        amount: enteredAmount.trim(),
+                        currency: payment.currency === null ? enteredCurrency.trim() || undefined : undefined,
+                        reference: enteredReference.trim() === (payment.reference_number ?? '') ? undefined : enteredReference.trim(),
+                      },
                       {
                         onSuccess: (result) => {
                           if (result.state === 'NeedsReview') toast.info(result.message)

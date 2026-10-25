@@ -187,6 +187,18 @@ describe('Payment panel: amount not stated', () => {
     expect(await screen.findByText('Matched and applied.')).toBeInTheDocument()
   })
 
+  it('a payment with no transaction reference needs one typed with the amount, and sends it', async () => {
+    const seen = serve(payment({ amount: null, amount_received_inr: null, reference_number: null, reasons: ['The advice has no transaction reference (UTR / reference number): confirm the payment was received'] }))
+    openPanel()
+    const save = await screen.findByRole('button', { name: 'Save amount and match again' })
+    expect(screen.getByLabelText('Transaction reference (UTR)')).toHaveValue('')
+    await userEvent.type(screen.getByLabelText('Amount received'), '1200')
+    expect(save).toBeDisabled() // the amount alone is not enough
+    await userEvent.type(screen.getByLabelText('Transaction reference (UTR)'), 'UTR-5521')
+    await userEvent.click(save)
+    await waitFor(() => expect(seen.amounts).toEqual([{ amount: '1200', reference: 'UTR-5521' }]))
+  })
+
   it('stays open with the reason when the amount still needs a person', async () => {
     serve(payment({ amount: null }))
     server.use(http.post(endpoint(`/payments/${PAYMENT}/amount`), () => HttpResponse.json({ payment_id: PAYMENT, state: 'NeedsReview', message: 'Two invoices still fit', allocations: [], credit_note_number: null, unapplied_amount: '0', credited_amount: '0', reasons: [] })))

@@ -48,6 +48,10 @@ class EnterAmount(BaseModel):
     currency: str | None = Field(
         default=None, min_length=3, max_length=3, description="Only if the advice did not state one"
     )
+    reference: str | None = Field(
+        default=None, max_length=100,
+        description="The UTR / transaction reference. Required when the advice has none (or only a bank-rail word)",
+    )
 
 
 class SaveAlias(BaseModel):

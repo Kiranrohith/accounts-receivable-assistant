@@ -342,6 +342,22 @@ async def main():
         r = await c.post(f"/payments/{pm3}/amount", headers=FA, json={"amount": "40", "currency": "inr"})
         check("currency supplied: accepted; no open invoice for this customer match -> still NeedsReview or applied", r.status_code == 200, r.text[:140])
 
+        # an advice with no usable transaction reference: the reference is asked for with the amount, never skipped
+        r_c = await customer("Reference Needed Ltd")
+        r1 = await invoice(r_c, "R-1", "900")
+        pr = await payment(r_c, None, ref=None, quoted=[("R-1", None)])
+        r = await c.post(f"/payments/{pr}/amount", headers=FA, json={"amount": "900"})
+        check("no reference on the advice and none given -> 422, nothing applied", r.status_code == 422 and "reference" in r.text.lower() and (await pay(pr))[0] == "NeedsReview" and (await inv("R-1"))[0] == "Open", r.text[:120])
+        r = await c.post(f"/payments/{pr}/amount", headers=FA, json={"amount": "900", "reference": " neft "})
+        check("only a bank-rail word as the reference -> 422", r.status_code == 422, r.text[:100])
+        await payment(r_c, None, ref="UTR-SEEN")  # standing (not Rejected), holds no money
+        r = await c.post(f"/payments/{pr}/amount", headers=FA, json={"amount": "900", "reference": "utr-seen"})
+        check("a reference this customer already sent -> 409, nothing applied", r.status_code == 409 and (await pay(pr))[0] == "NeedsReview", r.text[:120])
+        r = await c.post(f"/payments/{pr}/amount", headers=FA, json={"amount": "900", "reference": "UTR-ENTERED"})
+        log = await q("select reason from state_log where entity_type='payment' and entity_id=:i order by occurred_at", i=pr)
+        stored = await q("select reference_number from payments where id=:i", i=pr)
+        check("reference given with the amount: stored, logged, matched and applied", r.status_code == 200 and r.json()["state"] == "Applied" and stored[0][0] == "UTR-ENTERED" and any("reference UTR-ENTERED" in x[0] for x in log), r.text[:200])
+
         # ================================================================ concurrency
         k_c = await customer("Theta")
         k1 = await invoice(k_c, "K-1", "900")
