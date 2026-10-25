@@ -3,8 +3,9 @@
 Money is never discarded on a doubt: every problem here is REVIEW (a person looks), never FAIL.
 
 REVIEW - no amount (D3b: the reviewer finds it and enters it), an amount of zero or less (C9),
-         a currency that is missing or not a 3-letter code, an implausible payment date, or the
-         amount / currency read with low confidence.
+         no transaction reference (the only proof the money was sent), a currency that is missing or
+         not a 3-letter code, an implausible payment date, or the amount / currency read with low
+         confidence.
 PASS   - clean. Who paid, duplicates and matching need the database and are separate steps.
 """
 
@@ -18,6 +19,7 @@ from constants.constants import (
     DATE_MAX_PAST_YEARS,
     EXTRACTION_CONFIDENCE_MIN,
 )
+from core.services.payments.reference import reference_key
 from schemas.invoices.validation import Outcome, Severity, ValidationIssue, ValidationResult
 from schemas.payments.extraction import ExtractedPayment
 
@@ -44,6 +46,12 @@ def validate_payment(payment: ExtractedPayment, today: date | None = None) -> Va
     elif payment.amount <= 0:
         add("non_positive_amount", "amount",
             f"The amount paid must be greater than zero (found {payment.amount})")
+
+    # --- reference ---
+    # no transaction reference, or only a bank-rail word like "NEFT": nothing proves the money was sent
+    if reference_key(payment.reference_number) is None:
+        add("reference_missing", "reference_number",
+            "The advice has no transaction reference (UTR / reference number): confirm the payment was received")
 
     # --- currency ---
     if _missing(payment.currency):

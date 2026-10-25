@@ -9,7 +9,7 @@ import pytest
 from constants.constants import TRIAGE_HUMAN_THRESHOLD
 from core.services.documents.classification import Route, decide_route
 from core.services.payments.identity import IdentityFacts, decide_identity
-from core.services.payments.routing import reference_key
+from core.services.payments.reference import reference_key
 from core.services.payments.validation import validate_payment
 from data.models.postgres import Customer
 from data.models.postgres.enums import MatchedLayer
@@ -78,6 +78,18 @@ def test_zero_or_negative_amount_is_review_never_fail(amount):
     assert "non_positive_amount" in codes(result)
 
 
+@pytest.mark.parametrize("reference", [None, "", "   ", "NEFT", "imps", "-", "NA"])
+def test_no_usable_transaction_reference_goes_to_review(reference):
+    # the reference is the only proof the money was sent: everything else clean is not enough
+    result = validate_payment(advice(reference_number=reference), TODAY)
+    assert result.outcome is Outcome.REVIEW
+    assert codes(result) == {"reference_missing"}
+
+
+def test_a_rail_name_with_a_number_is_a_reference():
+    assert validate_payment(advice(reference_number="NEFT-98765"), TODAY).outcome is Outcome.PASS
+
+
 def test_currency_must_be_present_and_valid():
     assert "currency_missing" in codes(validate_payment(advice(currency=None), TODAY))
     assert "invalid_currency" in codes(validate_payment(advice(currency="rupees"), TODAY))
@@ -99,8 +111,8 @@ def test_low_or_absent_confidence_on_amount_and_currency_is_review():
 
 
 def test_every_problem_is_listed_not_just_the_first():
-    result = validate_payment(advice(amount=None, currency="x", payment_date=date(2020, 1, 1)), TODAY)
-    assert codes(result) == {"amount_missing", "invalid_currency", "payment_date_too_old"}
+    result = validate_payment(advice(amount=None, currency="x", payment_date=date(2020, 1, 1), reference_number=None), TODAY)
+    assert codes(result) == {"amount_missing", "invalid_currency", "payment_date_too_old", "reference_missing"}
 
 
 # ---- duplicate key -----------------------------------------------------------------------

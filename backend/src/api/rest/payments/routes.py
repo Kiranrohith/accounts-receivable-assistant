@@ -217,7 +217,9 @@ async def reject_payment(
         "Requires payments.review.match. For a NeedsReview payment that has no amount (the "
         "advice named an invoice or reference but no amount). The amount is logged as entered "
         "by you and the payment is matched again straight away: the result says whether it was "
-        "applied or still needs a person."
+        "applied or still needs a person. When the advice has no transaction reference (or only a "
+        "bank-rail word like NEFT) the reference must be given too (422 otherwise); a reference "
+        "this customer already sent is a 409."
     ),
     responses=_DECIDE_ERRORS,
 )

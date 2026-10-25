@@ -31,7 +31,7 @@ export function useRejectPayment(paymentId: string) {
 export function useEnterAmount(paymentId: string) {
   const client = useQueryClient()
   return useMutation({
-    mutationFn: (input: { amount: string; currency?: string }) => paymentService.enterAmount(paymentId, input.amount, input.currency),
+    mutationFn: (input: { amount: string; currency?: string; reference?: string }) => paymentService.enterAmount(paymentId, input.amount, input.currency, input.reference),
     onSuccess: () => client.invalidateQueries({ queryKey: paymentKeys.detail(paymentId) }),
   })
 }

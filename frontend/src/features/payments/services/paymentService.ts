@@ -36,8 +36,8 @@ export const paymentService = {
     return data
   },
 
-  async enterAmount(paymentId: string, amount: string, currency?: string): Promise<ReviewResult> {
-    const { data } = await api.post<ReviewResult>(`/payments/${paymentId}/amount`, { amount, currency: currency || undefined })
+  async enterAmount(paymentId: string, amount: string, currency?: string, reference?: string): Promise<ReviewResult> {
+    const { data } = await api.post<ReviewResult>(`/payments/${paymentId}/amount`, { amount, currency: currency || undefined, reference: reference || undefined })
     return data
   },
 

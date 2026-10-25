@@ -33,6 +33,7 @@ from core.services.payments import holds
 from core.services.payments.apply import Application, Contention, NotMatching, apply
 from core.services.payments.engine import Status, run_matching
 from core.services.payments.listing import DECIDABLE
+from core.services.payments.reference import reference_key
 from core.services.payments.tolerance import Target, split_by_statement
 from core.services.users.users import permission_codes_for
 from data.models.postgres import Customer, Payment, User
@@ -365,16 +366,29 @@ async def enter_amount(
     if len(currency) != 3 or not currency.isalpha():
         raise ValidationFailure("The advice did not state a currency: give one (currency)")
     amount = money(body.amount)
+    # the matcher applies what it is given, so a payment without a transaction reference gets one here or goes no further
+    given = (body.reference or "").strip()
+    key = reference_key(given or payment.reference_number)
+    if key is None:
+        raise ValidationFailure("The advice has no transaction reference: give the UTR / reference number (reference)")
+    if given and key != reference_key(payment.reference_number) and payment.customer_id is not None:
+        earlier = await payments_repo.find_duplicate(db, payment.customer_id, key)
+        if earlier is not None and earlier.id != payment.id:
+            raise ConflictError(f"Reference {given} was already received from this customer: reject this payment as a duplicate")
 
     before = payment.state
     payment.payment_currency = currency
+    if given:
+        payment.reference_number = given
     if is_foreign(currency):
         payment.amount_received_foreign = amount
     else:
         payment.amount_received_inr = amount
     payment.state = PaymentState.MATCHING
     payment.review_reasons = None
-    payment.match_reason = f"Amount {currency} {amount} entered by {user.username} (not on the advice)"
+    payment.match_reason = f"Amount {currency} {amount} entered by {user.username} (not on the advice)" + (
+        f", reference {given}" if given else ""
+    )
     payment.updated_by = user.id
     _log(db, payment, before, user, payment.match_reason)
     await db.flush()
