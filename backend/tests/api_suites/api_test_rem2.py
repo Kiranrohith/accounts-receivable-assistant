@@ -192,6 +192,9 @@ async def main():
         check("general reply to a reminder: Processed, labelled as a payment-side conversation, not Ignored", r2[1:] == ("Processed", "general", "AR/Processed-Payment"), str(r2))
         check("noted on the invoice, no job", any("nothing in it is a payment or a complaint" in x for x in await history("Z-1")) and await jobs_of("ok thanks") == [])
         check("the approver is told again", (await q("select count(*) from notifications where recipient_user_id=:u and type='ReminderReply'", u=fa_id))[0][0] == 2)
+        lst = await hc.get("/notifications", headers=FA)
+        check("the notification list loads with ReminderReply rows in it (it used to fail on the unknown type)",
+              lst.status_code == 200 and [x["type"] for x in lst.json()["items"]].count("ReminderReply") == 2, lst.text[:200])
 
         # ---- 3. only the REM reference in the subject: found by it; a complaint ----------------------------------------
         ref2 = "REM-" + str(sent[2][0])[:8].upper()
