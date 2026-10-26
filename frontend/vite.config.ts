@@ -8,6 +8,15 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],
   resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } },
+  build: {
+    rollupOptions: {
+      output: {
+        // The PDF viewer's worker comes as a .mjs file, which not every server labels as JavaScript (nginx does not, and the
+        // browser then refuses to run it): built as .js it always is.
+        assetFileNames: (asset) => ((asset.names ?? []).some((name) => name.endsWith('.mjs')) ? 'assets/[name]-[hash].js' : 'assets/[name]-[hash][extname]'),
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     // Same origin as the API base URL, so jsdom's XHR makes no CORS preflight that MSW would have to answer.
