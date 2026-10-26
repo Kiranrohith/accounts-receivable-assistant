@@ -7,6 +7,7 @@ from enum import Enum
 from pydantic import BaseModel, Field, model_validator
 
 from schemas.customers.tax_id import TaxIdFields, from_legacy
+from schemas.quantity import Quantity
 
 
 class DocumentType(str, Enum):
@@ -22,7 +23,7 @@ class TaxLine(BaseModel):
 
 class LineItem(BaseModel):
     description: str
-    quantity: Decimal | None = None
+    quantity: Quantity = None
     unit_price: Decimal | None = None
     line_total: Decimal | None = None
     tax_rate: Decimal | None = Field(default=None, description="Percent")

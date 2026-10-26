@@ -59,7 +59,8 @@ not add up.
 LINE ITEMS
 - One entry per line of the items table, in order. Skip header, subtotal, tax and total \
 rows. Each has description, and quantity, unit_price, line_total, tax_rate when printed \
-(null otherwise).
+(null otherwise). quantity is the NUMBER only: "3 months", "8 days" or "53 screens" is \
+quantity 3, 8 or 53 (never text with a unit).
 
 PO
 - po_number is the customer's purchase order reference ("PO No", "Purchase Order", \
