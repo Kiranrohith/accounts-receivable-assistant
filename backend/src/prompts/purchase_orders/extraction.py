@@ -48,7 +48,9 @@ line_total or total_amount is not printed, return null for it.
 LINE ITEMS
 - One entry per ordered line, in order. Skip header, subtotal, tax and total rows. Each \
 has description, and quantity, unit_price, line_total when printed (null otherwise). \
-Copy the description as printed.
+Copy the description as printed. quantity is the NUMBER only: a line ordered as "3 months", \
+"8 days" or "53 screens" has quantity 3, 8 or 53 (the unit is already in the description or \
+the column heading, never in the quantity).
 
 CONFIDENCE
 - For every field give an integer 0-100 for how sure you are that the value is correct \

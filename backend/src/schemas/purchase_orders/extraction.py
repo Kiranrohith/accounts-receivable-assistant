@@ -6,11 +6,12 @@ from decimal import Decimal
 from pydantic import BaseModel, Field, model_validator
 
 from schemas.customers.tax_id import TaxIdFields, from_legacy
+from schemas.quantity import Quantity
 
 
 class POLineItem(BaseModel):
     description: str
-    quantity: Decimal | None = None
+    quantity: Quantity = None
     unit_price: Decimal | None = None
     line_total: Decimal | None = None
 
